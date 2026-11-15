@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, ArrowLeft, CheckCircle2, Calendar, MapPin, DollarSign, Camera } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 export default function EnquiryForm({ isOpen, onClose }) {
   const [step, setStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // New loading state
   
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '',
     eventType: '', eventDate: '', location: '',
-    days: '1', services: [], budget: '', requirements: ''
+    services: [], budget: '', requirements: ''
   });
 
   const handleChange = (e) => {
@@ -26,15 +27,45 @@ export default function EnquiryForm({ isOpen, onClose }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  // --- UPDATED SUBMIT FUNCTION ---
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send data to Supabase/Resend
-    console.log("Form Submitted:", formData);
-    setIsSubmitted(true);
-    setTimeout(() => {
-      onClose();
-      setTimeout(() => { setIsSubmitted(false); setStep(1); }, 500);
-    }, 3000);
+    setIsSubmitting(true);
+    
+    try {
+      // Send data to our Vercel Serverless Function (/api/enquiry)
+      const response = await fetch('/api/enquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        // Success! Show the success screen
+        setIsSubmitted(true);
+        
+        // Wait 3 seconds, then close and reset
+        setTimeout(() => {
+          onClose();
+          setTimeout(() => { 
+            setIsSubmitted(false); 
+            setStep(1); 
+            setFormData({
+              name: '', email: '', phone: '',
+              eventType: '', eventDate: '', location: '',
+              services: [], budget: '', requirements: ''
+            });
+          }, 500);
+        }, 3000);
+      } else {
+        alert("Something went wrong. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Error submitting form. Please check your connection.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -74,6 +105,8 @@ export default function EnquiryForm({ isOpen, onClose }) {
                   </div>
 
                   <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    
+                    {/* STEP 1: Personal Details */}
                     {step === 1 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>1. YOUR DETAILS</h4>
@@ -83,6 +116,7 @@ export default function EnquiryForm({ isOpen, onClose }) {
                       </motion.div>
                     )}
 
+                    {/* STEP 2: Event Details */}
                     {step === 2 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>2. EVENT DETAILS</h4>
@@ -99,6 +133,7 @@ export default function EnquiryForm({ isOpen, onClose }) {
                       </motion.div>
                     )}
 
+                    {/* STEP 3: Requirements */}
                     {step === 3 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>3. REQUIREMENTS</h4>
@@ -117,9 +152,10 @@ export default function EnquiryForm({ isOpen, onClose }) {
                       </motion.div>
                     )}
 
+                    {/* Navigation Buttons */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
                       {step > 1 ? (
-                        <button type="button" onClick={() => setStep(step - 1)} style={{ background: 'transparent', border: 'none', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                        <button type="button" onClick={() => setStep(step - 1)} disabled={isSubmitting} style={{ background: 'transparent', border: 'none', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '5px', cursor: isSubmitting ? 'not-allowed' : 'pointer' }}>
                           <ArrowLeft size={16} /> Back
                         </button>
                       ) : <div />}
@@ -129,8 +165,8 @@ export default function EnquiryForm({ isOpen, onClose }) {
                           Next Step <ArrowRight size={16} />
                         </button>
                       ) : (
-                        <button type="submit" className="primary-btn" style={{ padding: '12px 24px' }}>
-                          Submit Enquiry
+                        <button type="submit" className="primary-btn" disabled={isSubmitting} style={{ padding: '12px 24px', opacity: isSubmitting ? 0.7 : 1 }}>
+                          {isSubmitting ? 'Submitting...' : 'Submit Enquiry'}
                         </button>
                       )}
                     </div>
