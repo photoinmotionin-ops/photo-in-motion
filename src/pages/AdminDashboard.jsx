@@ -19,16 +19,18 @@ export default function AdminDashboard() {
       }
 
       try {
-        // USE ABSOLUTE URL FOR VERCEL API
+        // Force the absolute URL to the live domain
         const apiUrl = `${window.location.origin}/api/get-enquiries`;
+        console.log("Fetching from:", apiUrl);
 
         const res = await fetch(apiUrl, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
+        // If Vercel returns HTML, it means the API folder is missing
         const contentType = res.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-           throw new Error("API returned HTML. Ensure your api folder is in the root and Vercel built it.");
+           throw new Error("API returned HTML. The 'api' folder is not in the root of your project, or Vercel is ignoring it.");
         }
 
         if (res.status === 401) {
@@ -42,7 +44,7 @@ export default function AdminDashboard() {
         if (res.ok) {
           setEnquiries(data);
         } else {
-          setError(data.message || "Failed to load data");
+          setError(`Backend Error: ${data.message || "Failed to load data"}`);
         }
       } catch (err) {
         console.error("Fetch Error:", err);
