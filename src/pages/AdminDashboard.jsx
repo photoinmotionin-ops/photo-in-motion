@@ -19,16 +19,13 @@ export default function AdminDashboard() {
       }
 
       try {
-        // Use absolute URL
-        const apiUrl = `${window.location.origin}/api/get-enquiries`;
-        const res = await fetch(apiUrl, {
+        const res = await fetch('/api/get-enquiries', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        // Check if the response is HTML (API broken)
         const contentType = res.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-           throw new Error("API route not found. Please check if your backend is connected.");
+           throw new Error("API returned HTML. Ensure your api folder is in the root and Vercel built it.");
         }
 
         if (res.status === 401) {

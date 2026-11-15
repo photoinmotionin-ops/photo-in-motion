@@ -15,19 +15,16 @@ export default function AdminLogin() {
     setError(null);
 
     try {
-      // Use absolute URL to bypass any routing issues
-      const apiUrl = `${window.location.origin}/api/login`;
-      
-      const res = await fetch(apiUrl, {
+      const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
       });
 
-      // Check if the response is HTML (which means the API route is broken)
+      // Check if Vercel returned HTML instead of JSON
       const contentType = res.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-         throw new Error("API route not found. The server returned HTML instead of JSON.");
+         throw new Error("API route returned HTML. Ensure the api folder is in the root.");
       }
 
       const data = await res.json();
