@@ -17,12 +17,17 @@ export default function AdminDashboard() {
         return;
       }
 
-      try {
+            try {
         const res = await fetch('/api/get-enquiries', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        // If the token is invalid or expired, force a logout
+        // Check if the response is actually JSON before parsing
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+           throw new Error("The server returned an HTML page instead of JSON. This means the API route is not working.");
+        }
+
         if (res.status === 401) {
           localStorage.removeItem('adminToken');
           alert("Your session expired. Please log in again.");
@@ -30,17 +35,18 @@ export default function AdminDashboard() {
           return;
         }
 
+        const data = await res.json();
+        
         if (res.ok) {
-          const data = await res.json();
           setEnquiries(data);
         } else {
-          const errData = await res.json();
-          alert(`Failed to load data: ${errData.message}`);
+          alert(`Failed to load data: ${data.message}`);
         }
       } catch (error) {
         console.error("Fetch Error:", error);
-        alert("Network error. Check your connection.");
+        alert(error.message);
       }
+       
       setLoading(false);
     };
 
