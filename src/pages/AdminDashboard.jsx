@@ -8,7 +8,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
+   useEffect(() => {
     const fetchEnquiries = async () => {
       const token = localStorage.getItem('adminToken');
       
@@ -22,15 +22,24 @@ export default function AdminDashboard() {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
+        // If the token is invalid or expired, force a logout
+        if (res.status === 401) {
+          localStorage.removeItem('adminToken');
+          alert("Your session expired. Please log in again.");
+          navigate('/admin/login');
+          return;
+        }
+
         if (res.ok) {
           const data = await res.json();
           setEnquiries(data);
         } else {
-          localStorage.removeItem('adminToken');
-          navigate('/admin/login');
+          const errData = await res.json();
+          alert(`Failed to load data: ${errData.message}`);
         }
       } catch (error) {
-        console.error("Failed to fetch enquiries", error);
+        console.error("Fetch Error:", error);
+        alert("Network error. Check your connection.");
       }
       setLoading(false);
     };
