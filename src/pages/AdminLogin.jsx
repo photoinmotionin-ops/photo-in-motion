@@ -15,19 +15,11 @@ export default function AdminLogin() {
     setError(null);
 
     try {
-      // USE ABSOLUTE URL FOR VERCEL API
-     const apiUrl = `${window.location.origin}/api/login`;
-
-      const res = await fetch(apiUrl, {
+      const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
       });
-
-      const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-         throw new Error("API returned HTML. Ensure the api folder is in the root.");
-      }
 
       const data = await res.json();
 
@@ -38,7 +30,7 @@ export default function AdminLogin() {
         setError(data.message || 'Invalid password');
       }
     } catch (err) {
-      setError(err.message);
+      setError('Network error. Please try again.');
     }
     setLoading(false);
   };

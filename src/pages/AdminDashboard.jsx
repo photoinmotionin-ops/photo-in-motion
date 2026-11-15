@@ -12,27 +12,16 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchEnquiries = async () => {
       const token = localStorage.getItem('adminToken');
-      
       if (!token) {
         navigate('/admin/login');
         return;
       }
 
       try {
-        // Force the absolute URL to the live domain
-        const apiUrl = `${window.location.origin}/api/get-enquiries`;
-        console.log("Fetching from:", apiUrl);
-
-        const res = await fetch(apiUrl, {
+        const res = await fetch('/api/get-enquiries', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        // If Vercel returns HTML, it means the API folder is missing
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-           throw new Error("API returned HTML. The 'api' folder is not in the root of your project, or Vercel is ignoring it.");
-        }
-
         if (res.status === 401) {
           localStorage.removeItem('adminToken');
           navigate('/admin/login');
@@ -40,15 +29,13 @@ export default function AdminDashboard() {
         }
 
         const data = await res.json();
-        
         if (res.ok) {
           setEnquiries(data);
         } else {
-          setError(`Backend Error: ${data.message || "Failed to load data"}`);
+          setError(data.message || "Failed to load data");
         }
       } catch (err) {
-        console.error("Fetch Error:", err);
-        setError(err.message);
+        setError("Network error. Check your backend connection.");
       }
       setLoading(false);
     };
@@ -103,9 +90,7 @@ export default function AdminDashboard() {
               <div style={{ position: 'absolute', top: '20px', right: '20px', color: 'var(--gold)' }}>
                 <Clock size={20} />
               </div>
-              
               <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '26px', color: 'var(--gold)', margin: '0 0 20px' }}>{enq.name}</h3>
-              
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text)', fontSize: '14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Mail size={16} color="var(--muted)"/> {enq.email}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Phone size={16} color="var(--muted)"/> {enq.phone}</div>
@@ -113,7 +98,6 @@ export default function AdminDashboard() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><MapPin size={16} color="var(--muted)"/> {enq.location}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><DollarSign size={16} color="var(--muted)"/> Budget: {enq.budget}</div>
               </div>
-
               {enq.requirements && (
                 <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '13px', color: 'var(--muted)', fontStyle: 'italic', borderLeft: '2px solid var(--gold)' }}>
                   "{enq.requirements}"
