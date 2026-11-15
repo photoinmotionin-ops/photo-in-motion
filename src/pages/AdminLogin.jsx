@@ -15,11 +15,20 @@ export default function AdminLogin() {
     setError(null);
 
     try {
-      const res = await fetch('/api/login', {
+      // Use absolute URL to bypass any routing issues
+      const apiUrl = `${window.location.origin}/api/login`;
+      
+      const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
       });
+
+      // Check if the response is HTML (which means the API route is broken)
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+         throw new Error("API route not found. The server returned HTML instead of JSON.");
+      }
 
       const data = await res.json();
 
@@ -30,7 +39,7 @@ export default function AdminLogin() {
         setError(data.message || 'Invalid password');
       }
     } catch (err) {
-      setError('Something went wrong. Try again.');
+      setError(err.message);
     }
     setLoading(false);
   };
@@ -46,7 +55,7 @@ export default function AdminLogin() {
         </div>
         <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: '36px', color: 'var(--white)', margin: '0 0 30px' }}>Admin Login</h2>
         
-        {error && <p style={{ color: '#ff4d4d', marginBottom: '20px', fontSize: '14px' }}>{error}</p>}
+        {error && <p style={{ color: '#ff4d4d', marginBottom: '20px', fontSize: '14px', background: 'rgba(255,0,0,0.1)', padding: '10px', borderRadius: '8px' }}>{error}</p>}
 
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <input 

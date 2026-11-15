@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogOut, Mail, Phone, Calendar, MapPin, DollarSign, Clock } from 'lucide-react';
+import { LogOut, Mail, Phone, Calendar, MapPin, DollarSign, Clock, AlertCircle } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-   useEffect(() => {
+  useEffect(() => {
     const fetchEnquiries = async () => {
       const token = localStorage.getItem('adminToken');
       
@@ -17,20 +18,21 @@ export default function AdminDashboard() {
         return;
       }
 
-            try {
-        const res = await fetch('/api/get-enquiries', {
+      try {
+        // Use absolute URL
+        const apiUrl = `${window.location.origin}/api/get-enquiries`;
+        const res = await fetch(apiUrl, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        // Check if the response is actually JSON before parsing
+        // Check if the response is HTML (API broken)
         const contentType = res.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-           throw new Error("The server returned an HTML page instead of JSON. This means the API route is not working.");
+           throw new Error("API route not found. Please check if your backend is connected.");
         }
 
         if (res.status === 401) {
           localStorage.removeItem('adminToken');
-          alert("Your session expired. Please log in again.");
           navigate('/admin/login');
           return;
         }
@@ -40,13 +42,12 @@ export default function AdminDashboard() {
         if (res.ok) {
           setEnquiries(data);
         } else {
-          alert(`Failed to load data: ${data.message}`);
+          setError(data.message || "Failed to load data");
         }
-      } catch (error) {
-        console.error("Fetch Error:", error);
-        alert(error.message);
+      } catch (err) {
+        console.error("Fetch Error:", err);
+        setError(err.message);
       }
-       
       setLoading(false);
     };
 
@@ -73,6 +74,13 @@ export default function AdminDashboard() {
         </button>
       </div>
 
+      {error && (
+        <div style={{ background: 'rgba(255, 77, 77, 0.1)', border: '1px solid #ff4d4d', color: '#ff4d4d', padding: '20px', borderRadius: '12px', marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <AlertCircle size={24} />
+          <p style={{ margin: 0 }}>{error}</p>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '40px' }}>
         <div style={{ background: '#171717', padding: '25px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
           <p style={{ color: 'var(--muted)', margin: '0 0 10px', fontSize: '14px' }}>Total Enquiries</p>
@@ -80,7 +88,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {enquiries.length === 0 ? (
+      {enquiries.length === 0 && !error ? (
         <p style={{ color: 'var(--muted)' }}>No enquiries yet. Share your website to get started!</p>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
