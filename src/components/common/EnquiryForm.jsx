@@ -6,7 +6,7 @@ export default function EnquiryForm({ isOpen, onClose }) {
   const [step, setStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // New loading state
-  
+
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '',
     eventType: '', eventDate: '', location: '',
@@ -18,8 +18,8 @@ export default function EnquiryForm({ isOpen, onClose }) {
     if (type === 'checkbox') {
       setFormData(prev => ({
         ...prev,
-        services: checked 
-          ? [...prev.services, value] 
+        services: checked
+          ? [...prev.services, value]
           : prev.services.filter(s => s !== value)
       }));
     } else {
@@ -31,7 +31,7 @@ export default function EnquiryForm({ isOpen, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       // Send data to our Vercel Serverless Function (/api/enquiry)
       const response = await fetch('/api/enquiry', {
@@ -40,25 +40,17 @@ export default function EnquiryForm({ isOpen, onClose }) {
         body: JSON.stringify(formData)
       });
 
+      const data = await response.json(); // <-- ADD THIS LINE
+
       if (response.ok) {
-        // Success! Show the success screen
         setIsSubmitted(true);
-        
-        // Wait 3 seconds, then close and reset
         setTimeout(() => {
           onClose();
-          setTimeout(() => { 
-            setIsSubmitted(false); 
-            setStep(1); 
-            setFormData({
-              name: '', email: '', phone: '',
-              eventType: '', eventDate: '', location: '',
-              services: [], budget: '', requirements: ''
-            });
-          }, 500);
+          setTimeout(() => { setIsSubmitted(false); setStep(1); }, 500);
         }, 3000);
       } else {
-        alert("Something went wrong. Please try again.");
+        // Show the exact error from Vercel
+        alert(`Error: ${data.message || 'Something went wrong. Please try again.'}`);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -105,7 +97,7 @@ export default function EnquiryForm({ isOpen, onClose }) {
                   </div>
 
                   <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    
+
                     {/* STEP 1: Personal Details */}
                     {step === 1 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
@@ -159,7 +151,7 @@ export default function EnquiryForm({ isOpen, onClose }) {
                           <ArrowLeft size={16} /> Back
                         </button>
                       ) : <div />}
-                      
+
                       {step < 3 ? (
                         <button type="button" onClick={() => setStep(step + 1)} className="primary-btn" style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                           Next Step <ArrowRight size={16} />
