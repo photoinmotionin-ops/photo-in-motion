@@ -40,7 +40,8 @@ export default function EnquiryForm({ isOpen, onClose }) {
         body: JSON.stringify(formData)
       });
 
-      const data = await response.json(); // <-- ADD THIS LINE
+      // Read the response data to see what Vercel is saying
+      const data = await response.json();
 
       if (response.ok) {
         setIsSubmitted(true);
@@ -49,8 +50,8 @@ export default function EnquiryForm({ isOpen, onClose }) {
           setTimeout(() => { setIsSubmitted(false); setStep(1); }, 500);
         }, 3000);
       } else {
-        // Show the exact error from Vercel
-        alert(`Error: ${data.message || 'Something went wrong. Please try again.'}`);
+        // Show the EXACT error message on the screen
+        alert(`Backend Error: ${data.message || JSON.stringify(data)}`);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
