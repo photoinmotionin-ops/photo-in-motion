@@ -15,16 +15,18 @@ export default function AdminLogin() {
     setError(null);
 
     try {
-      const res = await fetch('/api/login', {
+      // USE ABSOLUTE URL FOR VERCEL API
+     const apiUrl = `${window.location.origin}/api/login`;
+
+      const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
       });
 
-      // Check if Vercel returned HTML instead of JSON
       const contentType = res.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-         throw new Error("API route returned HTML. Ensure the api folder is in the root.");
+         throw new Error("API returned HTML. Ensure the api folder is in the root.");
       }
 
       const data = await res.json();

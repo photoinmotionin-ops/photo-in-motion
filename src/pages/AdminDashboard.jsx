@@ -19,7 +19,10 @@ export default function AdminDashboard() {
       }
 
       try {
-        const res = await fetch('/api/get-enquiries', {
+        // USE ABSOLUTE URL FOR VERCEL API
+        const apiUrl = `${window.location.origin}/api/get-enquiries`;
+
+        const res = await fetch(apiUrl, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
