@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Loader2 } from 'lucide-react';
 
 export default function AdminChange() {
   const [content, setContent] = useState({
@@ -17,10 +16,13 @@ export default function AdminChange() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // If not logged in, go to login
     if (localStorage.getItem('isAdmin') !== 'true') {
       navigate('/admin/login');
       return;
     }
+    
+    // Fetch existing content
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(data => {
@@ -28,21 +30,26 @@ export default function AdminChange() {
           setContent(data);
         }
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, [navigate]);
 
   const handleSave = async () => {
     setSaving(true);
-    const res = await fetch('/api/enquiry', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'save_content', content })
-    });
-    
-    if (res.ok) {
-      alert('Website content updated successfully!');
-    } else {
-      alert('Failed to save changes.');
+    try {
+      const res = await fetch('/api/enquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save_content', content })
+      });
+      
+      if (res.ok) {
+        alert('Website content updated successfully!');
+      } else {
+        alert('Failed to save changes.');
+      }
+    } catch (err) {
+      alert('Network error.');
     }
     setSaving(false);
   };
@@ -54,19 +61,18 @@ export default function AdminChange() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '20px' }}>
         <div>
           <button onClick={() => navigate('/admin/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', marginBottom: '10px' }}>
-            <ArrowLeft size={16} /> Back to Dashboard
+            ← Back to Dashboard
           </button>
           <h1 style={{ fontFamily: 'var(--heading-font)', fontSize: '36px', color: 'var(--white)', margin: 0 }}>Edit Website Content</h1>
         </div>
         <button onClick={handleSave} disabled={saving} className="primary-btn" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {saving ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={18} />}
           {saving ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', maxWidth: '800px' }}>
         <div>
-          <label style={labelStyle}>Hero Title (Use Enter for line breaks)</label>
+          <label style={labelStyle}>Hero Title</label>
           <textarea value={content.heroTitle} onChange={(e) => setContent({...content, heroTitle: e.target.value})} style={textareaStyle} rows={2} />
         </div>
         <div>
