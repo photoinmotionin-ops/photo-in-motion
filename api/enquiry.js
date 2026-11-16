@@ -1,45 +1,37 @@
 import { MongoClient } from 'mongodb';
 
+const uri = "mongodb+srv://photoinmotionin_db_user:YOUR_MONGODB_PASSWORD@cluster0.mya1eq.mongodb.net/photoinmotion?retryWrites=true&w=majority";
+
 export default async function handler(req, res) {
-  // 1. Only allow POST requests
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method Not Allowed' });
-  }
-
-  const { name, email, phone, eventType, eventDate, location, budget, requirements } = req.body;
-
-  if (!name || !email || !phone) {
-    return res.status(400).json({ message: 'Name, email, and phone are required.' });
-  }
-
-  // 2. Connect to MongoDB using the Environment Variable you will set in Vercel
-  const client = new MongoClient(process.env.MONGODB_URI);
-
+  const client = new MongoClient(uri);
+  
   try {
     await client.connect();
-    
-    // 3. Select the database and collection
-    const db = client.db('photoinmotion'); 
+    const db = client.db('photoinmotion');
     const collection = db.collection('enquiries');
 
-    // 4. Insert the data
-    const result = await collection.insertOne({
-      name,
-      email,
-      phone,
-      eventType,
-      eventDate,
-      location,
-      budget,
-      requirements,
-      status: 'unread',
-      createdAt: new Date()
-    });
+    // 1. If the form submits data (POST)
+    if (req.method === 'POST') {
+      const { name, email, phone, eventType, eventDate, location, budget, requirements } = req.body;
+      
+      await collection.insertOne({
+        name, email, phone, eventType, eventDate, location, budget, requirements,
+        status: 'unread', 
+        createdAt: new Date()
+      });
 
-    res.status(201).json({ message: 'Enquiry saved successfully', id: result.insertedId });
+      return res.status(201).json({ message: 'Enquiry saved successfully' });
+    }
+
+    // 2. If the dashboard requests data (GET)
+    if (req.method === 'GET') {
+      const enquiries = await collection.find({}).sort({ createdAt: -1 }).toArray();
+      return res.status(200).json(enquiries);
+    }
+
   } catch (error) {
-    console.error('MongoDB Error:', error);
-    res.status(500).json({ message: 'Error saving enquiry' });
+    console.error(error);
+    return res.status(500).json({ message: 'Database error' });
   } finally {
     await client.close();
   }

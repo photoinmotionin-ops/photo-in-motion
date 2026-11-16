@@ -28,20 +28,16 @@ export default function EnquiryForm({ isOpen, onClose }) {
   };
 
   // --- UPDATED SUBMIT FUNCTION ---
-  const handleSubmit = async (e) => {
+   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+    
     try {
-      // Send data to our Vercel Serverless Function (/api/enquiry)
       const response = await fetch('/api/enquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-
-      // Read the response data to see what Vercel is saying
-      const data = await response.json();
 
       if (response.ok) {
         setIsSubmitted(true);
@@ -50,12 +46,10 @@ export default function EnquiryForm({ isOpen, onClose }) {
           setTimeout(() => { setIsSubmitted(false); setStep(1); }, 500);
         }, 3000);
       } else {
-        // Show the EXACT error message on the screen
-        alert(`Backend Error: ${data.message || JSON.stringify(data)}`);
+        alert("Something went wrong. Please try again.");
       }
     } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("Error submitting form. Please check your connection.");
+      alert("Error submitting form.");
     } finally {
       setIsSubmitting(false);
     }
