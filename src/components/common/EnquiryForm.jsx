@@ -5,8 +5,7 @@ import { X, ArrowRight, ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react';
 export default function EnquiryForm({ isOpen, onClose }) {
   const [step, setStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  // THIS WAS MISSING:
-  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '',
@@ -30,7 +29,7 @@ export default function EnquiryForm({ isOpen, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true); // Set to true when starting
+    setIsSubmitting(true);
     
     try {
       const response = await fetch('/api/enquiry', {
@@ -60,7 +59,7 @@ export default function EnquiryForm({ isOpen, onClose }) {
       console.error(error);
       alert("Error submitting form. Please check your connection.");
     } finally {
-      setIsSubmitting(false); // Set to false when done (or failed)
+      setIsSubmitting(false);
     }
   };
 
@@ -105,16 +104,16 @@ export default function EnquiryForm({ isOpen, onClose }) {
                     {step === 1 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>1. YOUR DETAILS</h4>
-                        <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required style={inputStyle} disabled={isSubmitting} />
-                        <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} required style={inputStyle} disabled={isSubmitting} />
-                        <input type="tel" name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} required style={inputStyle} disabled={isSubmitting} />
+                        <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
+                        <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
+                        <input type="tel" name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
                       </motion.div>
                     )}
 
                     {step === 2 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>2. EVENT DETAILS</h4>
-                        <select name="eventType" value={formData.eventType} onChange={handleChange} required style={inputStyle} disabled={isSubmitting}>
+                        <select name="eventType" value={formData.eventType} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting}>
                           <option value="">Select Event Type</option>
                           <option value="wedding">Wedding</option>
                           <option value="pre-wedding">Pre-Wedding Shoot</option>
@@ -122,8 +121,8 @@ export default function EnquiryForm({ isOpen, onClose }) {
                           <option value="birthday">Birthday / Celebration</option>
                           <option value="corporate">Corporate Event</option>
                         </select>
-                        <input type="date" name="eventDate" value={formData.eventDate} onChange={handleChange} required style={inputStyle} disabled={isSubmitting} />
-                        <input type="text" name="location" placeholder="Event Location / City" value={formData.location} onChange={handleChange} required style={inputStyle} disabled={isSubmitting} />
+                        <input type="date" name="eventDate" value={formData.eventDate} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
+                        <input type="text" name="location" placeholder="Event Location / City" value={formData.location} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
                       </motion.div>
                     )}
 
@@ -134,14 +133,14 @@ export default function EnquiryForm({ isOpen, onClose }) {
                           <label style={checkboxStyle}><input type="checkbox" name="services" value="photography" onChange={handleChange} disabled={isSubmitting} /> Photography</label>
                           <label style={checkboxStyle}><input type="checkbox" name="services" value="cinematography" onChange={handleChange} disabled={isSubmitting} /> Cinematography</label>
                         </div>
-                        <select name="budget" value={formData.budget} onChange={handleChange} required style={inputStyle} disabled={isSubmitting}>
+                        <select name="budget" value={formData.budget} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting}>
                           <option value="">Select Budget Range</option>
                           <option value="under-50k">Under ₹50,000</option>
                           <option value="50k-1l">₹50,000 - ₹1,00,000</option>
                           <option value="1l-3l">₹1,00,000 - ₹3,00,000</option>
                           <option value="above-3l">Above ₹3,00,000</option>
                         </select>
-                        <textarea name="requirements" placeholder="Any specific requirements?" value={formData.requirements} onChange={handleChange} rows="3" style={inputStyle} disabled={isSubmitting} />
+                        <textarea name="requirements" placeholder="Any specific requirements?" value={formData.requirements} onChange={handleChange} rows="3" style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
                       </motion.div>
                     )}
 
@@ -189,10 +188,20 @@ styleSheet.textContent = `
 `;
 document.head.appendChild(styleSheet);
 
-const inputStyle = {
-  width: '100%', padding: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--white)', fontSize: '14px', marginBottom: '15px', outline: 'none', fontFamily: 'var(--body-font)',
+// FIX: We use a function to generate the style so it doesn't break the component scope
+const getInputStyle = (isSubmitting) => ({
+  width: '100%', 
+  padding: '15px', 
+  background: 'rgba(255,255,255,0.03)', 
+  border: '1px solid rgba(255,255,255,0.1)', 
+  borderRadius: '8px', 
+  color: 'var(--white)', 
+  fontSize: '14px', 
+  marginBottom: '15px', 
+  outline: 'none', 
+  fontFamily: 'var(--body-font)',
   opacity: isSubmitting ? 0.5 : 1
-};
+});
 
 const checkboxStyle = {
   display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text)', fontSize: '14px', cursor: 'pointer'
