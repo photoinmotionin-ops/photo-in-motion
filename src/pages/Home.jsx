@@ -1,16 +1,15 @@
-import { motion } from 'framer-motion'
-import { ArrowUpRight, ArrowDown, Play, Star } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import CinematicReveal from '../components/animations/CinematicReveal'
-import CameraCapture from '../components/animations/CameraCapture'
-import EventPlanner from '../components/animations/EventPlanner'
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowUpRight, ArrowDown, Play, Star } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import CinematicReveal from '../components/animations/CinematicReveal';
+import CameraCapture from '../components/animations/CameraCapture';
+import EventPlanner from '../components/animations/EventPlanner';
 
-// --- ANIMATION VARIANTS ---
 const maskReveal = { hidden: { y: "100%", rotate: 2 }, visible: { y: 0, rotate: 0, transition: { duration: 0.8, ease: [0.33, 1, 0.68, 1] } } }
 const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } } }
 const staggerContainer = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.1 } } }
 
-// --- MOCK DATA ---
 const featuredWorks = [
   { number: '01', category: 'WEDDINGS', title: 'Forever Begins', image: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85' },
   { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85' },
@@ -18,26 +17,45 @@ const featuredWorks = [
 ]
 
 const testimonials = [
-  { name: 'Ananya & Rahul', review: 'They captured the essence of our wedding perfectly. Looking at the photos brings back every emotion we felt that day.', rating: 5 },
-  { name: 'Sarah & James', review: 'The cinematic film they created for us is an absolute masterpiece. It felt like watching a movie trailer for our lives.', rating: 5 },
-  { name: 'Priya & Arjun', review: 'Professional, unobtrusive, and incredibly talented. The quality of their work is unmatched.', rating: 5 },
+  { name: 'Ananya & Rahul', rating: 5 },
+  { name: 'Sarah & James', rating: 5 },
+  { name: 'Priya & Arjun', rating: 5 },
 ]
 
 export default function Home() {
+  const [content, setContent] = useState({
+    heroTitle: 'Every Frame.\nA Timeless Story.',
+    heroSub: "We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.",
+    storyTitle: 'Moments pass.\nStories stay forever.',
+    storyText: 'At Photo In Motion, we believe every celebration has a story worth telling. Through thoughtful photography and cinematic filmmaking, we preserve the feelings behind every frame.',
+    testimonial1: 'They captured the essence of our wedding perfectly.',
+    testimonial2: 'The cinematic film they created for us is an absolute masterpiece.',
+    testimonial3: 'Professional, unobtrusive, and incredibly talented.'
+  });
+
+  useEffect(() => {
+    fetch('/api/enquiry?action=get_content')
+      .then(res => res.json())
+      .then(data => {
+        if (Object.keys(data).length > 0) {
+          setContent(data);
+        }
+      });
+  }, []);
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       
-      {/* 1. GRAND ROYAL HERO */}
+      {/* 1. HERO SECTION */}
       <section className="hero" id="home">
         <div className="hero-overlay" />
         <motion.div className="hero-content" initial="hidden" animate="visible" variants={staggerContainer}>
           <div style={{ overflow: 'hidden' }}><motion.p className="eyebrow" variants={maskReveal}>WEDDING · EVENTS · CINEMATIC FILMS</motion.p></div>
-          <h1>
-            <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}>Every Frame.</motion.div></div>
-            <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}><span>A Timeless Story.</span></motion.div></div>
+          <h1 style={{ whiteSpace: 'pre-line' }}>
+            <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}>{content.heroTitle}</motion.div></div>
           </h1>
           <motion.p className="hero-description" variants={fadeUp}>
-            We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.
+            {content.heroSub}
           </motion.p>
           <motion.div className="hero-actions" variants={fadeUp}>
             <Link to="/portfolio" className="primary-btn">Explore Our Work <ArrowUpRight size={18} /></Link>
@@ -51,25 +69,21 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* 2. NEW CAMERA CAPTURE ANIMATION */}
       <CameraCapture />
-
-      {/* 3. CINEMATIC REVEAL (GSAP) */}
       <CinematicReveal />
 
-      {/* 4. INTRODUCTION / PHILOSOPHY */}
+      {/* 2. INTRODUCTION */}
       <motion.section className="intro-section" id="story" style={{ padding: '120px 10%' }} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer}>
         <motion.p className="eyebrow" variants={fadeUp}>MORE THAN JUST PHOTOGRAPHY</motion.p>
-        <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0 }}>
-          <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}>Moments pass.</motion.div></div>
-          <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}><span>Stories stay forever.</span></motion.div></div>
+        <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0, whiteSpace: 'pre-line' }}>
+          <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}>{content.storyTitle}</motion.div></div>
         </h2>
         <motion.p variants={fadeUp} style={{ maxWidth: '800px', margin: '40px auto 0', fontSize: '15px', lineHeight: '2', color: 'var(--muted)' }}>
-          At Photo In Motion, we believe every celebration has a story worth telling. Through thoughtful photography and cinematic filmmaking, we preserve the feelings behind every frame.
+          {content.storyText}
         </motion.p>
       </motion.section>
 
-      {/* 5. FEATURED WORKS (Portfolio Preview) */}
+      {/* 3. FEATURED WORKS */}
       <section className="portfolio-section" style={{ padding: '100px 10%', background: 'var(--bg-light)' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer} style={{ textAlign: 'center' }}>
           <motion.p className="eyebrow" variants={fadeUp}>A COLLECTION OF MEMORIES</motion.p>
@@ -96,7 +110,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 6. SHOWREEL */}
+      {/* 4. SHOWREEL */}
       <section className="showreel-section" style={{ padding: '120px 10%', background: 'var(--bg)', textAlign: 'center' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
           <motion.p className="eyebrow" variants={fadeUp}>THE CINEMATIC EXPERIENCE</motion.p>
@@ -115,10 +129,9 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* 7. NEW EVENT PLANNER ANIMATION */}
       <EventPlanner />
 
-      {/* 8. TESTIMONIALS PREVIEW */}
+      {/* 5. TESTIMONIALS */}
       <section className="testimonials-section" style={{ padding: '100px 10%', background: 'var(--bg-light)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
           <motion.p className="eyebrow" variants={fadeUp}>CLIENT LOVE</motion.p>
@@ -133,14 +146,16 @@ export default function Home() {
               <div style={{ display: 'flex', gap: '5px', color: 'var(--gold)', marginBottom: '20px' }}>
                 {[...Array(test.rating)].map((_, i) => <Star key={i} size={16} fill="var(--gold)" />)}
               </div>
-              <p style={{ color: 'var(--text)', fontSize: '14px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '20px' }}>"{test.review}"</p>
+              <p style={{ color: 'var(--text)', fontSize: '14px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '20px' }}>
+                "{content[`testimonial${index + 1}`]}"
+              </p>
               <h4 style={{ fontFamily: 'var(--heading-font)', fontSize: '20px', color: 'var(--white)', margin: 0 }}>{test.name}</h4>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* 9. FINAL CTA */}
+      {/* 6. FINAL CTA */}
       <motion.section className="contact-section" style={{ padding: '120px 10%', background: 'var(--bg)', textAlign: 'center' }} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
         <motion.p className="eyebrow" variants={fadeUp}>LET'S CREATE SOMETHING TIMELESS</motion.p>
         <h2>
