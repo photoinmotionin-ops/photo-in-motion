@@ -1,22 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, Loader2 } from 'lucide-react';
 
 export default function AdminLogin() {
-  const [view, setView] = useState('login'); // 'login' | 'forgot' | 'reset'
+  const [view, setView] = useState('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false); // Added loading state
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // INSTANT LOGIN: Check if user is already logged in
+  useEffect(() => {
+    const isAdmin = localStorage.getItem('isAdmin');
+    if (isAdmin === 'true') {
+      navigate('/admin/dashboard');
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true); // Start loading
+    setLoading(true);
     
     try {
       const res = await fetch('/api/enquiry', {
@@ -36,7 +44,7 @@ export default function AdminLogin() {
     } catch (err) {
       setError("Network error. Please try again.");
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
@@ -128,7 +136,7 @@ export default function AdminLogin() {
 
         {view === 'forgot' && (
           <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <input type="text" placeholder="Enter Username (Manas / Haldhar)" value={username} onChange={(e) => setUsername(e.target.value)} required style={inputStyle} disabled={loading} />
+            <input type="text" placeholder="Enter Username" value={username} onChange={(e) => setUsername(e.target.value)} required style={inputStyle} disabled={loading} />
             
             <button type="submit" className="primary-btn" disabled={loading} style={{ width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '10px', opacity: loading ? 0.7 : 1 }}>
               {loading ? <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Sending OTP...</> : 'Send OTP'}
