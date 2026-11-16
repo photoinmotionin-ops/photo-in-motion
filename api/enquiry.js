@@ -1,197 +1,113 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react';
+import { MongoClient } from 'mongodb';
 
-export default function EnquiryForm({ isOpen, onClose }) {
-  const [step, setStep] = useState(1);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const uri = process.env.MONGODB_URI;
+const DB_NAME = 'photoinmotion';
+
+export default async function handler(req, res) {
+  const client = new MongoClient(uri);
   
-  const [formData, setFormData] = useState({
-    name: '', email: '', phone: '',
-    eventType: '', eventDate: '', location: '',
-    services: [], budget: '', requirements: ''
-  });
+  try {
+    await client.connect();
+    const db = client.db(DB_NAME);
+    const enquiriesCol = db.collection('enquiries');
+    const usersCol = db.collection('users');
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    if (type === 'checkbox') {
-      setFormData(prev => ({
-        ...prev,
-        services: checked 
-          ? [...prev.services, value] 
-          : prev.services.filter(s => s !== value)
-      }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      const response = await fetch('/api/enquiry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          action: 'submit_enquiry', 
-          ...formData 
-        })
+    // 1. ENQUIRY FORM SUBMISSION
+    if (req.method === 'POST' && req.body.action === 'submit_enquiry') {
+      const { name, email, phone, eventType, eventDate, location, budget, requirements } = req.body;
+      await enquiriesCol.insertOne({
+        name, email, phone, eventType, eventDate, location, budget, requirements,
+        status: 'unread', createdAt: new Date()
       });
-
-      if (response.ok) {
-        setIsSubmitted(true);
-        setTimeout(() => {
-          onClose();
-          setTimeout(() => { 
-            setIsSubmitted(false); 
-            setStep(1); 
-            setFormData({ name: '', email: '', phone: '', eventType: '', eventDate: '', location: '', services: [], budget: '', requirements: '' });
-          }, 500);
-        }, 4000);
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Something went wrong.'}`);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Error submitting form. Please check your connection.");
-    } finally {
-      setIsSubmitting(false);
+      return res.status(201).json({ message: 'Enquiry saved successfully' });
     }
-  };
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 1000 }}
-          />
-          <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001, pointerEvents: 'none', padding: '20px' }}>
-            <motion.div
-              initial={{ opacity: 0, y: 40, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              style={{ pointerEvents: 'auto', background: '#111', padding: '40px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', width: '100%', maxWidth: '600px', position: 'relative', boxShadow: '0 30px 60px rgba(0,0,0,0.6)', overflow: 'hidden' }}
-            >
-              <button onClick={onClose} style={{ position: 'absolute', top: '20px', right: '20px', background: 'transparent', border: 'none', color: '#aaa39a', cursor: 'pointer', zIndex: 10 }} disabled={isSubmitting}>
-                <X size={24} />
-              </button>
+    // 2. ADMIN LOGIN
+    if (req.method === 'POST' && req.body.action === 'login') {
+      const { username, password } = req.body;
+      const user = await usersCol.findOne({ username });
+      if (!user || user.password !== password) {
+        return res.status(401).json({ message: 'Invalid username or password' });
+      }
+      return res.status(200).json({ message: 'Login successful', username: user.username });
+    }
 
-              {isSubmitted ? (
-                <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '40px 0' }}>
-                  <CheckCircle2 size={60} color="var(--gold)" style={{ margin: '0 auto 20px' }} />
-                  <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '36px', color: 'var(--white)', margin: '0 0 10px' }}>Enquiry Received</h3>
-                  <p style={{ color: 'var(--muted)' }}>Thank you! We will review your details and get back to you within 24 hours.</p>
-                </motion.div>
-              ) : (
-                <>
-                  <div style={{ marginBottom: '30px' }}>
-                    <p className="eyebrow" style={{ marginBottom: '10px' }}>BOOKING ENQUIRY</p>
-                    <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', margin: 0 }}>Let's Capture Your Story</h3>
-                    <div style={{ display: 'flex', gap: '5px', marginTop: '20px' }}>
-                      {[1, 2, 3].map(i => (
-                        <div key={i} style={{ height: '4px', flex: 1, background: step >= i ? 'var(--gold)' : 'rgba(255,255,255,0.1)', borderRadius: '2px', transition: 'all 0.3s' }} />
-                      ))}
-                    </div>
-                  </div>
+    // 3. REQUEST OTP (Sends via EmailJS fetch - No nodemailer)
+    if (req.method === 'POST' && req.body.action === 'request_otp') {
+      const { username } = req.body;
+      const user = await usersCol.findOne({ username });
+      if (!user) return res.status(404).json({ message: 'User not found' });
 
-                  <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    
-                    {step === 1 && (
-                      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                        <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>1. YOUR DETAILS</h4>
-                        <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
-                        <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
-                        <input type="tel" name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
-                      </motion.div>
-                    )}
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+      await usersCol.updateOne({ username }, { $set: { otp, otpExpires } });
 
-                    {step === 2 && (
-                      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                        <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>2. EVENT DETAILS</h4>
-                        <select name="eventType" value={formData.eventType} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting}>
-                          <option value="">Select Event Type</option>
-                          <option value="wedding">Wedding</option>
-                          <option value="pre-wedding">Pre-Wedding Shoot</option>
-                          <option value="engagement">Engagement</option>
-                          <option value="birthday">Birthday / Celebration</option>
-                          <option value="corporate">Corporate Event</option>
-                        </select>
-                        <input type="date" name="eventDate" value={formData.eventDate} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
-                        <input type="text" name="location" placeholder="Event Location / City" value={formData.location} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
-                      </motion.div>
-                    )}
+      // You can replace this with your own EmailJS keys
+      try {
+        await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service_id: 'YOUR_EMAILJS_SERVICE_ID', // REPLACE
+            template_id: 'YOUR_EMAILJS_TEMPLATE_ID', // REPLACE
+            user_id: 'YOUR_EMAILJS_PUBLIC_KEY', // REPLACE
+            template_params: {
+              to_email: user.email,
+              otp_code: otp
+            }
+          })
+        });
+        return res.status(200).json({ message: 'OTP sent to email' });
+      } catch (error) {
+        return res.status(500).json({ message: 'Failed to send OTP.' });
+      }
+    }
 
-                    {step === 3 && (
-                      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                        <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>3. REQUIREMENTS</h4>
-                        <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
-                          <label style={checkboxStyle}><input type="checkbox" name="services" value="photography" onChange={handleChange} disabled={isSubmitting} /> Photography</label>
-                          <label style={checkboxStyle}><input type="checkbox" name="services" value="cinematography" onChange={handleChange} disabled={isSubmitting} /> Cinematography</label>
-                        </div>
-                        <select name="budget" value={formData.budget} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting}>
-                          <option value="">Select Budget Range</option>
-                          <option value="under-50k">Under ₹50,000</option>
-                          <option value="50k-1l">₹50,000 - ₹1,00,000</option>
-                          <option value="1l-3l">₹1,00,000 - ₹3,00,000</option>
-                          <option value="above-3l">Above ₹3,00,000</option>
-                        </select>
-                        <textarea name="requirements" placeholder="Any specific requirements?" value={formData.requirements} onChange={handleChange} rows="3" style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
-                      </motion.div>
-                    )}
+    // 4. RESET PASSWORD
+    if (req.method === 'POST' && req.body.action === 'reset_password') {
+      const { username, otp, newPassword } = req.body;
+      const user = await usersCol.findOne({ username });
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px', alignItems: 'center' }}>
-                      {step > 1 ? (
-                        <button type="button" onClick={() => setStep(step - 1)} disabled={isSubmitting} style={{ background: 'transparent', border: 'none', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '5px', cursor: isSubmitting ? 'not-allowed' : 'pointer' }}>
-                          <ArrowLeft size={16} /> Back
-                        </button>
-                      ) : <div />}
-                      
-                      {step < 3 ? (
-                        <button type="button" onClick={() => setStep(step + 1)} className="primary-btn" style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          Next Step <ArrowRight size={16} />
-                        </button>
-                      ) : (
-                        <button type="submit" className="primary-btn" disabled={isSubmitting} style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px', opacity: isSubmitting ? 0.7 : 1 }}>
-                          {isSubmitting ? (
-                            <>
-                              <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Submitting...
-                            </>
-                          ) : (
-                            'Submit Enquiry'
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  </form>
-                </>
-              )}
-            </motion.div>
-          </div>
-        </>
-      )}
-    </AnimatePresence>
-  );
-}
+      if (!user || user.otp !== otp || new Date() > new Date(user.otpExpires)) {
+        return res.status(400).json({ message: 'Invalid or expired OTP' });
+      }
 
-const styleSheet = document.createElement("style");
-styleSheet.textContent = `
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+      await usersCol.updateOne(
+        { username }, 
+        { $set: { password: newPassword }, $unset: { otp: "", otpExpires: "" } }
+      );
+      return res.status(200).json({ message: 'Password reset successfully' });
+    }
+
+    // 5. SAVE SITE CONTENT
+    if (req.method === 'POST' && req.body.action === 'save_content') {
+      const { content } = req.body;
+      await db.collection('site_content').updateOne(
+        { _id: 'main_site' },
+        { $set: content },
+        { upsert: true }
+      );
+      return res.status(200).json({ message: 'Content saved successfully' });
+    }
+
+    // 6. FETCH ENQUIRIES
+    if (req.method === 'GET' && req.query.action === 'get_enquiries') {
+      const enquiries = await enquiriesCol.find({}).sort({ createdAt: -1 }).toArray();
+      return res.status(200).json(enquiries);
+    }
+
+    // 7. FETCH SITE CONTENT
+    if (req.method === 'GET' && req.query.action === 'get_content') {
+      const content = await db.collection('site_content').findOne({ _id: 'main_site' });
+      return res.status(200).json(content || {});
+    }
+
+    return res.status(400).json({ message: 'Invalid action' });
+
+  } catch (error) {
+    console.error("Database Error:", error);
+    return res.status(500).json({ message: 'Database error' });
+  } finally {
+    await client.close();
   }
-`;
-document.head.appendChild(styleSheet);
-
-const getInputStyle = (isSubmitting) => ({
-  width: '100%', padding: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--white)', fontSize: '14px', marginBottom: '15px', outline: 'none', fontFamily: 'var(--body-font)',
-  opacity: isSubmitting ? 0.5 : 1
-});
-
-const checkboxStyle = {
-  display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text)', fontSize: '14px', cursor: 'pointer'
-};
+}
