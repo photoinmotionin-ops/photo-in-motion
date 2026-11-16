@@ -9,31 +9,27 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const adminName = localStorage.getItem('adminName');
 
-  useEffect(() => {
+    useEffect(() => {
     if (localStorage.getItem('isAdmin') !== 'true') {
       navigate('/admin/login');
       return;
     }
 
-    // 1. Check if we have cached data
+    // Load instantly from cache
     const cachedData = localStorage.getItem('enquiriesCache');
     if (cachedData) {
       setEnquiries(JSON.parse(cachedData));
-      setLoading(false); // Stop loading instantly
+      setLoading(false);
     }
 
-    // 2. Fetch fresh data in the background
+    // Fetch real data in the background
     fetch('/api/enquiry?action=get_enquiries')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
           setEnquiries(data);
-          localStorage.setItem('enquiriesCache', JSON.stringify(data)); // Save for next time
+          localStorage.setItem('enquiriesCache', JSON.stringify(data));
         }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Fetch Error:", err);
         setLoading(false);
       });
   }, [navigate]);

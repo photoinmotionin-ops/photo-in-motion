@@ -20,7 +20,7 @@ export default function AdminLogin() {
     }
   }, [navigate]);
 
-  const handleLogin = async (e) => {
+   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -34,7 +34,6 @@ export default function AdminLogin() {
       const data = await res.json();
       
       if (res.ok) {
-        // Save login status
         localStorage.setItem('isAdmin', 'true');
         localStorage.setItem('adminName', data.username);
         navigate('/admin/dashboard');
