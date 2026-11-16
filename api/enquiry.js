@@ -1,8 +1,5 @@
 import { MongoClient } from 'mongodb';
 
-// We are moving nodemailer inside the handler so it doesn't crash the Vercel build
-import nodemailer from 'nodemailer';
-
 const uri = process.env.MONGODB_URI;
 const DB_NAME = 'photoinmotion';
 
@@ -35,7 +32,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'Login successful', username: user.username });
     }
 
-    // 3. REQUEST OTP (WITH NODEMAILER)
+    // 3. REQUEST OTP (USING EXTERNAL API - NO NODEMAILER)
     if (req.method === 'POST' && req.body.action === 'request_otp') {
       const { username } = req.body;
       const user = await usersCol.findOne({ username });
@@ -43,30 +40,33 @@ export default async function handler(req, res) {
 
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-
       await usersCol.updateOne({ username }, { $set: { otp, otpExpires } });
 
-      // Initialize nodemailer inside the request
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: 'your_email@gmail.com', // REPLACE THIS
-          pass: 'your_app_password'     // REPLACE THIS
-        }
-      });
-
-      const mailOptions = {
-        from: 'your_email@gmail.com',
-        to: user.email,
-        subject: 'Password Reset OTP',
-        text: `Your OTP for password reset is: ${otp}. It expires in 10 minutes.`
-      };
-
+      // We use a simple API to send the email to avoid Vercel Node.js bugs
+      // You need to replace this URL with your own free email API
       try {
-        await transporter.sendMail(mailOptions);
+        const emailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service_id: 'YOUR_EMAILJS_SERVICE_ID', // Replace with your EmailJS Service ID
+            template_id: 'YOUR_EMAILJS_TEMPLATE_ID', // Replace with your EmailJS Template ID
+            user_id: 'YOUR_EMAILJS_PUBLIC_KEY', // Replace with your EmailJS Public Key
+            template_params: {
+              to_email: user.email,
+              otp_code: otp
+            }
+          })
+        });
+
+        if (!emailResponse.ok) {
+          throw new Error('Email API failed');
+        }
+        
         return res.status(200).json({ message: 'OTP sent to email' });
-      } catch (emailError) {
-        return res.status(500).json({ message: 'Failed to send OTP email.' });
+      } catch (error) {
+        console.error("Email Error:", error);
+        return res.status(500).json({ message: 'Failed to send OTP. Please check email configuration.' });
       }
     }
 
