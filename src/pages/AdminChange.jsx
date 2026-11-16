@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Save, ArrowLeft, Upload } from 'lucide-react';
 
 export default function AdminChange() {
-  const [content, setContent] = useState({
+  // 1. Define the default state (these will be overridden by MongoDB data)
+  const defaultContent = {
     heroTitle: 'Every Frame.\nA Timeless Story.',
     heroSub: "We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.",
     storyTitle: 'Moments pass.\nStories stay forever.',
@@ -15,7 +16,9 @@ export default function AdminChange() {
     img2: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
     img3: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
     showreelImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80'
-  });
+  };
+
+  const [content, setContent] = useState(defaultContent);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
@@ -25,11 +28,13 @@ export default function AdminChange() {
       navigate('/admin/login');
       return;
     }
+    
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(data => {
+        // Merge the fetched data with defaults so no fields are undefined
         if (Object.keys(data).length > 0) {
-          setContent(data);
+          setContent({ ...defaultContent, ...data });
         }
         setLoading(false);
       })
@@ -60,13 +65,11 @@ export default function AdminChange() {
     setContent(prev => ({ ...prev, [key]: value }));
   };
 
-  // NEW FUNCTION: Convert local file to Base64
   const handleImageUpload = (e, key) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        // Update the state with the Base64 string
         handleChange(key, reader.result);
       };
       reader.readAsDataURL(file);
@@ -78,7 +81,6 @@ export default function AdminChange() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '100px' }}>
       
-      {/* FLOATING HEADER */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: 100, padding: '20px 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <button onClick={() => navigate('/admin/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>
           <ArrowLeft size={20} /> Back to Dashboard
@@ -88,10 +90,8 @@ export default function AdminChange() {
         </button>
       </div>
 
-      {/* WYSIWYG EDITOR */}
       <div style={{ paddingTop: '120px' }}>
         
-        {/* HERO SECTION */}
         <section className="hero" style={{ minHeight: 'auto', paddingBottom: '50px' }}>
           <div className="hero-overlay" />
           <div className="hero-content" style={{ zIndex: 10, position: 'relative' }}>
@@ -111,7 +111,6 @@ export default function AdminChange() {
           </div>
         </section>
 
-        {/* INTRODUCTION */}
         <section className="intro-section" style={{ padding: '100px 10%' }}>
           <p className="eyebrow">MORE THAN JUST PHOTOGRAPHY</p>
           <textarea 
@@ -128,7 +127,6 @@ export default function AdminChange() {
           />
         </section>
 
-        {/* PORTFOLIO IMAGES */}
         <section className="portfolio-section" style={{ padding: '100px 10%', background: 'var(--bg-light)' }}>
           <div style={{ textAlign: 'center', marginBottom: '50px' }}>
             <p className="eyebrow">A COLLECTION OF MEMORIES</p>
@@ -143,11 +141,9 @@ export default function AdminChange() {
             ].map((item) => (
               <div key={item.key} className="portfolio-card" style={{ backgroundImage: `url("${content[item.key]}")`, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
                 
-                {/* IMAGE UPLOADER OVERLAY */}
                 <div style={{ background: 'rgba(0,0,0,0.85)', padding: '20px', borderRadius: '8px', border: '1px solid var(--gold)', textAlign: 'center' }}>
                   <p style={{ color: 'var(--white)', marginBottom: '10px', fontSize: '14px' }}>Replace Image {item.number}</p>
                   
-                  {/* File Input */}
                   <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--gold)', color: '#000', padding: '10px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>
                     <Upload size={16} /> Upload from Computer
                     <input 
@@ -161,7 +157,7 @@ export default function AdminChange() {
                   <p style={{ color: 'var(--muted)', fontSize: '11px', marginTop: '10px' }}>Or paste URL below</p>
                   <input 
                     type="text" 
-                    value={content[item.key].startsWith('data:image') ? 'Local Image Uploaded' : content[item.key]} 
+                    value={content[item.key] && content[item.key].startsWith('data:image') ? 'Local Image Uploaded' : content[item.key] || ''} 
                     onChange={(e) => handleChange(item.key, e.target.value)} 
                     style={{ width: '100%', padding: '8px', background: '#111', border: '1px solid #333', color: '#fff', borderRadius: '4px', marginTop: '5px', fontSize: '12px' }} 
                   />
@@ -171,7 +167,6 @@ export default function AdminChange() {
           </div>
         </section>
 
-        {/* SHOWREEL IMAGE */}
         <section className="showreel-section" style={{ padding: '100px 10%', background: 'var(--bg)', textAlign: 'center' }}>
            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <p className="eyebrow">THE CINEMATIC EXPERIENCE</p>
@@ -197,7 +192,6 @@ export default function AdminChange() {
           </div>
         </section>
 
-        {/* TESTIMONIALS */}
         <section className="testimonials-section" style={{ padding: '100px 10%', background: 'var(--bg-light)', borderTop: '1px solid var(--border)' }}>
           <div style={{ textAlign: 'center', marginBottom: '50px' }}>
             <p className="eyebrow">CLIENT LOVE</p>
@@ -208,7 +202,7 @@ export default function AdminChange() {
             {['testimonial1', 'testimonial2', 'testimonial3'].map((key, index) => (
               <div key={key} style={{ background: 'rgba(255,255,255,0.02)', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)' }}>
                 <textarea 
-                  value={content[key]} 
+                  value={content[key] || ''} 
                   onChange={(e) => handleChange(key, e.target.value)} 
                   style={{ width: '100%', background: 'transparent', border: '1px dashed rgba(255,255,255,0.3)', color: 'var(--text)', fontSize: '14px', lineHeight: '1.8', fontStyle: 'italic', resize: 'vertical' }} 
                   rows={4}
