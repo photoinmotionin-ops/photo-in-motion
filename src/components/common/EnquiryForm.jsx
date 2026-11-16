@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react';
 
 export default function EnquiryForm({ isOpen, onClose }) {
   const [step, setStep] = useState(1);
@@ -32,10 +32,10 @@ export default function EnquiryForm({ isOpen, onClose }) {
     setIsSubmitting(true);
     
     try {
+      // We send the request to the backend
       const response = await fetch('/api/enquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // THIS LINE FIXES THE BACKEND ERROR
         body: JSON.stringify({ 
           action: 'submit_enquiry', 
           ...formData 
@@ -44,10 +44,15 @@ export default function EnquiryForm({ isOpen, onClose }) {
 
       if (response.ok) {
         setIsSubmitted(true);
+        // Wait 4 seconds to show the success screen, then close
         setTimeout(() => {
           onClose();
-          setTimeout(() => { setIsSubmitted(false); setStep(1); }, 500);
-        }, 3000);
+          setTimeout(() => { 
+            setIsSubmitted(false); 
+            setStep(1); 
+            setFormData({ name: '', email: '', phone: '', eventType: '', eventDate: '', location: '', services: [], budget: '', requirements: '' });
+          }, 500);
+        }, 4000);
       } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.message || 'Something went wrong.'}`);
@@ -74,7 +79,7 @@ export default function EnquiryForm({ isOpen, onClose }) {
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               style={{ pointerEvents: 'auto', background: '#111', padding: '40px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', width: '100%', maxWidth: '600px', position: 'relative', boxShadow: '0 30px 60px rgba(0,0,0,0.6)', overflow: 'hidden' }}
             >
-              <button onClick={onClose} style={{ position: 'absolute', top: '20px', right: '20px', background: 'transparent', border: 'none', color: '#aaa39a', cursor: 'pointer', zIndex: 10 }}>
+              <button onClick={onClose} style={{ position: 'absolute', top: '20px', right: '20px', background: 'transparent', border: 'none', color: '#aaa39a', cursor: 'pointer', zIndex: 10 }} disabled={isSubmitting}>
                 <X size={24} />
               </button>
 
@@ -98,19 +103,21 @@ export default function EnquiryForm({ isOpen, onClose }) {
 
                   <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     
+                    {/* STEP 1 */}
                     {step === 1 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>1. YOUR DETAILS</h4>
-                        <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required style={inputStyle} />
-                        <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} required style={inputStyle} />
-                        <input type="tel" name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} required style={inputStyle} />
+                        <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required style={inputStyle} disabled={isSubmitting} />
+                        <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} required style={inputStyle} disabled={isSubmitting} />
+                        <input type="tel" name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} required style={inputStyle} disabled={isSubmitting} />
                       </motion.div>
                     )}
 
+                    {/* STEP 2 */}
                     {step === 2 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>2. EVENT DETAILS</h4>
-                        <select name="eventType" value={formData.eventType} onChange={handleChange} required style={inputStyle}>
+                        <select name="eventType" value={formData.eventType} onChange={handleChange} required style={inputStyle} disabled={isSubmitting}>
                           <option value="">Select Event Type</option>
                           <option value="wedding">Wedding</option>
                           <option value="pre-wedding">Pre-Wedding Shoot</option>
@@ -118,30 +125,31 @@ export default function EnquiryForm({ isOpen, onClose }) {
                           <option value="birthday">Birthday / Celebration</option>
                           <option value="corporate">Corporate Event</option>
                         </select>
-                        <input type="date" name="eventDate" value={formData.eventDate} onChange={handleChange} required style={inputStyle} />
-                        <input type="text" name="location" placeholder="Event Location / City" value={formData.location} onChange={handleChange} required style={inputStyle} />
+                        <input type="date" name="eventDate" value={formData.eventDate} onChange={handleChange} required style={inputStyle} disabled={isSubmitting} />
+                        <input type="text" name="location" placeholder="Event Location / City" value={formData.location} onChange={handleChange} required style={inputStyle} disabled={isSubmitting} />
                       </motion.div>
                     )}
 
+                    {/* STEP 3 */}
                     {step === 3 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>3. REQUIREMENTS</h4>
                         <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
-                          <label style={checkboxStyle}><input type="checkbox" name="services" value="photography" onChange={handleChange} /> Photography</label>
-                          <label style={checkboxStyle}><input type="checkbox" name="services" value="cinematography" onChange={handleChange} /> Cinematography</label>
+                          <label style={checkboxStyle}><input type="checkbox" name="services" value="photography" onChange={handleChange} disabled={isSubmitting} /> Photography</label>
+                          <label style={checkboxStyle}><input type="checkbox" name="services" value="cinematography" onChange={handleChange} disabled={isSubmitting} /> Cinematography</label>
                         </div>
-                        <select name="budget" value={formData.budget} onChange={handleChange} required style={inputStyle}>
+                        <select name="budget" value={formData.budget} onChange={handleChange} required style={inputStyle} disabled={isSubmitting}>
                           <option value="">Select Budget Range</option>
                           <option value="under-50k">Under ₹50,000</option>
                           <option value="50k-1l">₹50,000 - ₹1,00,000</option>
                           <option value="1l-3l">₹1,00,000 - ₹3,00,000</option>
                           <option value="above-3l">Above ₹3,00,000</option>
                         </select>
-                        <textarea name="requirements" placeholder="Any specific requirements?" value={formData.requirements} onChange={handleChange} rows="3" style={inputStyle} />
+                        <textarea name="requirements" placeholder="Any specific requirements?" value={formData.requirements} onChange={handleChange} rows="3" style={inputStyle} disabled={isSubmitting} />
                       </motion.div>
                     )}
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px', alignItems: 'center' }}>
                       {step > 1 ? (
                         <button type="button" onClick={() => setStep(step - 1)} disabled={isSubmitting} style={{ background: 'transparent', border: 'none', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '5px', cursor: isSubmitting ? 'not-allowed' : 'pointer' }}>
                           <ArrowLeft size={16} /> Back
@@ -153,8 +161,14 @@ export default function EnquiryForm({ isOpen, onClose }) {
                           Next Step <ArrowRight size={16} />
                         </button>
                       ) : (
-                        <button type="submit" className="primary-btn" disabled={isSubmitting} style={{ padding: '12px 24px', opacity: isSubmitting ? 0.7 : 1 }}>
-                          {isSubmitting ? 'Submitting...' : 'Submit Enquiry'}
+                        <button type="submit" className="primary-btn" disabled={isSubmitting} style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px', opacity: isSubmitting ? 0.7 : 1 }}>
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Submitting...
+                            </>
+                          ) : (
+                            'Submit Enquiry'
+                          )}
                         </button>
                       )}
                     </div>
@@ -169,8 +183,19 @@ export default function EnquiryForm({ isOpen, onClose }) {
   );
 }
 
+// Add the spinner animation to your CSS or inline here
+const styleSheet = document.createElement("style");
+styleSheet.textContent = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(styleSheet);
+
 const inputStyle = {
-  width: '100%', padding: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--white)', fontSize: '14px', marginBottom: '15px', outline: 'none', fontFamily: 'var(--body-font)'
+  width: '100%', padding: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--white)', fontSize: '14px', marginBottom: '15px', outline: 'none', fontFamily: 'var(--body-font)',
+  opacity: isSubmitting ? 0.5 : 1
 };
 
 const checkboxStyle = {
