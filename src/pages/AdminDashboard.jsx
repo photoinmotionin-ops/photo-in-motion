@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Phone, Calendar, MapPin, DollarSign, LogOut } from 'lucide-react';
+import { LogOut, Mail, Phone, Calendar, MapPin, DollarSign, Clock, Edit } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function AdminDashboard() {
   const [enquiries, setEnquiries] = useState([]);
@@ -14,10 +15,16 @@ export default function AdminDashboard() {
       return;
     }
 
-    fetch('/api/enquiry')
+    // THE FIX: We must pass action=get_enquiries to the API
+    fetch('/api/enquiry?action=get_enquiries')
       .then((res) => res.json())
       .then((data) => {
-        setEnquiries(data);
+        // Check if data is an array, if not, set to empty array
+        if (Array.isArray(data)) {
+          setEnquiries(data);
+        } else {
+          setEnquiries([]);
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -42,30 +49,42 @@ export default function AdminDashboard() {
           <h1 style={{ fontFamily: 'var(--heading-font)', fontSize: '36px', color: 'var(--white)', margin: 0 }}>Admin Dashboard</h1>
           <p style={{ color: 'var(--muted)', margin: '5px 0 0' }}>Welcome back, <span style={{ color: 'var(--gold)' }}>{adminName}</span></p>
         </div>
-        <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', padding: '10px 20px', color: 'var(--white)', borderRadius: '8px', cursor: 'pointer' }}>
-          <LogOut size={16} /> Logout
-        </button>
+        <div style={{ display: 'flex', gap: '15px' }}>
+          <button onClick={() => navigate('/admin_change')} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--gold)', color: '#111', border: 'none', padding: '10px 20px', fontWeight: 'bold', borderRadius: '8px', cursor: 'pointer' }}>
+            <Edit size={16} /> Edit Website Content
+          </button>
+          <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', padding: '10px 20px', color: 'var(--white)', borderRadius: '8px', cursor: 'pointer' }}>
+            <LogOut size={16} /> Logout
+          </button>
+        </div>
       </div>
 
       <h2 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '24px', marginBottom: '20px' }}>Total Enquiries: {enquiries.length}</h2>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
         {enquiries.map((enq) => (
-          <div key={enq._id} style={{ background: '#171717', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} 
+            key={enq._id} 
+            style={{ background: '#171717', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}
+          >
+            <div style={{ position: 'absolute', top: '20px', right: '20px', color: 'var(--gold)' }}>
+              <Clock size={20} />
+            </div>
             <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '26px', color: 'var(--gold)', margin: '0 0 20px' }}>{enq.name}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text)', fontSize: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Mail size={16} /> {enq.email}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Phone size={16} /> {enq.phone}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Calendar size={16} /> {enq.eventDate} ({enq.eventType})</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><MapPin size={16} /> {enq.location || 'N/A'}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><DollarSign size={16} /> {enq.budget}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Mail size={16} color="var(--muted)"/> {enq.email}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Phone size={16} color="var(--muted)"/> {enq.phone}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Calendar size={16} color="var(--muted)"/> {enq.eventDate} ({enq.eventType})</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><MapPin size={16} color="var(--muted)"/> {enq.location || 'N/A'}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><DollarSign size={16} color="var(--muted)"/> Budget: {enq.budget}</div>
             </div>
             {enq.requirements && (
-              <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '13px', color: 'var(--muted)', fontStyle: 'italic' }}>
+              <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '13px', color: 'var(--muted)', fontStyle: 'italic', borderLeft: '2px solid var(--gold)' }}>
                 "{enq.requirements}"
               </div>
             )}
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>
