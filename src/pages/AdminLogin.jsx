@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, Loader2 } from 'lucide-react';
+import { Lock, Mail, Loader2, ArrowLeft } from 'lucide-react';
 
 export default function AdminLogin() {
   const [view, setView] = useState('login');
@@ -13,14 +13,13 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Check for instant login
   useEffect(() => {
     if (localStorage.getItem('isAdmin') === 'true') {
       navigate('/admin/dashboard');
     }
   }, [navigate]);
 
-   const handleLogin = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -106,7 +105,22 @@ export default function AdminLogin() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a' }}>
-      <div style={{ background: '#171717', padding: '50px 40px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', width: '100%', maxWidth: '400px' }}>
+      <div style={{ background: '#171717', padding: '50px 40px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', width: '100%', maxWidth: '400px', position: 'relative' }}>
+        
+        {/* THE BACK BUTTON */}
+        {view !== 'login' && (
+          <button 
+            onClick={() => {
+              setView('login');
+              setError('');
+              setMessage('');
+            }}
+            style={{ position: 'absolute', top: '20px', left: '20px', background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px' }}
+          >
+            <ArrowLeft size={16} /> Back
+          </button>
+        )}
+
         <div style={{ textAlign: 'center', marginBottom: '30px', color: 'var(--gold)' }}>
           {view === 'login' ? <Lock size={40} style={{ margin: '0 auto' }} /> : <Mail size={40} style={{ margin: '0 auto' }} />}
         </div>
@@ -139,10 +153,6 @@ export default function AdminLogin() {
             
             <button type="submit" className="primary-btn" disabled={loading} style={{ width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '10px', opacity: loading ? 0.7 : 1 }}>
               {loading ? <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Sending OTP...</> : 'Send OTP'}
-            </button>
-            
-            <button type="button" onClick={() => setView('login')} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '13px', marginTop: '10px' }} disabled={loading}>
-              Back to Login
             </button>
           </form>
         )}
