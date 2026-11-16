@@ -5,7 +5,8 @@ import { X, ArrowRight, ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react';
 export default function EnquiryForm({ isOpen, onClose }) {
   const [step, setStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // THIS WAS MISSING:
+  const [isSubmitting, setIsSubmitting] = useState(false); 
   
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '',
@@ -29,10 +30,9 @@ export default function EnquiryForm({ isOpen, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setIsSubmitting(true); // Set to true when starting
     
     try {
-      // We send the request to the backend
       const response = await fetch('/api/enquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -44,7 +44,6 @@ export default function EnquiryForm({ isOpen, onClose }) {
 
       if (response.ok) {
         setIsSubmitted(true);
-        // Wait 4 seconds to show the success screen, then close
         setTimeout(() => {
           onClose();
           setTimeout(() => { 
@@ -61,7 +60,7 @@ export default function EnquiryForm({ isOpen, onClose }) {
       console.error(error);
       alert("Error submitting form. Please check your connection.");
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Set to false when done (or failed)
     }
   };
 
@@ -103,7 +102,6 @@ export default function EnquiryForm({ isOpen, onClose }) {
 
                   <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     
-                    {/* STEP 1 */}
                     {step === 1 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>1. YOUR DETAILS</h4>
@@ -113,7 +111,6 @@ export default function EnquiryForm({ isOpen, onClose }) {
                       </motion.div>
                     )}
 
-                    {/* STEP 2 */}
                     {step === 2 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>2. EVENT DETAILS</h4>
@@ -130,7 +127,6 @@ export default function EnquiryForm({ isOpen, onClose }) {
                       </motion.div>
                     )}
 
-                    {/* STEP 3 */}
                     {step === 3 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>3. REQUIREMENTS</h4>
