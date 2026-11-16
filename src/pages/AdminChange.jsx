@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft } from 'lucide-react';
+import { Save, ArrowLeft, Upload } from 'lucide-react';
 
 export default function AdminChange() {
   const [content, setContent] = useState({
@@ -46,7 +46,7 @@ export default function AdminChange() {
       });
       
       if (res.ok) {
-        alert('Website content updated successfully!');
+        alert('Website content and images updated successfully!');
       } else {
         alert('Failed to save changes.');
       }
@@ -58,6 +58,19 @@ export default function AdminChange() {
 
   const handleChange = (key, value) => {
     setContent(prev => ({ ...prev, [key]: value }));
+  };
+
+  // NEW FUNCTION: Convert local file to Base64
+  const handleImageUpload = (e, key) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        // Update the state with the Base64 string
+        handleChange(key, reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading...</div>;
@@ -86,13 +99,13 @@ export default function AdminChange() {
             <textarea 
               value={content.heroTitle} 
               onChange={(e) => handleChange('heroTitle', e.target.value)} 
-              style={{ ...heroTitleStyle, fontFamily: 'var(--heading-font)', fontSize: 'clamp(65px, 8vw, 112px)', color: 'var(--white)', background: 'transparent', border: '1px dashed rgba(255,255,255,0.3)', width: '100%', resize: 'vertical' }} 
+              style={{ ...heroTitleStyle, fontFamily: 'var(--heading-font)', fontSize: 'clamp(65px, 8vw, 112px)', color: 'var(--white)' }} 
               rows={2}
             />
             <textarea 
               value={content.heroSub} 
               onChange={(e) => handleChange('heroSub', e.target.value)} 
-              style={{ ...heroDescStyle, background: 'transparent', border: '1px dashed rgba(255,255,255,0.3)', width: '100%', resize: 'vertical', color: 'var(--text)' }} 
+              style={{ ...heroDescStyle, color: 'var(--text)' }} 
               rows={3}
             />
           </div>
@@ -104,13 +117,13 @@ export default function AdminChange() {
           <textarea 
             value={content.storyTitle} 
             onChange={(e) => handleChange('storyTitle', e.target.value)} 
-            style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', color: 'var(--white)', textAlign: 'center', background: 'transparent', border: '1px dashed rgba(255,255,255,0.3)', width: '100%', resize: 'vertical', marginBottom: '20px' }} 
+            style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', color: 'var(--white)', textAlign: 'center', width: '100%', marginBottom: '20px' }} 
             rows={2}
           />
           <textarea 
             value={content.storyText} 
             onChange={(e) => handleChange('storyText', e.target.value)} 
-            style={{ maxWidth: '800px', margin: '0 auto', color: 'var(--muted)', textAlign: 'center', fontSize: '15px', lineHeight: '2', background: 'transparent', border: '1px dashed rgba(255,255,255,0.3)', width: '100%', resize: 'vertical', display: 'block' }} 
+            style={{ maxWidth: '800px', margin: '0 auto', color: 'var(--muted)', textAlign: 'center', fontSize: '15px', lineHeight: '2', display: 'block', width: '100%' }} 
             rows={4}
           />
         </section>
@@ -128,14 +141,29 @@ export default function AdminChange() {
               { key: 'img2', number: '02', title: 'Beautiful Together' },
               { key: 'img3', number: '03', title: 'Beyond The Frame' }
             ].map((item) => (
-              <div key={item.key} className="portfolio-card" style={{ backgroundImage: `url("${content[item.key]}")`, padding: '30px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-                <div style={{ background: 'rgba(0,0,0,0.8)', padding: '15px', borderRadius: '8px' }}>
-                  <label style={{ display: 'block', color: 'var(--gold)', fontSize: '12px', marginBottom: '5px' }}>Change Image URL for "{item.title}"</label>
+              <div key={item.key} className="portfolio-card" style={{ backgroundImage: `url("${content[item.key]}")`, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                
+                {/* IMAGE UPLOADER OVERLAY */}
+                <div style={{ background: 'rgba(0,0,0,0.85)', padding: '20px', borderRadius: '8px', border: '1px solid var(--gold)', textAlign: 'center' }}>
+                  <p style={{ color: 'var(--white)', marginBottom: '10px', fontSize: '14px' }}>Replace Image {item.number}</p>
+                  
+                  {/* File Input */}
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--gold)', color: '#000', padding: '10px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>
+                    <Upload size={16} /> Upload from Computer
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      style={{ display: 'none' }} 
+                      onChange={(e) => handleImageUpload(e, item.key)} 
+                    />
+                  </label>
+                  
+                  <p style={{ color: 'var(--muted)', fontSize: '11px', marginTop: '10px' }}>Or paste URL below</p>
                   <input 
                     type="text" 
-                    value={content[item.key]} 
+                    value={content[item.key].startsWith('data:image') ? 'Local Image Uploaded' : content[item.key]} 
                     onChange={(e) => handleChange(item.key, e.target.value)} 
-                    style={{ width: '100%', padding: '10px', background: '#111', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} 
+                    style={{ width: '100%', padding: '8px', background: '#111', border: '1px solid #333', color: '#fff', borderRadius: '4px', marginTop: '5px', fontSize: '12px' }} 
                   />
                 </div>
               </div>
@@ -153,14 +181,18 @@ export default function AdminChange() {
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)' }}>
                <img src={content.showreelImg} alt="Showreel" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '8px', marginTop: '20px', textAlign: 'left' }}>
-              <label style={{ display: 'block', color: 'var(--gold)', fontSize: '12px', marginBottom: '5px' }}>Showreel Background Image URL</label>
-              <input 
-                type="text" 
-                value={content.showreelImg} 
-                onChange={(e) => handleChange('showreelImg', e.target.value)} 
-                style={{ width: '100%', padding: '10px', background: '#111', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} 
-              />
+            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '8px', marginTop: '20px', textAlign: 'center' }}>
+              
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--gold)', color: '#000', padding: '10px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>
+                <Upload size={16} /> Upload Showreel Background
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  style={{ display: 'none' }} 
+                  onChange={(e) => handleImageUpload(e, 'showreelImg')} 
+                />
+              </label>
+
             </div>
           </div>
         </section>
@@ -194,7 +226,6 @@ export default function AdminChange() {
   );
 }
 
-// Inline styles for the WYSIWYG editor
 const heroTitleStyle = {
   width: '100%',
   background: 'transparent',
@@ -211,5 +242,8 @@ const heroDescStyle = {
   lineHeight: '1.9',
   fontSize: '13px',
   padding: '10px',
-  resize: 'vertical'
+  resize: 'vertical',
+  background: 'transparent',
+  border: '1px dashed rgba(255,255,255,0.3)',
+  width: '100%'
 };
