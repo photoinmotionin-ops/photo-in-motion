@@ -11,9 +11,9 @@ const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0, tra
 const staggerContainer = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.1 } } }
 
 const featuredWorks = [
-  { number: '01', category: 'WEDDINGS', title: 'Forever Begins', image: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85' },
-  { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85' },
-  { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85' },
+  { number: '01', category: 'WEDDINGS', title: 'Forever Begins', key: 'img1' },
+  { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', key: 'img2' },
+  { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', key: 'img3' },
 ]
 
 const testimonials = [
@@ -30,7 +30,11 @@ export default function Home() {
     storyText: 'At Photo In Motion, we believe every celebration has a story worth telling. Through thoughtful photography and cinematic filmmaking, we preserve the feelings behind every frame.',
     testimonial1: 'They captured the essence of our wedding perfectly.',
     testimonial2: 'The cinematic film they created for us is an absolute masterpiece.',
-    testimonial3: 'Professional, unobtrusive, and incredibly talented.'
+    testimonial3: 'Professional, unobtrusive, and incredibly talented.',
+    img1: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85',
+    img2: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
+    img3: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
+    showreelImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80'
   });
 
   useEffect(() => {
@@ -95,7 +99,7 @@ export default function Home() {
 
         <motion.div className="portfolio-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={staggerContainer}>
           {featuredWorks.map((item) => (
-            <motion.article className="portfolio-card" key={item.number} style={{ backgroundImage: `url("${item.image}")` }} variants={fadeUp} whileHover={{ y: -10, scale: 1.02, boxShadow: "0px 20px 40px rgba(0,0,0,0.4)" }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+            <motion.article className="portfolio-card" key={item.number} style={{ backgroundImage: `url("${content[item.key]}")` }} variants={fadeUp} whileHover={{ y: -10, scale: 1.02, boxShadow: "0px 20px 40px rgba(0,0,0,0.4)" }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
               <span>{item.number} / {item.category}</span>
               <h3>{item.title}</h3>
               <Link to="/portfolio" className="portfolio-link">Explore Story <ArrowUpRight size={17} /></Link>
@@ -119,7 +123,7 @@ export default function Home() {
             <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}><span>Showreel</span></motion.div></div>
           </h2>
           <motion.div variants={fadeUp} style={{ position: 'relative', width: '100%', maxWidth: '1000px', margin: '0 auto', aspectRatio: '16/9', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)', cursor: 'pointer' }} whileHover={{ scale: 1.01 }}>
-            <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80" alt="Showreel" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />
+            <img src={content.showreelImg} alt="Showreel" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <motion.div whileHover={{ scale: 1.1 }} style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111', boxShadow: '0 0 30px rgba(198, 164, 107, 0.4)' }}>
                 <Play size={32} fill="#111" style={{ marginLeft: '5px' }} />
