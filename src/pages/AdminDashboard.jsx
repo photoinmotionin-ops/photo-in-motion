@@ -15,20 +15,25 @@ export default function AdminDashboard() {
       return;
     }
 
-    // THE FIX: We must pass action=get_enquiries to the API
+    // 1. Check if we have cached data
+    const cachedData = localStorage.getItem('enquiriesCache');
+    if (cachedData) {
+      setEnquiries(JSON.parse(cachedData));
+      setLoading(false); // Stop loading instantly
+    }
+
+    // 2. Fetch fresh data in the background
     fetch('/api/enquiry?action=get_enquiries')
       .then((res) => res.json())
       .then((data) => {
-        // Check if data is an array, if not, set to empty array
         if (Array.isArray(data)) {
           setEnquiries(data);
-        } else {
-          setEnquiries([]);
+          localStorage.setItem('enquiriesCache', JSON.stringify(data)); // Save for next time
         }
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Error fetching data:", err);
+        console.error("Fetch Error:", err);
         setLoading(false);
       });
   }, [navigate]);
@@ -43,7 +48,7 @@ export default function AdminDashboard() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', padding: '40px 5%', paddingTop: '120px' }}>
-      
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '20px' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--heading-font)', fontSize: '36px', color: 'var(--white)', margin: 0 }}>Admin Dashboard</h1>
@@ -63,9 +68,9 @@ export default function AdminDashboard() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
         {enquiries.map((enq) => (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} 
-            key={enq._id} 
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            key={enq._id}
             style={{ background: '#171717', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}
           >
             <div style={{ position: 'absolute', top: '20px', right: '20px', color: 'var(--gold)' }}>
@@ -73,11 +78,11 @@ export default function AdminDashboard() {
             </div>
             <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '26px', color: 'var(--gold)', margin: '0 0 20px' }}>{enq.name}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text)', fontSize: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Mail size={16} color="var(--muted)"/> {enq.email}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Phone size={16} color="var(--muted)"/> {enq.phone}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Calendar size={16} color="var(--muted)"/> {enq.eventDate} ({enq.eventType})</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><MapPin size={16} color="var(--muted)"/> {enq.location || 'N/A'}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><DollarSign size={16} color="var(--muted)"/> Budget: {enq.budget}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Mail size={16} color="var(--muted)" /> {enq.email}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Phone size={16} color="var(--muted)" /> {enq.phone}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Calendar size={16} color="var(--muted)" /> {enq.eventDate} ({enq.eventType})</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><MapPin size={16} color="var(--muted)" /> {enq.location || 'N/A'}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><DollarSign size={16} color="var(--muted)" /> Budget: {enq.budget}</div>
             </div>
             {enq.requirements && (
               <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '13px', color: 'var(--muted)', fontStyle: 'italic', borderLeft: '2px solid var(--gold)' }}>

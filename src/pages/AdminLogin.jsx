@@ -13,10 +13,9 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // INSTANT LOGIN: Check if user is already logged in
+  // Check for instant login
   useEffect(() => {
-    const isAdmin = localStorage.getItem('isAdmin');
-    if (isAdmin === 'true') {
+    if (localStorage.getItem('isAdmin') === 'true') {
       navigate('/admin/dashboard');
     }
   }, [navigate]);
@@ -35,6 +34,7 @@ export default function AdminLogin() {
       const data = await res.json();
       
       if (res.ok) {
+        // Save login status
         localStorage.setItem('isAdmin', 'true');
         localStorage.setItem('adminName', data.username);
         navigate('/admin/dashboard');
