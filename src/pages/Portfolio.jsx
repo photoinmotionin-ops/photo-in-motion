@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
 
 export default function Portfolio() {
   const [gallery, setGallery] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState('All');
 
   useEffect(() => {
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(data => {
-        if (data.portfolioGallery) {
-          setGallery(data.portfolioGallery);
+        if (data.portfolioItems) {
+          setGallery(data.portfolioItems);
         }
         setLoading(false);
       })
@@ -19,6 +22,12 @@ export default function Portfolio() {
 
   if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading Gallery...</div>;
 
+  // Get unique categories
+  const categories = ['All', ...new Set(gallery.map(item => item.category))];
+  
+  // Filter items based on active tab
+  const filteredGallery = activeCategory === 'All' ? gallery : gallery.filter(item => item.category === activeCategory);
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ paddingTop: '120px', minHeight: '100vh', background: 'var(--bg)' }}>
       
@@ -26,22 +35,44 @@ export default function Portfolio() {
         <div style={{ textAlign: 'center', marginBottom: '60px' }}>
           <p className="eyebrow">A COLLECTION OF MEMORIES</p>
           <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0 }}>
-            The Full <span>Gallery</span>
+            Our <span>Portfolio</span>
           </h2>
         </div>
 
-        {/* MASONRY GRID */}
+        {/* Category Tabs */}
+        <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginBottom: '50px', flexWrap: 'wrap' }}>
+          {categories.map(cat => (
+            <button 
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              style={{ 
+                background: 'transparent', border: 'none', color: activeCategory === cat ? 'var(--gold)' : 'var(--muted)', 
+                fontSize: '16px', cursor: 'pointer', paddingBottom: '5px', 
+                borderBottom: activeCategory === cat ? '2px solid var(--gold)' : '2px solid transparent' 
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Masonry Grid */}
         <div style={{ columnCount: 3, columnGap: '20px', width: '100%' }}>
-          {gallery.map((img, index) => (
-            <div key={index} style={{ breakInside: 'avoid', marginBottom: '20px', borderRadius: '8px', overflow: 'hidden' }}>
-              <img src={img} alt={`Gallery ${index}`} style={{ width: '100%', display: 'block', transition: 'transform 0.3s' }} />
+          {filteredGallery.map((item) => (
+            <div key={item.id} style={{ breakInside: 'avoid', marginBottom: '20px', borderRadius: '8px', overflow: 'hidden', position: 'relative', cursor: 'pointer' }}>
+              <Link to={`/portfolio/${item.id}`} style={{ display: 'block', textDecoration: 'none' }}>
+                <img src={item.image} alt={item.title} style={{ width: '100%', display: 'block', transition: 'transform 0.3s' }} className="portfolio-img-hover" />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '20px' }}>
+                  <p style={{ color: 'var(--gold)', fontSize: '12px', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 5px' }}>{item.category}</p>
+                  <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '24px', margin: 0 }}>{item.title}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--gold)', marginTop: '10px', fontSize: '13px' }}>
+                    View Story <ArrowUpRight size={14} />
+                  </div>
+                </div>
+              </Link>
             </div>
           ))}
         </div>
-        
-        {gallery.length === 0 && (
-          <p style={{ textAlign: 'center', color: 'var(--muted)' }}>No images in the gallery yet. Add some in the Admin Panel!</p>
-        )}
       </section>
     </motion.div>
   );
