@@ -20,7 +20,7 @@ export default function AdminChange() {
     img2: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
     img3: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
     showreelImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80',
-    portfolioItems: [] // NEW: Array of objects
+    portfolioItems: []
   };
 
   const [content, setContent] = useState(defaultContent);
@@ -28,7 +28,6 @@ export default function AdminChange() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   
-  // New States for Portfolio Management
   const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0]);
   const [editingItem, setEditingItem] = useState(null);
 
@@ -79,12 +78,13 @@ export default function AdminChange() {
   
   const handleAddNewItem = () => {
     const newItem = {
-      id: Date.now().toString(), // Unique ID
+      id: Date.now().toString(),
       category: selectedCategory,
       title: 'New Event Title',
       description: 'Enter description here...',
-      image: '',
-      link: '/portfolio/contact' // Default link
+      mainImage: '', // Main Poster
+      galleryImages: [], // Array for related photos
+      link: '/contact'
     };
     setContent(prev => ({
       ...prev,
@@ -120,8 +120,8 @@ export default function AdminChange() {
     }
   };
 
-  // Upload image directly for portfolio
-  const handleItemImageUpload = async (e) => {
+  // Upload Main Poster
+  const handleMainImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -136,15 +136,48 @@ export default function AdminChange() {
         body: formData
       });
       const data = await res.json();
-      
+      if (data.secure_url) handleUpdateItem('mainImage', data.secure_url);
+    } catch (error) {
+      alert('Error uploading image.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Upload to Gallery
+  const handleGalleryImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+    try {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
       if (data.secure_url) {
-        handleUpdateItem('image', data.secure_url);
+        setEditingItem(prev => ({
+          ...prev,
+          galleryImages: [...(prev.galleryImages || []), data.secure_url]
+        }));
       }
     } catch (error) {
       alert('Error uploading image.');
     } finally {
       setUploading(false);
     }
+  };
+
+  const removeGalleryImage = (indexToRemove) => {
+    setEditingItem(prev => ({
+      ...prev,
+      galleryImages: prev.galleryImages.filter((_, index) => index !== indexToRemove)
+    }));
   };
 
   const filteredItems = content.portfolioItems.filter(item => item.category === selectedCategory);
@@ -154,7 +187,6 @@ export default function AdminChange() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '100px' }}>
       
-      {/* FLOATING HEADER */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)', zIndex: 100, padding: '20px 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <button onClick={() => navigate('/admin/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>
           <ArrowLeft size={20} /> Back to Dashboard
@@ -166,7 +198,7 @@ export default function AdminChange() {
 
       <div style={{ paddingTop: '120px' }}>
         
-        {/* HERO SECTION (Keep as is) */}
+        {/* ... Keep Hero and Intro sections identical ... */}
         <section className="hero" style={{ minHeight: 'auto', paddingBottom: '50px' }}>
           <div className="hero-overlay" />
           <div className="hero-content" style={{ zIndex: 10, position: 'relative' }}>
@@ -176,21 +208,19 @@ export default function AdminChange() {
           </div>
         </section>
 
-        {/* INTRODUCTION (Keep as is) */}
         <section className="intro-section" style={{ padding: '100px 10%' }}>
           <p className="eyebrow">MORE THAN JUST PHOTOGRAPHY</p>
           <textarea value={content.storyTitle} onChange={(e) => handleChange('storyTitle', e.target.value)} style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', color: 'var(--white)', textAlign: 'center', width: '100%', marginBottom: '20px' }} rows={2} />
           <textarea value={content.storyText} onChange={(e) => handleChange('storyText', e.target.value)} style={{ maxWidth: '800px', margin: '0 auto', color: 'var(--muted)', textAlign: 'center', fontSize: '15px', lineHeight: '2', display: 'block', width: '100%' }} rows={4} />
         </section>
 
-        {/* --- NEW: ADVANCED PORTFOLIO MANAGER --- */}
+        {/* --- PORTFOLIO MANAGER --- */}
         <section style={{ padding: '100px 10%', background: 'var(--bg-light)' }}>
           <div style={{ textAlign: 'center', marginBottom: '50px' }}>
             <p className="eyebrow">MANAGE EVENTS</p>
             <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0 }}>Portfolio <span>Manager</span></h2>
           </div>
 
-          {/* Category Selector */}
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '40px', flexWrap: 'wrap' }}>
             {CATEGORIES.map(cat => (
               <button 
@@ -203,23 +233,21 @@ export default function AdminChange() {
             ))}
           </div>
 
-          {/* List of items for selected category */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
             {filteredItems.map(item => (
               <div key={item.id} style={{ background: '#111', borderRadius: '12px', overflow: 'hidden', border: '1px solid #333' }}>
-                <img src={item.image || 'https://via.placeholder.com/300'} alt={item.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                <img src={item.mainImage || 'https://via.placeholder.com/300'} alt={item.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
                 <div style={{ padding: '20px' }}>
                   <h4 style={{ color: 'var(--white)', margin: '0 0 10px' }}>{item.title}</h4>
                   <p style={{ color: '#888', fontSize: '12px', marginBottom: '15px' }}>{item.category}</p>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <button onClick={() => handleEditItem(item)} style={{ flex: 1, padding: '10px', background: 'var(--gold)', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}><Edit2 size={16} /> Edit</button>
+                    <button onClick={() => handleEditItem(item)} style={{ flex: 1, padding: '10px', background: 'var(--gold)', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}><Edit2 size={16} /> Edit Event</button>
                     <button onClick={() => handleRemoveItem(item.id)} style={{ padding: '10px', background: 'rgba(255,0,0,0.2)', color: 'red', border: '1px solid red', borderRadius: '4px', cursor: 'pointer' }}><Trash2 size={16} /></button>
                   </div>
                 </div>
               </div>
             ))}
             
-            {/* Add New Button */}
             <button 
               onClick={handleAddNewItem}
               style={{ background: 'rgba(255,255,255,0.05)', border: '2px dashed rgba(255,255,255,0.2)', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', cursor: 'pointer', color: 'var(--gold)' }}
@@ -233,7 +261,7 @@ export default function AdminChange() {
         {/* EDIT MODAL OVERLAY */}
         {editingItem && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-            <div style={{ background: '#1a1a1a', padding: '40px', borderRadius: '16px', border: '1px solid var(--gold)', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ background: '#1a1a1a', padding: '40px', borderRadius: '16px', border: '1px solid var(--gold)', width: '100%', maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto' }}>
               <h3 style={{ color: 'var(--white)', marginBottom: '20px' }}>Edit Event: {editingItem.title}</h3>
               
               <label style={labelStyle}>Event Title</label>
@@ -242,12 +270,28 @@ export default function AdminChange() {
               <label style={labelStyle}>Description</label>
               <textarea value={editingItem.description} onChange={(e) => handleUpdateItem('description', e.target.value)} style={{ ...inputStyle, height: '100px' }} />
 
-              <label style={labelStyle}>Image</label>
+              {/* MAIN POSTER */}
+              <label style={labelStyle}>Main Poster (Cover)</label>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '20px' }}>
-                {editingItem.image && <img src={editingItem.image} alt="Preview" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} />}
+                {editingItem.mainImage && <img src={editingItem.mainImage} alt="Main" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px' }} />}
                 <label style={{ padding: '10px 15px', background: 'var(--gold)', color: '#000', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
-                  {uploading ? 'Uploading...' : 'Upload Image'}
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleItemImageUpload} />
+                  {uploading ? 'Uploading...' : 'Upload Cover Image'}
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleMainImageUpload} />
+                </label>
+              </div>
+
+              {/* RELATED PHOTOS GALLERY */}
+              <label style={labelStyle}>Related Photos (Gallery)</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
+                {(editingItem.galleryImages || []).map((img, idx) => (
+                  <div key={idx} style={{ position: 'relative', width: '80px', height: '80px' }}>
+                    <img src={img} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                    <button onClick={() => removeGalleryImage(idx)} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: '#fff', border: 'none', borderRadius: '50%', padding: '2px 6px', cursor: 'pointer', fontSize: '10px' }}>X</button>
+                  </div>
+                ))}
+                <label style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.1)', border: '1px dashed var(--gold)', borderRadius: '8px', cursor: 'pointer', color: 'var(--gold)' }}>
+                  <Plus size={24} />
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleGalleryImageUpload} />
                 </label>
               </div>
 
@@ -261,11 +305,6 @@ export default function AdminChange() {
             </div>
           </div>
         )}
-
-        {/* TESTIMONIALS (Keep as is) */}
-        <section className="testimonials-section" style={{ padding: '100px 10%', background: 'var(--bg-light)', borderTop: '1px solid var(--border)' }}>
-           {/* ... Same as before ... */}
-        </section>
 
       </div>
     </div>

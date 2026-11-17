@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowUpRight } from 'lucide-react';
 
 export default function PortfolioDetail() {
-  const { id } = useParams(); // Get ID from URL
+  const { id } = useParams();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ export default function PortfolioDetail() {
 
   if (!item) return (
     <div style={{ color: 'white', padding: '100px', textAlign: 'center', minHeight: '100vh' }}>
-      <h2>Image not found</h2>
+      <h2>Event not found</h2>
       <Link to="/portfolio" className="primary-btn" style={{ marginTop: '20px' }}>Back to Portfolio</Link>
     </div>
   );
@@ -41,13 +41,13 @@ export default function PortfolioDetail() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', maxWidth: '1000px', margin: '0 auto' }}>
           
-          {/* Main Image */}
+          {/* Main Poster Image */}
           <div style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)' }}>
-            <img src={item.image} alt={item.title} style={{ width: '100%', height: 'auto', display: 'block' }} />
+            <img src={item.mainImage} alt={item.title} style={{ width: '100%', height: 'auto', display: 'block' }} />
           </div>
 
           {/* Event Details */}
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <p className="eyebrow" style={{ color: 'var(--gold)' }}>{item.category.toUpperCase()}</p>
             <h1 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', color: 'var(--white)', margin: '0 0 20px' }}>
               {item.title}
@@ -60,6 +60,22 @@ export default function PortfolioDetail() {
               Book This Type of Event <ArrowUpRight size={18} />
             </Link>
           </div>
+
+          {/* RELATED PHOTOS GALLERY */}
+          {item.galleryImages && item.galleryImages.length > 0 && (
+            <div style={{ marginTop: '40px' }}>
+              <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', textAlign: 'center', marginBottom: '30px' }}>
+                Moments from the <span style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Event</span>
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '15px' }}>
+                {item.galleryImages.map((img, index) => (
+                  <div key={index} style={{ borderRadius: '8px', overflow: 'hidden' }}>
+                    <img src={img} alt={`Gallery ${index}`} style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
         </div>
       </div>

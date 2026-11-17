@@ -22,10 +22,7 @@ export default function Portfolio() {
 
   if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading Gallery...</div>;
 
-  // Get unique categories
   const categories = ['All', ...new Set(gallery.map(item => item.category))];
-  
-  // Filter items based on active tab
   const filteredGallery = activeCategory === 'All' ? gallery : gallery.filter(item => item.category === activeCategory);
 
   return (
@@ -39,7 +36,6 @@ export default function Portfolio() {
           </h2>
         </div>
 
-        {/* Category Tabs */}
         <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginBottom: '50px', flexWrap: 'wrap' }}>
           {categories.map(cat => (
             <button 
@@ -56,18 +52,14 @@ export default function Portfolio() {
           ))}
         </div>
 
-        {/* Masonry Grid */}
-        <div style={{ columnCount: 3, columnGap: '20px', width: '100%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
           {filteredGallery.map((item) => (
-            <div key={item.id} style={{ breakInside: 'avoid', marginBottom: '20px', borderRadius: '8px', overflow: 'hidden', position: 'relative', cursor: 'pointer' }}>
+            <div key={item.id} style={{ borderRadius: '8px', overflow: 'hidden', position: 'relative', cursor: 'pointer' }}>
               <Link to={`/portfolio/${item.id}`} style={{ display: 'block', textDecoration: 'none' }}>
-                <img src={item.image} alt={item.title} style={{ width: '100%', display: 'block', transition: 'transform 0.3s' }} className="portfolio-img-hover" />
+                <img src={item.mainImage} alt={item.title} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '20px' }}>
                   <p style={{ color: 'var(--gold)', fontSize: '12px', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 5px' }}>{item.category}</p>
-                  <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '24px', margin: 0 }}>{item.title}</h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--gold)', marginTop: '10px', fontSize: '13px' }}>
-                    View Story <ArrowUpRight size={14} />
-                  </div>
+                  <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '28px', margin: 0 }}>{item.title}</h3>
                 </div>
               </Link>
             </div>
