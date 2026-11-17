@@ -29,7 +29,6 @@ export default function AdminChange() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   
-  // States
   const [selectedCategory, setSelectedCategory] = useState(MAIN_CATEGORIES[0]);
   const [selectedSubCategory, setSelectedSubCategory] = useState(WEDDING_SUB_CATEGORIES[0]);
 
@@ -72,11 +71,6 @@ export default function AdminChange() {
     setSaving(false);
   };
 
-  const handleChange = (key, value) => {
-    setContent(prev => ({ ...prev, [key]: value }));
-  };
-
-  // Helper to get the current item being edited
   const getActiveItem = () => {
     return content.portfolioItems.find(
       item => item.category === selectedCategory && 
@@ -84,7 +78,6 @@ export default function AdminChange() {
     );
   };
 
-  // Create or Update an item in the array
   const updateActiveItem = (updates) => {
     setContent(prev => {
       const existingItemIndex = prev.portfolioItems.findIndex(
@@ -115,11 +108,9 @@ export default function AdminChange() {
 
   const currentItem = getActiveItem();
 
-  // Image Uploads
   const handleMainImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     setUploading(true);
     const formData = new FormData();
     formData.append('file', file);
@@ -140,7 +131,6 @@ export default function AdminChange() {
   const handleGalleryImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     setUploading(true);
     const formData = new FormData();
     formData.append('file', file);
@@ -172,7 +162,6 @@ export default function AdminChange() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '100px' }}>
       
-      {/* HEADER */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)', zIndex: 100, padding: '20px 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <button onClick={() => navigate('/admin/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>
           <ArrowLeft size={20} /> Back to Dashboard
@@ -184,7 +173,6 @@ export default function AdminChange() {
 
       <div style={{ paddingTop: '120px' }}>
         
-        {/* PORTFOLIO MANAGER */}
         <section style={{ padding: '50px 10%', background: 'var(--bg-light)' }}>
           
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
@@ -220,7 +208,7 @@ export default function AdminChange() {
             </div>
           )}
 
-          {/* WYSIWYG EDITOR FOR THE SELECTED CATEGORY */}
+          {/* WYSIWYG EDITOR */}
           <div style={{ maxWidth: '800px', margin: '0 auto', background: '#111', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)' }}>
             
             <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '32px', marginBottom: '30px' }}>
@@ -228,20 +216,10 @@ export default function AdminChange() {
             </h3>
 
             <label style={labelStyle}>Event Title</label>
-            <input 
-              value={currentItem?.title || ''} 
-              onChange={(e) => updateActiveItem({ title: e.target.value })} 
-              style={inputStyle} 
-              placeholder="Enter title here..."
-            />
+            <input value={currentItem?.title || ''} onChange={(e) => updateActiveItem({ title: e.target.value })} style={inputStyle} placeholder="Enter title here..." />
 
             <label style={labelStyle}>Description</label>
-            <textarea 
-              value={currentItem?.description || ''} 
-              onChange={(e) => updateActiveItem({ description: e.target.value })} 
-              style={{ ...inputStyle, height: '100px' }} 
-              placeholder="Enter description here..."
-            />
+            <textarea value={currentItem?.description || ''} onChange={(e) => updateActiveItem({ description: e.target.value })} style={{ ...inputStyle, height: '100px' }} placeholder="Enter description here..." />
 
             <label style={labelStyle}>Main Poster (Cover Image)</label>
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '30px' }}>
@@ -273,12 +251,7 @@ export default function AdminChange() {
             </div>
 
             <label style={labelStyle}>Redirect Link (For "Book This Event" button)</label>
-            <input 
-              value={currentItem?.link || ''} 
-              onChange={(e) => updateActiveItem({ link: e.target.value })} 
-              style={inputStyle} 
-              placeholder="/contact"
-            />
+            <input value={currentItem?.link || ''} onChange={(e) => updateActiveItem({ link: e.target.value })} style={inputStyle} placeholder="/contact" />
 
           </div>
         </section>
