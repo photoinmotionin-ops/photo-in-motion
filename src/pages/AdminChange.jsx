@@ -5,7 +5,8 @@ import { Save, ArrowLeft, Upload, Loader2, Plus, Trash2, Edit2 } from 'lucide-re
 const CLOUDINARY_CLOUD_NAME = 'kwqsty9w';
 const CLOUDINARY_UPLOAD_PRESET = 'portfolio_upload';
 
-const CATEGORIES = ['Wedding', 'Birthday', 'Corporate', 'Pre-Wedding', 'Engagement'];
+const MAIN_CATEGORIES = ['Wedding', 'Birthday', 'Corporate'];
+const WEDDING_SUB_CATEGORIES = ['Engagement', 'Pre-Wedding', 'Mehendi & Haldi', 'Marriage', 'Reception'];
 
 export default function AdminChange() {
   const defaultContent = {
@@ -28,7 +29,7 @@ export default function AdminChange() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   
-  const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0]);
+  const [selectedCategory, setSelectedCategory] = useState(MAIN_CATEGORIES[0]);
   const [editingItem, setEditingItem] = useState(null);
 
   const navigate = useNavigate();
@@ -80,10 +81,11 @@ export default function AdminChange() {
     const newItem = {
       id: Date.now().toString(),
       category: selectedCategory,
+      subCategory: selectedCategory === 'Wedding' ? WEDDING_SUB_CATEGORIES[0] : '',
       title: 'New Event Title',
       description: 'Enter description here...',
-      mainImage: '', // Main Poster
-      galleryImages: [], // Array for related photos
+      mainImage: '', 
+      galleryImages: [], 
       link: '/contact'
     };
     setContent(prev => ({
@@ -198,7 +200,6 @@ export default function AdminChange() {
 
       <div style={{ paddingTop: '120px' }}>
         
-        {/* ... Keep Hero and Intro sections identical ... */}
         <section className="hero" style={{ minHeight: 'auto', paddingBottom: '50px' }}>
           <div className="hero-overlay" />
           <div className="hero-content" style={{ zIndex: 10, position: 'relative' }}>
@@ -222,7 +223,7 @@ export default function AdminChange() {
           </div>
 
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '40px', flexWrap: 'wrap' }}>
-            {CATEGORIES.map(cat => (
+            {MAIN_CATEGORIES.map(cat => (
               <button 
                 key={cat}
                 onClick={() => { setSelectedCategory(cat); setEditingItem(null); }}
@@ -239,9 +240,9 @@ export default function AdminChange() {
                 <img src={item.mainImage || 'https://via.placeholder.com/300'} alt={item.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
                 <div style={{ padding: '20px' }}>
                   <h4 style={{ color: 'var(--white)', margin: '0 0 10px' }}>{item.title}</h4>
-                  <p style={{ color: '#888', fontSize: '12px', marginBottom: '15px' }}>{item.category}</p>
+                  <p style={{ color: '#888', fontSize: '12px', marginBottom: '15px' }}>{item.category} {item.subCategory ? `• ${item.subCategory}` : ''}</p>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <button onClick={() => handleEditItem(item)} style={{ flex: 1, padding: '10px', background: 'var(--gold)', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}><Edit2 size={16} /> Edit Event</button>
+                    <button onClick={() => handleEditItem(item)} style={{ flex: 1, padding: '10px', background: 'var(--gold)', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}><Edit2 size={16} /> Edit</button>
                     <button onClick={() => handleRemoveItem(item.id)} style={{ padding: '10px', background: 'rgba(255,0,0,0.2)', color: 'red', border: '1px solid red', borderRadius: '4px', cursor: 'pointer' }}><Trash2 size={16} /></button>
                   </div>
                 </div>
@@ -264,13 +265,27 @@ export default function AdminChange() {
             <div style={{ background: '#1a1a1a', padding: '40px', borderRadius: '16px', border: '1px solid var(--gold)', width: '100%', maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto' }}>
               <h3 style={{ color: 'var(--white)', marginBottom: '20px' }}>Edit Event: {editingItem.title}</h3>
               
+              {editingItem.category === 'Wedding' && (
+                <>
+                  <label style={labelStyle}>Wedding Sub-Category</label>
+                  <select 
+                    value={editingItem.subCategory || WEDDING_SUB_CATEGORIES[0]} 
+                    onChange={(e) => handleUpdateItem('subCategory', e.target.value)}
+                    style={inputStyle}
+                  >
+                    {WEDDING_SUB_CATEGORIES.map(sub => (
+                      <option key={sub} value={sub}>{sub}</option>
+                    ))}
+                  </select>
+                </>
+              )}
+
               <label style={labelStyle}>Event Title</label>
               <input value={editingItem.title} onChange={(e) => handleUpdateItem('title', e.target.value)} style={inputStyle} />
 
               <label style={labelStyle}>Description</label>
               <textarea value={editingItem.description} onChange={(e) => handleUpdateItem('description', e.target.value)} style={{ ...inputStyle, height: '100px' }} />
 
-              {/* MAIN POSTER */}
               <label style={labelStyle}>Main Poster (Cover)</label>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '20px' }}>
                 {editingItem.mainImage && <img src={editingItem.mainImage} alt="Main" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px' }} />}
@@ -280,7 +295,6 @@ export default function AdminChange() {
                 </label>
               </div>
 
-              {/* RELATED PHOTOS GALLERY */}
               <label style={labelStyle}>Related Photos (Gallery)</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
                 {(editingItem.galleryImages || []).map((img, idx) => (

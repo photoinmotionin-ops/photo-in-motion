@@ -3,10 +3,13 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowUpRight } from 'lucide-react';
 
+const WEDDING_SUB_CATEGORIES = ['Engagement', 'Pre-Wedding', 'Mehendi & Haldi', 'Marriage', 'Reception'];
+
 export default function PortfolioDetail() {
-  const { id } = useParams();
-  const [item, setItem] = useState(null);
+  const { id } = useParams(); // This is the main Category ID
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState(WEDDING_SUB_CATEGORIES[0]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,22 +17,47 @@ export default function PortfolioDetail() {
       .then(res => res.json())
       .then(data => {
         if (data.portfolioItems) {
+          // Find the main event clicked
           const foundItem = data.portfolioItems.find(i => i.id === id);
-          setItem(foundItem);
+          
+          if (foundItem) {
+            // For Wedding, load ALL Wedding items
+            if (foundItem.category === 'Wedding') {
+              const weddingItems = data.portfolioItems.filter(i => i.category === 'Wedding');
+              setItems(weddingItems);
+            } else {
+              // For other categories, just load that one item
+              setItems([foundItem]);
+            }
+          }
         }
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading...</div>;
+  // AUTO-SWITCH LOGIC
+  useEffect(() => {
+    if (items.length > 0 && items[0].category === 'Wedding') {
+      const interval = setInterval(() => {
+        setActiveTab(prevTab => {
+          const currentIndex = WEDDING_SUB_CATEGORIES.indexOf(prevTab);
+          const nextIndex = (currentIndex + 1) % WEDDING_SUB_CATEGORIES.length;
+          return WEDDING_SUB_CATEGORIES[nextIndex];
+        });
+      }, 4000); // 4 seconds
 
-  if (!item) return (
-    <div style={{ color: 'white', padding: '100px', textAlign: 'center', minHeight: '100vh' }}>
-      <h2>Event not found</h2>
-      <Link to="/portfolio" className="primary-btn" style={{ marginTop: '20px' }}>Back to Portfolio</Link>
-    </div>
-  );
+      return () => clearInterval(interval); // Cleanup
+    }
+  }, [items, activeTab]);
+
+  if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading...</div>;
+  if (items.length === 0) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Event not found</div>;
+
+  const mainEvent = items[0]; // The main image clicked
+  const activeSubItem = items.find(i => i.subCategory === activeTab) || items[0];
+  
+  const allGalleryImages = items.filter(i => i.subCategory === activeTab).flatMap(i => i.galleryImages || []);
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: '100px' }}>
@@ -43,32 +71,79 @@ export default function PortfolioDetail() {
           
           {/* Main Poster Image */}
           <div style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)' }}>
-            <img src={item.mainImage} alt={item.title} style={{ width: '100%', height: 'auto', display: 'block' }} />
+            <img src={mainEvent.mainImage} alt={mainEvent.title} style={{ width: '100%', height: 'auto', display: 'block' }} />
           </div>
 
           {/* Event Details */}
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-            <p className="eyebrow" style={{ color: 'var(--gold)' }}>{item.category.toUpperCase()}</p>
+            <p className="eyebrow" style={{ color: 'var(--gold)' }}>{mainEvent.category.toUpperCase()}</p>
             <h1 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', color: 'var(--white)', margin: '0 0 20px' }}>
-              {item.title}
+              {mainEvent.title}
             </h1>
             <p style={{ color: 'var(--muted)', fontSize: '16px', lineHeight: '1.8', maxWidth: '700px', margin: '0 auto 40px' }}>
-              {item.description}
+              {mainEvent.description}
             </p>
             
-            <Link to={item.link || '/contact'} className="primary-btn" style={{ padding: '15px 30px', fontSize: '14px' }}>
+            <Link to={mainEvent.link || '/contact'} className="primary-btn" style={{ padding: '15px 30px', fontSize: '14px' }}>
               Book This Type of Event <ArrowUpRight size={18} />
             </Link>
           </div>
 
-          {/* RELATED PHOTOS GALLERY */}
-          {item.galleryImages && item.galleryImages.length > 0 && (
+          {/* --- WEDDING TABS SECTION --- */}
+          {mainEvent.category === 'Wedding' && (
             <div style={{ marginTop: '40px' }}>
-              <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', textAlign: 'center', marginBottom: '30px' }}>
-                Moments from the <span style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Event</span>
-              </h3>
+              
+              {/* Tabs */}
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '40px', flexWrap: 'wrap' }}>
+                {WEDDING_SUB_CATEGORIES.map(tab => (
+                  <button 
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    style={{ 
+                      padding: '10px 20px', borderRadius: '20px', border: 'none',
+                      background: activeTab === tab ? 'var(--gold)' : '#222', 
+                      color: activeTab === tab ? '#000' : '#fff', 
+                      cursor: 'pointer', fontWeight: 'bold',
+                      transition: 'all 0.3s'
+                    }}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              {/* Content for the active tab */}
+              <motion.div 
+                key={activeTab} // Re-animates when tab switches
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', textAlign: 'center', marginBottom: '30px' }}>
+                  {activeTab} <span style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Moments</span>
+                </h3>
+
+                {allGalleryImages.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '15px' }}>
+                    {allGalleryImages.map((img, index) => (
+                      <div key={index} style={{ borderRadius: '8px', overflow: 'hidden' }}>
+                        <img src={img} alt={`Gallery ${index}`} style={{ width: '100%', height: 'auto', display: 'block' }} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ textAlign: 'center', color: 'var(--muted)' }}>No photos added for this section yet.</p>
+                )}
+              </motion.div>
+
+            </div>
+          )}
+
+          {/* Non-Wedding Gallery */}
+          {mainEvent.category !== 'Wedding' && mainEvent.galleryImages && mainEvent.galleryImages.length > 0 && (
+            <div style={{ marginTop: '40px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '15px' }}>
-                {item.galleryImages.map((img, index) => (
+                {mainEvent.galleryImages.map((img, index) => (
                   <div key={index} style={{ borderRadius: '8px', overflow: 'hidden' }}>
                     <img src={img} alt={`Gallery ${index}`} style={{ width: '100%', height: 'auto', display: 'block' }} />
                   </div>
