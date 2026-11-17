@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Upload, Loader2, Plus, Trash2, Edit2 } from 'lucide-react';
+import { Save, ArrowLeft, Upload, Loader2, Plus, Trash2 } from 'lucide-react';
 
 const CLOUDINARY_CLOUD_NAME = 'kwqsty9w';
 const CLOUDINARY_UPLOAD_PRESET = 'portfolio_upload';
@@ -29,8 +29,9 @@ export default function AdminChange() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   
+  // States
   const [selectedCategory, setSelectedCategory] = useState(MAIN_CATEGORIES[0]);
-  const [editingItem, setEditingItem] = useState(null);
+  const [selectedSubCategory, setSelectedSubCategory] = useState(WEDDING_SUB_CATEGORIES[0]);
 
   const navigate = useNavigate();
 
@@ -75,54 +76,46 @@ export default function AdminChange() {
     setContent(prev => ({ ...prev, [key]: value }));
   };
 
-  // --- PORTFOLIO MANAGEMENT LOGIC ---
-  
-  const handleAddNewItem = () => {
-    const newItem = {
-      id: Date.now().toString(),
-      category: selectedCategory,
-      subCategory: selectedCategory === 'Wedding' ? WEDDING_SUB_CATEGORIES[0] : '',
-      title: 'New Event Title',
-      description: 'Enter description here...',
-      mainImage: '', 
-      galleryImages: [], 
-      link: '/contact'
-    };
-    setContent(prev => ({
-      ...prev,
-      portfolioItems: [...prev.portfolioItems, newItem]
-    }));
-    setEditingItem(newItem);
+  // Helper to get the current item being edited
+  const getActiveItem = () => {
+    return content.portfolioItems.find(
+      item => item.category === selectedCategory && 
+      (selectedCategory === 'Wedding' ? item.subCategory === selectedSubCategory : true)
+    );
   };
 
-  const handleEditItem = (item) => {
-    setEditingItem(item);
+  // Create or Update an item in the array
+  const updateActiveItem = (updates) => {
+    setContent(prev => {
+      const existingItemIndex = prev.portfolioItems.findIndex(
+        item => item.category === selectedCategory && 
+        (selectedCategory === 'Wedding' ? item.subCategory === selectedSubCategory : true)
+      );
+
+      let newItems = [...prev.portfolioItems];
+
+      if (existingItemIndex >= 0) {
+        newItems[existingItemIndex] = { ...newItems[existingItemIndex], ...updates };
+      } else {
+        newItems.push({
+          id: Date.now().toString(),
+          category: selectedCategory,
+          subCategory: selectedCategory === 'Wedding' ? selectedSubCategory : '',
+          title: 'New Event',
+          description: 'Description...',
+          mainImage: '',
+          galleryImages: [],
+          link: '/contact',
+          ...updates
+        });
+      }
+      return { ...prev, portfolioItems: newItems };
+    });
   };
 
-  const handleUpdateItem = (key, value) => {
-    setEditingItem(prev => ({ ...prev, [key]: value }));
-  };
+  const currentItem = getActiveItem();
 
-  const handleSaveEdit = () => {
-    setContent(prev => ({
-      ...prev,
-      portfolioItems: prev.portfolioItems.map(item => 
-        item.id === editingItem.id ? editingItem : item
-      )
-    }));
-    setEditingItem(null);
-  };
-
-  const handleRemoveItem = (id) => {
-    if (window.confirm("Are you sure you want to delete this portfolio item?")) {
-      setContent(prev => ({
-        ...prev,
-        portfolioItems: prev.portfolioItems.filter(item => item.id !== id)
-      }));
-    }
-  };
-
-  // Upload Main Poster
+  // Image Uploads
   const handleMainImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -138,15 +131,12 @@ export default function AdminChange() {
         body: formData
       });
       const data = await res.json();
-      if (data.secure_url) handleUpdateItem('mainImage', data.secure_url);
-    } catch (error) {
-      alert('Error uploading image.');
+      if (data.secure_url) updateActiveItem({ mainImage: data.secure_url });
     } finally {
       setUploading(false);
     }
   };
 
-  // Upload to Gallery
   const handleGalleryImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -163,32 +153,26 @@ export default function AdminChange() {
       });
       const data = await res.json();
       if (data.secure_url) {
-        setEditingItem(prev => ({
-          ...prev,
-          galleryImages: [...(prev.galleryImages || []), data.secure_url]
-        }));
+        const currentImages = currentItem?.galleryImages || [];
+        updateActiveItem({ galleryImages: [...currentImages, data.secure_url] });
       }
-    } catch (error) {
-      alert('Error uploading image.');
     } finally {
       setUploading(false);
     }
   };
 
   const removeGalleryImage = (indexToRemove) => {
-    setEditingItem(prev => ({
-      ...prev,
-      galleryImages: prev.galleryImages.filter((_, index) => index !== indexToRemove)
-    }));
+    if (!currentItem) return;
+    const newImages = currentItem.galleryImages.filter((_, index) => index !== indexToRemove);
+    updateActiveItem({ galleryImages: newImages });
   };
-
-  const filteredItems = content.portfolioItems.filter(item => item.category === selectedCategory);
 
   if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading...</div>;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '100px' }}>
       
+      {/* HEADER */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)', zIndex: 100, padding: '20px 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <button onClick={() => navigate('/admin/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>
           <ArrowLeft size={20} /> Back to Dashboard
@@ -200,133 +184,109 @@ export default function AdminChange() {
 
       <div style={{ paddingTop: '120px' }}>
         
-        <section className="hero" style={{ minHeight: 'auto', paddingBottom: '50px' }}>
-          <div className="hero-overlay" />
-          <div className="hero-content" style={{ zIndex: 10, position: 'relative' }}>
-            <p className="eyebrow">WEDDING · EVENTS · CINEMATIC FILMS</p>
-            <textarea value={content.heroTitle} onChange={(e) => handleChange('heroTitle', e.target.value)} style={{ ...heroTitleStyle, fontFamily: 'var(--heading-font)', fontSize: 'clamp(65px, 8vw, 112px)', color: 'var(--white)' }} rows={2} />
-            <textarea value={content.heroSub} onChange={(e) => handleChange('heroSub', e.target.value)} style={{ ...heroDescStyle, color: 'var(--text)' }} rows={3} />
-          </div>
-        </section>
-
-        <section className="intro-section" style={{ padding: '100px 10%' }}>
-          <p className="eyebrow">MORE THAN JUST PHOTOGRAPHY</p>
-          <textarea value={content.storyTitle} onChange={(e) => handleChange('storyTitle', e.target.value)} style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', color: 'var(--white)', textAlign: 'center', width: '100%', marginBottom: '20px' }} rows={2} />
-          <textarea value={content.storyText} onChange={(e) => handleChange('storyText', e.target.value)} style={{ maxWidth: '800px', margin: '0 auto', color: 'var(--muted)', textAlign: 'center', fontSize: '15px', lineHeight: '2', display: 'block', width: '100%' }} rows={4} />
-        </section>
-
-        {/* --- PORTFOLIO MANAGER --- */}
-        <section style={{ padding: '100px 10%', background: 'var(--bg-light)' }}>
-          <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+        {/* PORTFOLIO MANAGER */}
+        <section style={{ padding: '50px 10%', background: 'var(--bg-light)' }}>
+          
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <p className="eyebrow">MANAGE EVENTS</p>
             <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0 }}>Portfolio <span>Manager</span></h2>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '40px', flexWrap: 'wrap' }}>
+          {/* MAIN CATEGORIES */}
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '30px' }}>
             {MAIN_CATEGORIES.map(cat => (
               <button 
                 key={cat}
-                onClick={() => { setSelectedCategory(cat); setEditingItem(null); }}
-                style={{ padding: '10px 20px', borderRadius: '20px', border: 'none', background: selectedCategory === cat ? 'var(--gold)' : '#222', color: selectedCategory === cat ? '#000' : '#fff', cursor: 'pointer', fontWeight: 'bold' }}
+                onClick={() => { setSelectedCategory(cat); setSelectedSubCategory(WEDDING_SUB_CATEGORIES[0]); }}
+                style={{ padding: '15px 30px', borderRadius: '30px', border: 'none', background: selectedCategory === cat ? 'var(--gold)' : '#222', color: selectedCategory === cat ? '#000' : '#fff', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
               >
                 {cat}
               </button>
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-            {filteredItems.map(item => (
-              <div key={item.id} style={{ background: '#111', borderRadius: '12px', overflow: 'hidden', border: '1px solid #333' }}>
-                <img src={item.mainImage || 'https://via.placeholder.com/300'} alt={item.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
-                <div style={{ padding: '20px' }}>
-                  <h4 style={{ color: 'var(--white)', margin: '0 0 10px' }}>{item.title}</h4>
-                  <p style={{ color: '#888', fontSize: '12px', marginBottom: '15px' }}>{item.category} {item.subCategory ? `• ${item.subCategory}` : ''}</p>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <button onClick={() => handleEditItem(item)} style={{ flex: 1, padding: '10px', background: 'var(--gold)', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}><Edit2 size={16} /> Edit</button>
-                    <button onClick={() => handleRemoveItem(item.id)} style={{ padding: '10px', background: 'rgba(255,0,0,0.2)', color: 'red', border: '1px solid red', borderRadius: '4px', cursor: 'pointer' }}><Trash2 size={16} /></button>
-                  </div>
-                </div>
-              </div>
-            ))}
+          {/* SUB CATEGORIES (Only for Wedding) */}
+          {selectedCategory === 'Wedding' && (
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '50px', flexWrap: 'wrap' }}>
+              {WEDDING_SUB_CATEGORIES.map(sub => (
+                <button 
+                  key={sub}
+                  onClick={() => setSelectedSubCategory(sub)}
+                  style={{ padding: '10px 20px', borderRadius: '20px', border: `1px solid ${selectedSubCategory === sub ? 'var(--gold)' : '#444'}`, background: selectedSubCategory === sub ? 'rgba(198, 164, 107, 0.2)' : 'transparent', color: selectedSubCategory === sub ? 'var(--gold)' : '#888', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  {sub}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* WYSIWYG EDITOR FOR THE SELECTED CATEGORY */}
+          <div style={{ maxWidth: '800px', margin: '0 auto', background: '#111', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)' }}>
             
-            <button 
-              onClick={handleAddNewItem}
-              style={{ background: 'rgba(255,255,255,0.05)', border: '2px dashed rgba(255,255,255,0.2)', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', cursor: 'pointer', color: 'var(--gold)' }}
-            >
-              <Plus size={40} style={{ marginBottom: '10px' }} />
-              <span>Add New {selectedCategory} Event</span>
-            </button>
+            <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '32px', marginBottom: '30px' }}>
+              Editing: {selectedCategory} {selectedCategory === 'Wedding' ? `- ${selectedSubCategory}` : ''}
+            </h3>
+
+            <label style={labelStyle}>Event Title</label>
+            <input 
+              value={currentItem?.title || ''} 
+              onChange={(e) => updateActiveItem({ title: e.target.value })} 
+              style={inputStyle} 
+              placeholder="Enter title here..."
+            />
+
+            <label style={labelStyle}>Description</label>
+            <textarea 
+              value={currentItem?.description || ''} 
+              onChange={(e) => updateActiveItem({ description: e.target.value })} 
+              style={{ ...inputStyle, height: '100px' }} 
+              placeholder="Enter description here..."
+            />
+
+            <label style={labelStyle}>Main Poster (Cover Image)</label>
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '30px' }}>
+              {currentItem?.mainImage ? (
+                <img src={currentItem.mainImage} alt="Main" style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px' }} />
+              ) : (
+                <div style={{ width: '150px', height: '150px', background: '#222', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>No Image</div>
+              )}
+              <label style={{ padding: '15px 25px', background: 'var(--gold)', color: '#000', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
+                {uploading ? 'Uploading...' : 'Upload Cover Image'}
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleMainImageUpload} />
+              </label>
+            </div>
+
+            <label style={labelStyle}>Related Photos (Gallery)</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '30px' }}>
+              {(currentItem?.galleryImages || []).map((img, idx) => (
+                <div key={idx} style={{ position: 'relative', width: '100px', height: '100px' }}>
+                  <img src={img} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                  <button onClick={() => removeGalleryImage(idx)} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: '#fff', border: 'none', borderRadius: '50%', padding: '4px 8px', cursor: 'pointer', fontSize: '10px' }}>X</button>
+                </div>
+              ))}
+              
+              <label style={{ width: '100px', height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '2px dashed var(--gold)', borderRadius: '8px', cursor: 'pointer', color: 'var(--gold)' }}>
+                <Plus size={24} />
+                <span style={{ fontSize: '10px', marginTop: '5px' }}>Add Photo</span>
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleGalleryImageUpload} />
+              </label>
+            </div>
+
+            <label style={labelStyle}>Redirect Link (For "Book This Event" button)</label>
+            <input 
+              value={currentItem?.link || ''} 
+              onChange={(e) => updateActiveItem({ link: e.target.value })} 
+              style={inputStyle} 
+              placeholder="/contact"
+            />
+
           </div>
         </section>
-
-        {/* EDIT MODAL OVERLAY */}
-        {editingItem && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-            <div style={{ background: '#1a1a1a', padding: '40px', borderRadius: '16px', border: '1px solid var(--gold)', width: '100%', maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto' }}>
-              <h3 style={{ color: 'var(--white)', marginBottom: '20px' }}>Edit Event: {editingItem.title}</h3>
-              
-              {editingItem.category === 'Wedding' && (
-                <>
-                  <label style={labelStyle}>Wedding Sub-Category</label>
-                  <select 
-                    value={editingItem.subCategory || WEDDING_SUB_CATEGORIES[0]} 
-                    onChange={(e) => handleUpdateItem('subCategory', e.target.value)}
-                    style={inputStyle}
-                  >
-                    {WEDDING_SUB_CATEGORIES.map(sub => (
-                      <option key={sub} value={sub}>{sub}</option>
-                    ))}
-                  </select>
-                </>
-              )}
-
-              <label style={labelStyle}>Event Title</label>
-              <input value={editingItem.title} onChange={(e) => handleUpdateItem('title', e.target.value)} style={inputStyle} />
-
-              <label style={labelStyle}>Description</label>
-              <textarea value={editingItem.description} onChange={(e) => handleUpdateItem('description', e.target.value)} style={{ ...inputStyle, height: '100px' }} />
-
-              <label style={labelStyle}>Main Poster (Cover)</label>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '20px' }}>
-                {editingItem.mainImage && <img src={editingItem.mainImage} alt="Main" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px' }} />}
-                <label style={{ padding: '10px 15px', background: 'var(--gold)', color: '#000', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
-                  {uploading ? 'Uploading...' : 'Upload Cover Image'}
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleMainImageUpload} />
-                </label>
-              </div>
-
-              <label style={labelStyle}>Related Photos (Gallery)</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
-                {(editingItem.galleryImages || []).map((img, idx) => (
-                  <div key={idx} style={{ position: 'relative', width: '80px', height: '80px' }}>
-                    <img src={img} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
-                    <button onClick={() => removeGalleryImage(idx)} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: '#fff', border: 'none', borderRadius: '50%', padding: '2px 6px', cursor: 'pointer', fontSize: '10px' }}>X</button>
-                  </div>
-                ))}
-                <label style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.1)', border: '1px dashed var(--gold)', borderRadius: '8px', cursor: 'pointer', color: 'var(--gold)' }}>
-                  <Plus size={24} />
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleGalleryImageUpload} />
-                </label>
-              </div>
-
-              <label style={labelStyle}>Redirect Link (For "Book This Event" button)</label>
-              <input value={editingItem.link} onChange={(e) => handleUpdateItem('link', e.target.value)} style={inputStyle} placeholder="/contact" />
-
-              <div style={{ display: 'flex', gap: '10px', marginTop: '30px' }}>
-                <button onClick={handleSaveEdit} className="primary-btn" style={{ flex: 1 }}>Save Changes</button>
-                <button onClick={() => setEditingItem(null)} style={{ flex: 1, background: 'transparent', border: '1px solid #fff', color: '#fff', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
 
       </div>
     </div>
   );
 }
 
-// Inline styles
 const labelStyle = { display: 'block', color: 'var(--gold)', marginBottom: '10px', fontSize: '14px', letterSpacing: '1px', marginTop: '20px' };
 const inputStyle = { width: '100%', padding: '15px', background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', fontSize: '15px', fontFamily: 'var(--body-font)', outline: 'none' };
-const heroTitleStyle = { width: '100%', background: 'transparent', border: '1px dashed rgba(255,255,255,0.3)', padding: '10px', marginBottom: '20px', lineHeight: '0.98', letterSpacing: '-3px', resize: 'vertical' };
-const heroDescStyle = { maxWidth: '460px', lineHeight: '1.9', fontSize: '13px', padding: '10px', resize: 'vertical', background: 'transparent', border: '1px dashed rgba(255,255,255,0.3)', width: '100%' };
