@@ -9,6 +9,7 @@ const MAIN_CATEGORIES = ['Wedding', 'Birthday', 'Corporate'];
 const WEDDING_SUB_CATEGORIES = ['Engagement', 'Pre-Wedding', 'Mehendi & Haldi', 'Marriage', 'Reception'];
 
 export default function AdminChange() {
+  // This defines the default structure so it doesn't crash
   const defaultContent = {
     heroTitle: 'Every Frame.\nA Timeless Story.',
     heroSub: "We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.",
@@ -39,20 +40,18 @@ export default function AdminChange() {
       navigate('/admin/login');
       return;
     }
-    fetchData();
-  }, [navigate]);
-
-  const fetchData = () => {
+    
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(data => {
+        // Merge with default content to ensure no data is lost
         if (Object.keys(data).length > 0) {
           setContent({ ...defaultContent, ...data, portfolioItems: data.portfolioItems || [] });
         }
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  };
+  }, [navigate]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -65,9 +64,7 @@ export default function AdminChange() {
       
       if (res.ok) {
         alert('Website updated successfully!');
-        // RESET THE FIELDS AFTER SAVE
-        setContent(defaultContent);
-        fetchData(); // Re-fetch to ensure fresh state
+        // NO RESET HERE. We keep the data on screen.
       } else {
         alert('Failed to save changes.');
       }
@@ -75,6 +72,10 @@ export default function AdminChange() {
       alert('Network error.');
     }
     setSaving(false);
+  };
+
+  const handleChange = (key, value) => {
+    setContent(prev => ({ ...prev, [key]: value }));
   };
 
   const getActiveItem = () => {
@@ -179,8 +180,37 @@ export default function AdminChange() {
       </div>
 
       <div style={{ paddingTop: '120px' }}>
-        <section style={{ padding: '50px 10%', background: 'var(--bg-light)' }}>
-          
+        
+        {/* --- HOME PAGE TEXT EDITOR --- */}
+        <section style={{ padding: '50px 10%', background: 'var(--bg)' }}>
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', marginBottom: '30px' }}>Edit Homepage Content</h2>
+            
+            <label style={labelStyle}>Hero Title</label>
+            <textarea value={content.heroTitle} onChange={(e) => handleChange('heroTitle', e.target.value)} style={{ ...inputStyle, height: '80px' }} />
+
+            <label style={labelStyle}>Hero Description</label>
+            <textarea value={content.heroSub} onChange={(e) => handleChange('heroSub', e.target.value)} style={{ ...inputStyle, height: '80px' }} />
+
+            <label style={labelStyle}>Story Section Title</label>
+            <textarea value={content.storyTitle} onChange={(e) => handleChange('storyTitle', e.target.value)} style={{ ...inputStyle, height: '80px' }} />
+
+            <label style={labelStyle}>Story Section Description</label>
+            <textarea value={content.storyText} onChange={(e) => handleChange('storyText', e.target.value)} style={{ ...inputStyle, height: '100px' }} />
+
+            <label style={labelStyle}>Testimonial 1</label>
+            <textarea value={content.testimonial1} onChange={(e) => handleChange('testimonial1', e.target.value)} style={{ ...inputStyle, height: '60px' }} />
+            
+            <label style={labelStyle}>Testimonial 2</label>
+            <textarea value={content.testimonial2} onChange={(e) => handleChange('testimonial2', e.target.value)} style={{ ...inputStyle, height: '60px' }} />
+
+            <label style={labelStyle}>Testimonial 3</label>
+            <textarea value={content.testimonial3} onChange={(e) => handleChange('testimonial3', e.target.value)} style={{ ...inputStyle, height: '60px' }} />
+          </div>
+        </section>
+
+        {/* --- PORTFOLIO MANAGER --- */}
+        <section style={{ padding: '100px 10%', background: 'var(--bg-light)' }}>
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <p className="eyebrow">MANAGE EVENTS</p>
             <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0 }}>Portfolio <span>Manager</span></h2>
@@ -258,6 +288,7 @@ export default function AdminChange() {
 
           </div>
         </section>
+
       </div>
     </div>
   );
