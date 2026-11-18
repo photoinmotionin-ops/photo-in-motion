@@ -24,12 +24,14 @@ export default function Portfolio() {
   const categories = ['All', ...new Set(portfolioItems.map(item => item.category))];
   const filteredItems = activeCategory === 'All' ? portfolioItems : portfolioItems.filter(item => item.category === activeCategory);
 
-  // Group Logic: Only show ONE card per category. 
-  // For Wedding, we specifically look for the 'Marriage' sub-category to use as the main cover.
+  // Group by Category (Only show one card per category)
   const uniqueCards = filteredItems.reduce((acc, current) => {
+    // For Wedding, use the 'Marriage' item's main image as the cover
     if (current.category === 'Wedding' && current.subCategory === 'Marriage') {
       acc.push(current);
-    } else if (current.category !== 'Wedding' && !acc.find(item => item.category === current.category)) {
+    } 
+    // For other categories, take the first one found
+    else if (current.category !== 'Wedding' && !acc.find(item => item.category === current.category)) {
       acc.push(current);
     }
     return acc;

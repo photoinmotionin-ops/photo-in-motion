@@ -39,7 +39,10 @@ export default function AdminChange() {
       navigate('/admin/login');
       return;
     }
-    
+    fetchData();
+  }, [navigate]);
+
+  const fetchData = () => {
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(data => {
@@ -49,7 +52,7 @@ export default function AdminChange() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [navigate]);
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -62,6 +65,9 @@ export default function AdminChange() {
       
       if (res.ok) {
         alert('Website updated successfully!');
+        // RESET THE FIELDS AFTER SAVE
+        setContent(defaultContent);
+        fetchData(); // Re-fetch to ensure fresh state
       } else {
         alert('Failed to save changes.');
       }
@@ -94,8 +100,8 @@ export default function AdminChange() {
           id: Date.now().toString(),
           category: selectedCategory,
           subCategory: selectedCategory === 'Wedding' ? selectedSubCategory : '',
-          title: 'New Event',
-          description: 'Description...',
+          title: '',
+          description: '',
           mainImage: '',
           galleryImages: [],
           link: '/contact',
@@ -162,6 +168,7 @@ export default function AdminChange() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '100px' }}>
       
+      {/* HEADER */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)', zIndex: 100, padding: '20px 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <button onClick={() => navigate('/admin/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>
           <ArrowLeft size={20} /> Back to Dashboard
@@ -172,7 +179,6 @@ export default function AdminChange() {
       </div>
 
       <div style={{ paddingTop: '120px' }}>
-        
         <section style={{ padding: '50px 10%', background: 'var(--bg-light)' }}>
           
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
@@ -180,7 +186,6 @@ export default function AdminChange() {
             <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0 }}>Portfolio <span>Manager</span></h2>
           </div>
 
-          {/* MAIN CATEGORIES */}
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '30px' }}>
             {MAIN_CATEGORIES.map(cat => (
               <button 
@@ -193,7 +198,6 @@ export default function AdminChange() {
             ))}
           </div>
 
-          {/* SUB CATEGORIES (Only for Wedding) */}
           {selectedCategory === 'Wedding' && (
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '50px', flexWrap: 'wrap' }}>
               {WEDDING_SUB_CATEGORIES.map(sub => (
@@ -208,7 +212,6 @@ export default function AdminChange() {
             </div>
           )}
 
-          {/* WYSIWYG EDITOR */}
           <div style={{ maxWidth: '800px', margin: '0 auto', background: '#111', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)' }}>
             
             <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '32px', marginBottom: '30px' }}>
@@ -221,7 +224,7 @@ export default function AdminChange() {
             <label style={labelStyle}>Description</label>
             <textarea value={currentItem?.description || ''} onChange={(e) => updateActiveItem({ description: e.target.value })} style={{ ...inputStyle, height: '100px' }} placeholder="Enter description here..." />
 
-            <label style={labelStyle}>Main Poster (Cover Image)</label>
+            <label style={labelStyle}>Main Poster (This will show on the Portfolio Grid)</label>
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '30px' }}>
               {currentItem?.mainImage ? (
                 <img src={currentItem.mainImage} alt="Main" style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px' }} />
@@ -234,7 +237,7 @@ export default function AdminChange() {
               </label>
             </div>
 
-            <label style={labelStyle}>Related Photos (Gallery)</label>
+            <label style={labelStyle}>Related Photos (Gallery for this section)</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '30px' }}>
               {(currentItem?.galleryImages || []).map((img, idx) => (
                 <div key={idx} style={{ position: 'relative', width: '100px', height: '100px' }}>
@@ -255,7 +258,6 @@ export default function AdminChange() {
 
           </div>
         </section>
-
       </div>
     </div>
   );

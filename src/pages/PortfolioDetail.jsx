@@ -33,28 +33,10 @@ export default function PortfolioDetail() {
       .catch(() => setLoading(false));
   }, [id]);
 
-  // Auto-Switch Tabs
-  useEffect(() => {
-    if (mainItem?.category === 'Wedding') {
-      const interval = setInterval(() => {
-        setActiveTab(prevTab => {
-          const currentIndex = WEDDING_SUB_CATEGORIES.indexOf(prevTab);
-          const nextIndex = (currentIndex + 1) % WEDDING_SUB_CATEGORIES.length;
-          return WEDDING_SUB_CATEGORIES[nextIndex];
-        });
-      }, 4000);
-      return () => clearInterval(interval);
-    }
-  }, [mainItem]);
+  // REMOVED THE AUTO-SWITCH TIMER HERE
 
   if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading...</div>;
-  
-  if (!mainItem) return (
-    <div style={{ color: 'white', padding: '100px', textAlign: 'center', minHeight: '100vh' }}>
-      <h2>Event not found</h2>
-      <Link to="/portfolio" className="primary-btn" style={{ marginTop: '20px' }}>Back to Portfolio</Link>
-    </div>
-  );
+  if (!mainItem) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Event not found</div>;
 
   const activeImages = weddingItems.filter(item => item.subCategory === activeTab).flatMap(item => item.galleryImages || []);
 
