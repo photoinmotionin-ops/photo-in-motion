@@ -229,7 +229,7 @@ export default function AdminChange() {
            <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', marginBottom: '20px' }}>Manage Full Portfolio</h2>
            <p style={{ color: 'var(--muted)', marginBottom: '30px' }}>To edit the specific categories (Wedding, Birthday, Corporate) and add multiple gallery images, go to the Portfolio Manager.</p>
            <button onClick={() => navigate('/admin_change/portfolio')} className="primary-btn" style={{ padding: '15px 30px' }}>
-             Go to Portfolio Manager
+             Go to Portfolio Managerrrrrrrrrrrrrrrrrr
            </button>
         </section>
 
