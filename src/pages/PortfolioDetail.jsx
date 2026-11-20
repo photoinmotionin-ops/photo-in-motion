@@ -7,8 +7,7 @@ const WEDDING_SUB_CATEGORIES = ['Engagement', 'Pre-Wedding', 'Mehendi & Haldi', 
 
 export default function PortfolioDetail() {
   const { id } = useParams(); 
-  const [mainItem, setMainItem] = useState(null);
-  const [weddingItems, setWeddingItems] = useState([]);
+  const [client, setClient] = useState(null);
   const [activeTab, setActiveTab] = useState(WEDDING_SUB_CATEGORIES[0]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -18,27 +17,18 @@ export default function PortfolioDetail() {
       .then(res => res.json())
       .then(data => {
         if (data.portfolioItems) {
-          const foundItem = data.portfolioItems.find(i => String(i.id) === String(id));
-          
-          if (foundItem) {
-            setMainItem(foundItem);
-            if (foundItem.category === 'Wedding') {
-              const allWeddings = data.portfolioItems.filter(i => i.category === 'Wedding');
-              setWeddingItems(allWeddings);
-            }
-          }
+          const foundClient = data.portfolioItems.find(i => String(i.id) === String(id));
+          setClient(foundClient);
         }
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [id]);
 
-  // REMOVED THE AUTO-SWITCH TIMER HERE
-
   if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading...</div>;
-  if (!mainItem) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Event not found</div>;
+  if (!client) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Event not found</div>;
 
-  const activeImages = weddingItems.filter(item => item.subCategory === activeTab).flatMap(item => item.galleryImages || []);
+  const activeImages = client.subCategories?.[activeTab] || [];
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: '100px' }}>
@@ -50,23 +40,23 @@ export default function PortfolioDetail() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', maxWidth: '1000px', margin: '0 auto' }}>
           
           <div style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)' }}>
-            <img src={mainItem.mainImage} alt={mainItem.category} style={{ width: '100%', height: 'auto', display: 'block' }} />
+            <img src={client.mainImage} alt={client.title} style={{ width: '100%', height: 'auto', display: 'block' }} />
           </div>
 
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-            <p className="eyebrow" style={{ color: 'var(--gold)' }}>{mainItem.category.toUpperCase()}</p>
+            <p className="eyebrow" style={{ color: 'var(--gold)' }}>{client.category.toUpperCase()}</p>
             <h1 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', color: 'var(--white)', margin: '0 0 20px' }}>
-              {mainItem.category === 'Wedding' ? 'Wedding Stories' : mainItem.title}
+              {client.title}
             </h1>
             <p style={{ color: 'var(--muted)', fontSize: '16px', lineHeight: '1.8', maxWidth: '700px', margin: '0 auto 40px' }}>
-              {mainItem.description}
+              {client.description}
             </p>
-            <Link to={mainItem.link || '/contact'} className="primary-btn" style={{ padding: '15px 30px', fontSize: '14px' }}>
+            <Link to={client.link || '/contact'} className="primary-btn" style={{ padding: '15px 30px', fontSize: '14px' }}>
               Book This Type of Event <ArrowUpRight size={18} />
             </Link>
           </div>
 
-          {mainItem.category === 'Wedding' && (
+          {client.category === 'Wedding' && (
             <div style={{ marginTop: '40px' }}>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '40px', flexWrap: 'wrap' }}>
                 {WEDDING_SUB_CATEGORIES.map(tab => (
@@ -105,10 +95,10 @@ export default function PortfolioDetail() {
             </div>
           )}
           
-          {mainItem.category !== 'Wedding' && mainItem.galleryImages && mainItem.galleryImages.length > 0 && (
+          {client.category !== 'Wedding' && client.subCategories && Object.values(client.subCategories).flat().length > 0 && (
             <div style={{ marginTop: '40px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '15px' }}>
-                {mainItem.galleryImages.map((img, index) => (
+                {Object.values(client.subCategories).flat().map((img, index) => (
                   <div key={index} style={{ borderRadius: '8px', overflow: 'hidden' }}>
                     <img src={img} alt={`Gallery ${index}`} style={{ width: '100%', height: 'auto', display: 'block' }} />
                   </div>

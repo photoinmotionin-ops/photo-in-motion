@@ -24,19 +24,6 @@ export default function Portfolio() {
   const categories = ['All', ...new Set(portfolioItems.map(item => item.category))];
   const filteredItems = activeCategory === 'All' ? portfolioItems : portfolioItems.filter(item => item.category === activeCategory);
 
-  // Group by Category (Only show one card per category)
-  const uniqueCards = filteredItems.reduce((acc, current) => {
-    // For Wedding, use the 'Marriage' item's main image as the cover
-    if (current.category === 'Wedding' && current.subCategory === 'Marriage') {
-      acc.push(current);
-    } 
-    // For other categories, take the first one found
-    else if (current.category !== 'Wedding' && !acc.find(item => item.category === current.category)) {
-      acc.push(current);
-    }
-    return acc;
-  }, []);
-
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ paddingTop: '120px', minHeight: '100vh', background: 'var(--bg)' }}>
       <section style={{ padding: '40px 10% 100px' }}>
@@ -64,13 +51,13 @@ export default function Portfolio() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
-          {uniqueCards.map((item) => (
-            <div key={item.category} style={{ borderRadius: '8px', overflow: 'hidden', position: 'relative', cursor: 'pointer' }}>
+          {filteredItems.map((item) => (
+            <div key={item.id} style={{ borderRadius: '8px', overflow: 'hidden', position: 'relative', cursor: 'pointer' }}>
               <Link to={`/portfolio/${item.id}`} style={{ display: 'block', textDecoration: 'none' }}>
-                <img src={item.mainImage} alt={item.category} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
+                <img src={item.mainImage} alt={item.title} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '20px' }}>
                   <p style={{ color: 'var(--gold)', fontSize: '12px', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 5px' }}>{item.category}</p>
-                  <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '28px', margin: 0 }}>{item.category === 'Wedding' ? 'Wedding Stories' : item.title}</h3>
+                  <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '28px', margin: 0 }}>{item.title}</h3>
                 </div>
               </Link>
             </div>

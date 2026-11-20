@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Upload, Loader2, Plus, Trash2 } from 'lucide-react';
+import { Save, ArrowLeft, Upload, Loader2, Plus, Trash2, Edit2 } from 'lucide-react';
 
 const CLOUDINARY_CLOUD_NAME = 'kwqsty9w';
 const CLOUDINARY_UPLOAD_PRESET = 'portfolio_upload';
@@ -21,7 +21,7 @@ export default function AdminChange() {
     img2: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
     img3: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
     showreelImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80',
-    portfolioItems: []
+    portfolioItems: [] // This will now hold MULTIPLE clients
   };
 
   const [content, setContent] = useState(defaultContent);
@@ -30,7 +30,7 @@ export default function AdminChange() {
   const [uploading, setUploading] = useState(false);
   
   const [selectedCategory, setSelectedCategory] = useState(MAIN_CATEGORIES[0]);
-  const [selectedSubCategory, setSelectedSubCategory] = useState(WEDDING_SUB_CATEGORIES[0]);
+  const [editingClient, setEditingClient] = useState(null);
 
   const navigate = useNavigate();
 
@@ -62,7 +62,6 @@ export default function AdminChange() {
       
       if (res.ok) {
         alert('Website content updated successfully!');
-        // We do NOT reset the state here. The data stays on the screen.
       } else {
         alert('Failed to save changes.');
       }
@@ -76,45 +75,55 @@ export default function AdminChange() {
     setContent(prev => ({ ...prev, [key]: value }));
   };
 
-  // --- PORTFOLIO MANAGER LOGIC ---
-  const getActiveItem = () => {
-    return content.portfolioItems.find(
-      item => item.category === selectedCategory && 
-      (selectedCategory === 'Wedding' ? item.subCategory === selectedSubCategory : true)
-    );
-  };
+  // --- MULTI-CLIENT PORTFOLIO LOGIC ---
 
-  const updateActiveItem = (updates) => {
-    setContent(prev => {
-      const existingItemIndex = prev.portfolioItems.findIndex(
-        item => item.category === selectedCategory && 
-        (selectedCategory === 'Wedding' ? item.subCategory === selectedSubCategory : true)
-      );
-
-      let newItems = [...prev.portfolioItems];
-
-      if (existingItemIndex >= 0) {
-        newItems[existingItemIndex] = { ...newItems[existingItemIndex], ...updates };
-      } else {
-        newItems.push({
-          id: Date.now().toString(),
-          category: selectedCategory,
-          subCategory: selectedCategory === 'Wedding' ? selectedSubCategory : '',
-          title: '',
-          description: '',
-          mainImage: '',
-          galleryImages: [],
-          link: '/contact',
-          ...updates
-        });
+  const handleCreateClient = () => {
+    const newClient = {
+      id: Date.now().toString(),
+      category: selectedCategory,
+      title: 'New Client Event',
+      description: 'Description...',
+      mainImage: '',
+      link: '/contact',
+      subCategories: {
+        'Engagement': [],
+        'Pre-Wedding': [],
+        'Mehendi & Haldi': [],
+        'Marriage': [],
+        'Reception': []
       }
-      return { ...prev, portfolioItems: newItems };
-    });
+    };
+    setContent(prev => ({
+      ...prev,
+      portfolioItems: [...prev.portfolioItems, newClient]
+    }));
+    setEditingClient(newClient);
   };
 
-  const currentItem = getActiveItem();
+  const handleUpdateClient = (key, value) => {
+    setEditingClient(prev => ({ ...prev, [key]: value }));
+  };
 
-  const handleMainImageUpload = async (e) => {
+  const handleSaveClient = () => {
+    setContent(prev => ({
+      ...prev,
+      portfolioItems: prev.portfolioItems.map(item => 
+        item.id === editingClient.id ? editingClient : item
+      )
+    }));
+    setEditingClient(null);
+  };
+
+  const handleDeleteClient = (id) => {
+    if (window.confirm("Are you sure you want to delete this client's portfolio?")) {
+      setContent(prev => ({
+        ...prev,
+        portfolioItems: prev.portfolioItems.filter(item => item.id !== id)
+      }));
+    }
+  };
+
+  const handleUploadImage = async (e, callback) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
@@ -128,13 +137,13 @@ export default function AdminChange() {
         body: formData
       });
       const data = await res.json();
-      if (data.secure_url) updateActiveItem({ mainImage: data.secure_url });
+      if (data.secure_url) callback(data.secure_url);
     } finally {
       setUploading(false);
     }
   };
 
-  const handleGalleryImageUpload = async (e) => {
+  const handleGalleryUpload = async (e, subCategory) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
@@ -149,26 +158,36 @@ export default function AdminChange() {
       });
       const data = await res.json();
       if (data.secure_url) {
-        const currentImages = currentItem?.galleryImages || [];
-        updateActiveItem({ galleryImages: [...currentImages, data.secure_url] });
+        setEditingClient(prev => ({
+          ...prev,
+          subCategories: {
+            ...prev.subCategories,
+            [subCategory]: [...prev.subCategories[subCategory], data.secure_url]
+          }
+        }));
       }
     } finally {
       setUploading(false);
     }
   };
 
-  const removeGalleryImage = (indexToRemove) => {
-    if (!currentItem) return;
-    const newImages = currentItem.galleryImages.filter((_, index) => index !== indexToRemove);
-    updateActiveItem({ galleryImages: newImages });
+  const removeGalleryImage = (subCategory, indexToRemove) => {
+    setEditingClient(prev => ({
+      ...prev,
+      subCategories: {
+        ...prev.subCategories,
+        [subCategory]: prev.subCategories[subCategory].filter((_, i) => i !== indexToRemove)
+      }
+    }));
   };
+
+  const filteredClients = content.portfolioItems.filter(item => item.category === selectedCategory);
 
   if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading...</div>;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '100px' }}>
       
-      {/* HEADER */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)', zIndex: 100, padding: '20px 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <button onClick={() => navigate('/admin/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>
           <ArrowLeft size={20} /> Back to Dashboard
@@ -180,7 +199,7 @@ export default function AdminChange() {
 
       <div style={{ paddingTop: '120px' }}>
         
-        {/* SECTION 1: HOME PAGE CONTENT */}
+        {/* HOME CONTENT EDITOR (Kept as requested) */}
         <section style={{ padding: '50px 10%', background: 'var(--bg)' }}>
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
             <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', marginBottom: '30px' }}>Edit Homepage Content</h2>
@@ -208,18 +227,18 @@ export default function AdminChange() {
           </div>
         </section>
 
-        {/* SECTION 2: PORTFOLIO MANAGER */}
+        {/* MULTI-CLIENT PORTFOLIO MANAGER */}
         <section style={{ padding: '100px 10%', background: 'var(--bg-light)' }}>
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <p className="eyebrow">MANAGE EVENTS</p>
             <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0 }}>Portfolio <span>Manager</span></h2>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '30px' }}>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '50px' }}>
             {MAIN_CATEGORIES.map(cat => (
               <button 
                 key={cat}
-                onClick={() => { setSelectedCategory(cat); setSelectedSubCategory(WEDDING_SUB_CATEGORIES[0]); }}
+                onClick={() => { setSelectedCategory(cat); setEditingClient(null); }}
                 style={{ padding: '15px 30px', borderRadius: '30px', border: 'none', background: selectedCategory === cat ? 'var(--gold)' : '#222', color: selectedCategory === cat ? '#000' : '#fff', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
               >
                 {cat}
@@ -227,67 +246,77 @@ export default function AdminChange() {
             ))}
           </div>
 
-          {selectedCategory === 'Wedding' && (
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '50px', flexWrap: 'wrap' }}>
-              {WEDDING_SUB_CATEGORIES.map(sub => (
-                <button 
-                  key={sub}
-                  onClick={() => setSelectedSubCategory(sub)}
-                  style={{ padding: '10px 20px', borderRadius: '20px', border: `1px solid ${selectedSubCategory === sub ? 'var(--gold)' : '#444'}`, background: selectedSubCategory === sub ? 'rgba(198, 164, 107, 0.2)' : 'transparent', color: selectedSubCategory === sub ? 'var(--gold)' : '#888', cursor: 'pointer', fontWeight: 'bold' }}
-                >
-                  {sub}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div style={{ maxWidth: '800px', margin: '0 auto', background: '#111', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-            
-            <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '32px', marginBottom: '30px' }}>
-              Editing: {selectedCategory} {selectedCategory === 'Wedding' ? `- ${selectedSubCategory}` : ''}
-            </h3>
-
-            <label style={labelStyle}>Event Title</label>
-            <input value={currentItem?.title || ''} onChange={(e) => updateActiveItem({ title: e.target.value })} style={inputStyle} placeholder="Enter title here..." />
-
-            <label style={labelStyle}>Description</label>
-            <textarea value={currentItem?.description || ''} onChange={(e) => updateActiveItem({ description: e.target.value })} style={{ ...inputStyle, height: '100px' }} placeholder="Enter description here..." />
-
-            <label style={labelStyle}>Main Poster (This will show on the Portfolio Grid)</label>
-            <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '30px' }}>
-              {currentItem?.mainImage ? (
-                <img src={currentItem.mainImage} alt="Main" style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px' }} />
-              ) : (
-                <div style={{ width: '150px', height: '150px', background: '#222', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>No Image</div>
-              )}
-              <label style={{ padding: '15px 25px', background: 'var(--gold)', color: '#000', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
-                {uploading ? 'Uploading...' : 'Upload Cover Image'}
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleMainImageUpload} />
-              </label>
-            </div>
-
-            <label style={labelStyle}>Related Photos (Gallery for this section)</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '30px' }}>
-              {(currentItem?.galleryImages || []).map((img, idx) => (
-                <div key={idx} style={{ position: 'relative', width: '100px', height: '100px' }}>
-                  <img src={img} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
-                  <button onClick={() => removeGalleryImage(idx)} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: '#fff', border: 'none', borderRadius: '50%', padding: '4px 8px', cursor: 'pointer', fontSize: '10px' }}>X</button>
+          {/* LIST OF CLIENTS */}
+          {!editingClient && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+              {filteredClients.map(client => (
+                <div key={client.id} style={{ background: '#111', borderRadius: '12px', overflow: 'hidden', border: '1px solid #333' }}>
+                  <img src={client.mainImage || 'https://via.placeholder.com/300'} alt={client.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                  <div style={{ padding: '20px' }}>
+                    <h4 style={{ color: 'var(--white)', margin: '0 0 10px' }}>{client.title}</h4>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button onClick={() => setEditingClient(client)} style={{ flex: 1, padding: '10px', background: 'var(--gold)', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}><Edit2 size={16} /> Edit Client</button>
+                      <button onClick={() => handleDeleteClient(client.id)} style={{ padding: '10px', background: 'rgba(255,0,0,0.2)', color: 'red', border: '1px solid red', borderRadius: '4px', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                    </div>
+                  </div>
                 </div>
               ))}
               
-              <label style={{ width: '100px', height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '2px dashed var(--gold)', borderRadius: '8px', cursor: 'pointer', color: 'var(--gold)' }}>
-                <Plus size={24} />
-                <span style={{ fontSize: '10px', marginTop: '5px' }}>Add Photo</span>
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleGalleryImageUpload} />
-              </label>
+              <button 
+                onClick={handleCreateClient}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '2px dashed rgba(255,255,255,0.2)', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', cursor: 'pointer', color: 'var(--gold)' }}
+              >
+                <Plus size={40} style={{ marginBottom: '10px' }} />
+                <span>Add New {selectedCategory} Client</span>
+              </button>
             </div>
+          )}
 
-            <label style={labelStyle}>Redirect Link (For "Book This Event" button)</label>
-            <input value={currentItem?.link || ''} onChange={(e) => updateActiveItem({ link: e.target.value })} style={inputStyle} placeholder="/contact" />
+          {/* EDIT CLIENT FORM */}
+          {editingClient && (
+            <div style={{ maxWidth: '800px', margin: '0 auto', background: '#111', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+              <button onClick={() => setEditingClient(null)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', marginBottom: '20px' }}>← Back to List</button>
+              <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '32px', marginBottom: '30px' }}>Editing Client: {editingClient.title}</h3>
 
-          </div>
+              <label style={labelStyle}>Event Title</label>
+              <input value={editingClient.title} onChange={(e) => handleUpdateClient('title', e.target.value)} style={inputStyle} />
+
+              <label style={labelStyle}>Description</label>
+              <textarea value={editingClient.description} onChange={(e) => handleUpdateClient('description', e.target.value)} style={{ ...inputStyle, height: '100px' }} />
+
+              <label style={labelStyle}>Main Poster (Portfolio Grid)</label>
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '30px' }}>
+                {editingClient.mainImage && <img src={editingClient.mainImage} alt="Main" style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px' }} />}
+                <label style={{ padding: '15px 25px', background: 'var(--gold)', color: '#000', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
+                  {uploading ? 'Uploading...' : 'Upload Cover Image'}
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleUploadImage(e, (url) => handleUpdateClient('mainImage', url))} />
+                </label>
+              </div>
+
+              <label style={labelStyle}>Gallery Images by Sub-Category</label>
+              {WEDDING_SUB_CATEGORIES.map(subCat => (
+                <div key={subCat} style={{ marginBottom: '20px', background: '#1a1a1a', padding: '20px', borderRadius: '8px' }}>
+                  <h4 style={{ color: 'var(--gold)', marginBottom: '15px' }}>{subCat}</h4>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    {(editingClient.subCategories?.[subCat] || []).map((img, idx) => (
+                      <div key={idx} style={{ position: 'relative', width: '100px', height: '100px' }}>
+                        <img src={img} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                        <button onClick={() => removeGalleryImage(subCat, idx)} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: '#fff', border: 'none', borderRadius: '50%', padding: '4px 8px', cursor: 'pointer', fontSize: '10px' }}>X</button>
+                      </div>
+                    ))}
+                    <label style={{ width: '100px', height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '2px dashed var(--gold)', borderRadius: '8px', cursor: 'pointer', color: 'var(--gold)' }}>
+                      <Plus size={24} />
+                      <span style={{ fontSize: '10px', marginTop: '5px' }}>Add Photo</span>
+                      <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleGalleryUpload(e, subCat)} />
+                    </label>
+                  </div>
+                </div>
+              ))}
+
+              <button onClick={handleSaveClient} className="primary-btn" style={{ width: '100%', marginTop: '20px', padding: '15px' }}>Save This Client</button>
+            </div>
+          )}
         </section>
-
       </div>
     </div>
   );
