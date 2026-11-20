@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Upload, Loader2, Plus, Trash2 } from 'lucide-react';
+import { Save, ArrowLeft, Upload, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const CLOUDINARY_CLOUD_NAME = 'kwqsty9w';
 const CLOUDINARY_UPLOAD_PRESET = 'portfolio_upload';
 
-const MAIN_CATEGORIES = ['Wedding', 'Birthday', 'Corporate'];
-const WEDDING_SUB_CATEGORIES = ['Engagement', 'Pre-Wedding', 'Mehendi & Haldi', 'Marriage', 'Reception'];
-
 export default function AdminChange() {
-  // This defines the default structure so it doesn't crash
   const defaultContent = {
     heroTitle: 'Every Frame.\nA Timeless Story.',
     heroSub: "We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.",
@@ -29,10 +26,6 @@ export default function AdminChange() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  
-  const [selectedCategory, setSelectedCategory] = useState(MAIN_CATEGORIES[0]);
-  const [selectedSubCategory, setSelectedSubCategory] = useState(WEDDING_SUB_CATEGORIES[0]);
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,7 +37,6 @@ export default function AdminChange() {
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(data => {
-        // Merge with default content to ensure no data is lost
         if (Object.keys(data).length > 0) {
           setContent({ ...defaultContent, ...data, portfolioItems: data.portfolioItems || [] });
         }
@@ -63,8 +55,7 @@ export default function AdminChange() {
       });
       
       if (res.ok) {
-        alert('Website updated successfully!');
-        // NO RESET HERE. We keep the data on screen.
+        alert('Website content updated successfully!');
       } else {
         alert('Failed to save changes.');
       }
@@ -78,44 +69,7 @@ export default function AdminChange() {
     setContent(prev => ({ ...prev, [key]: value }));
   };
 
-  const getActiveItem = () => {
-    return content.portfolioItems.find(
-      item => item.category === selectedCategory && 
-      (selectedCategory === 'Wedding' ? item.subCategory === selectedSubCategory : true)
-    );
-  };
-
-  const updateActiveItem = (updates) => {
-    setContent(prev => {
-      const existingItemIndex = prev.portfolioItems.findIndex(
-        item => item.category === selectedCategory && 
-        (selectedCategory === 'Wedding' ? item.subCategory === selectedSubCategory : true)
-      );
-
-      let newItems = [...prev.portfolioItems];
-
-      if (existingItemIndex >= 0) {
-        newItems[existingItemIndex] = { ...newItems[existingItemIndex], ...updates };
-      } else {
-        newItems.push({
-          id: Date.now().toString(),
-          category: selectedCategory,
-          subCategory: selectedCategory === 'Wedding' ? selectedSubCategory : '',
-          title: '',
-          description: '',
-          mainImage: '',
-          galleryImages: [],
-          link: '/contact',
-          ...updates
-        });
-      }
-      return { ...prev, portfolioItems: newItems };
-    });
-  };
-
-  const currentItem = getActiveItem();
-
-  const handleMainImageUpload = async (e) => {
+  const handleImageUpload = async (e, key) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
@@ -129,164 +83,154 @@ export default function AdminChange() {
         body: formData
       });
       const data = await res.json();
-      if (data.secure_url) updateActiveItem({ mainImage: data.secure_url });
+      if (data.secure_url) handleChange(key, data.secure_url);
     } finally {
       setUploading(false);
     }
-  };
-
-  const handleGalleryImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-    try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      if (data.secure_url) {
-        const currentImages = currentItem?.galleryImages || [];
-        updateActiveItem({ galleryImages: [...currentImages, data.secure_url] });
-      }
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const removeGalleryImage = (indexToRemove) => {
-    if (!currentItem) return;
-    const newImages = currentItem.galleryImages.filter((_, index) => index !== indexToRemove);
-    updateActiveItem({ galleryImages: newImages });
   };
 
   if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading...</div>;
 
+  // Featured Images Array
+  const featuredImages = [
+    { key: 'img1', label: 'Featured 1 (Forever Begins)' },
+    { key: 'img2', label: 'Featured 2 (Beautiful Together)' },
+    { key: 'img3', label: 'Featured 3 (Beyond The Frame)' }
+  ];
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '100px' }}>
       
-      {/* HEADER */}
+      {/* FLOATING HEADER */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)', zIndex: 100, padding: '20px 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <button onClick={() => navigate('/admin/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>
           <ArrowLeft size={20} /> Back to Dashboard
         </button>
         <button onClick={handleSave} disabled={saving || uploading} className="primary-btn" style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: saving || uploading ? 0.5 : 1 }}>
-          {saving ? 'Saving...' : <><Save size={18} /> Save All Changes</>}
+          {saving ? 'Saving...' : <><Save size={18} /> Save Changes</>}
         </button>
       </div>
 
       <div style={{ paddingTop: '120px' }}>
         
-        {/* --- HOME PAGE TEXT EDITOR --- */}
-        <section style={{ padding: '50px 10%', background: 'var(--bg)' }}>
-          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', marginBottom: '30px' }}>Edit Homepage Content</h2>
+        {/* 1. HERO SECTION (Mirrors Home Page) */}
+        <section className="hero" style={{ minHeight: 'auto', paddingBottom: '50px' }}>
+          <div className="hero-overlay" />
+          <div className="hero-content" style={{ zIndex: 10, position: 'relative', width: '100%' }}>
+            <p className="eyebrow">WEDDING · EVENTS · CINEMATIC FILMS</p>
             
-            <label style={labelStyle}>Hero Title</label>
-            <textarea value={content.heroTitle} onChange={(e) => handleChange('heroTitle', e.target.value)} style={{ ...inputStyle, height: '80px' }} />
-
-            <label style={labelStyle}>Hero Description</label>
-            <textarea value={content.heroSub} onChange={(e) => handleChange('heroSub', e.target.value)} style={{ ...inputStyle, height: '80px' }} />
-
-            <label style={labelStyle}>Story Section Title</label>
-            <textarea value={content.storyTitle} onChange={(e) => handleChange('storyTitle', e.target.value)} style={{ ...inputStyle, height: '80px' }} />
-
-            <label style={labelStyle}>Story Section Description</label>
-            <textarea value={content.storyText} onChange={(e) => handleChange('storyText', e.target.value)} style={{ ...inputStyle, height: '100px' }} />
-
-            <label style={labelStyle}>Testimonial 1</label>
-            <textarea value={content.testimonial1} onChange={(e) => handleChange('testimonial1', e.target.value)} style={{ ...inputStyle, height: '60px' }} />
+            <textarea 
+              value={content.heroTitle} 
+              onChange={(e) => handleChange('heroTitle', e.target.value)} 
+              style={{ ...heroTitleStyle, fontFamily: 'var(--heading-font)', fontSize: 'clamp(65px, 8vw, 112px)', color: 'var(--white)', width: '100%' }} 
+              rows={2}
+            />
             
-            <label style={labelStyle}>Testimonial 2</label>
-            <textarea value={content.testimonial2} onChange={(e) => handleChange('testimonial2', e.target.value)} style={{ ...inputStyle, height: '60px' }} />
-
-            <label style={labelStyle}>Testimonial 3</label>
-            <textarea value={content.testimonial3} onChange={(e) => handleChange('testimonial3', e.target.value)} style={{ ...inputStyle, height: '60px' }} />
+            <textarea 
+              value={content.heroSub} 
+              onChange={(e) => handleChange('heroSub', e.target.value)} 
+              style={{ ...heroDescStyle, color: 'var(--text)' }} 
+              rows={3}
+            />
+            
+            <div className="hero-actions">
+               <span className="primary-btn">Explore Our Work</span>
+               <span className="secondary-btn">Book Your Experience</span>
+            </div>
           </div>
         </section>
 
-        {/* --- PORTFOLIO MANAGER --- */}
-        <section style={{ padding: '100px 10%', background: 'var(--bg-light)' }}>
-          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-            <p className="eyebrow">MANAGE EVENTS</p>
-            <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0 }}>Portfolio <span>Manager</span></h2>
-          </div>
+        {/* 2. INTRODUCTION (Mirrors Home Page) */}
+        <section className="intro-section" style={{ padding: '120px 10%', textAlign: 'center' }}>
+          <p className="eyebrow">MORE THAN JUST PHOTOGRAPHY</p>
+          
+          <textarea 
+            value={content.storyTitle} 
+            onChange={(e) => handleChange('storyTitle', e.target.value)} 
+            style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', color: 'var(--white)', textAlign: 'center', width: '100%', resize: 'vertical', background: 'transparent', border: '1px dashed rgba(255,255,255,0.3)', marginBottom: '20px' }} 
+            rows={2}
+          />
+          
+          <textarea 
+            value={content.storyText} 
+            onChange={(e) => handleChange('storyText', e.target.value)} 
+            style={{ maxWidth: '800px', margin: '0 auto', color: 'var(--muted)', textAlign: 'center', fontSize: '15px', lineHeight: '2', display: 'block', width: '100%', resize: 'vertical', background: 'transparent', border: '1px dashed rgba(255,255,255,0.3)' }} 
+            rows={4}
+          />
+        </section>
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '30px' }}>
-            {MAIN_CATEGORIES.map(cat => (
-              <button 
-                key={cat}
-                onClick={() => { setSelectedCategory(cat); setSelectedSubCategory(WEDDING_SUB_CATEGORIES[0]); }}
-                style={{ padding: '15px 30px', borderRadius: '30px', border: 'none', background: selectedCategory === cat ? 'var(--gold)' : '#222', color: selectedCategory === cat ? '#000' : '#fff', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
-              >
-                {cat}
-              </button>
+        {/* 3. FEATURED WORKS (Mirrors Home Page) */}
+        <section className="portfolio-section" style={{ padding: '100px 10%', background: 'var(--bg-light)' }}>
+          <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+            <p className="eyebrow">A COLLECTION OF MEMORIES</p>
+            <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0 }}>Selected <span>Stories</span></h2>
+          </div>
+          
+          <div className="portfolio-grid">
+            {featuredImages.map((item) => (
+              <div key={item.key} className="portfolio-card" style={{ backgroundImage: `url("${content[item.key]}")`, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                <div style={{ background: 'rgba(0,0,0,0.85)', padding: '15px', borderRadius: '8px', border: '1px solid var(--gold)', textAlign: 'center' }}>
+                  <p style={{ color: 'var(--white)', marginBottom: '10px', fontSize: '14px' }}>{item.label}</p>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--gold)', color: '#000', padding: '10px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>
+                    {uploading ? 'Uploading...' : <><Upload size={16} /> Upload Image</>}
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleImageUpload(e, item.key)} disabled={uploading} />
+                  </label>
+                </div>
+              </div>
             ))}
           </div>
+        </section>
 
-          {selectedCategory === 'Wedding' && (
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '50px', flexWrap: 'wrap' }}>
-              {WEDDING_SUB_CATEGORIES.map(sub => (
-                <button 
-                  key={sub}
-                  onClick={() => setSelectedSubCategory(sub)}
-                  style={{ padding: '10px 20px', borderRadius: '20px', border: `1px solid ${selectedSubCategory === sub ? 'var(--gold)' : '#444'}`, background: selectedSubCategory === sub ? 'rgba(198, 164, 107, 0.2)' : 'transparent', color: selectedSubCategory === sub ? 'var(--gold)' : '#888', cursor: 'pointer', fontWeight: 'bold' }}
-                >
-                  {sub}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div style={{ maxWidth: '800px', margin: '0 auto', background: '#111', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-            
-            <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '32px', marginBottom: '30px' }}>
-              Editing: {selectedCategory} {selectedCategory === 'Wedding' ? `- ${selectedSubCategory}` : ''}
-            </h3>
-
-            <label style={labelStyle}>Event Title</label>
-            <input value={currentItem?.title || ''} onChange={(e) => updateActiveItem({ title: e.target.value })} style={inputStyle} placeholder="Enter title here..." />
-
-            <label style={labelStyle}>Description</label>
-            <textarea value={currentItem?.description || ''} onChange={(e) => updateActiveItem({ description: e.target.value })} style={{ ...inputStyle, height: '100px' }} placeholder="Enter description here..." />
-
-            <label style={labelStyle}>Main Poster (This will show on the Portfolio Grid)</label>
-            <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '30px' }}>
-              {currentItem?.mainImage ? (
-                <img src={currentItem.mainImage} alt="Main" style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px' }} />
-              ) : (
-                <div style={{ width: '150px', height: '150px', background: '#222', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>No Image</div>
-              )}
-              <label style={{ padding: '15px 25px', background: 'var(--gold)', color: '#000', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
-                {uploading ? 'Uploading...' : 'Upload Cover Image'}
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleMainImageUpload} />
-              </label>
-            </div>
-
-            <label style={labelStyle}>Related Photos (Gallery for this section)</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '30px' }}>
-              {(currentItem?.galleryImages || []).map((img, idx) => (
-                <div key={idx} style={{ position: 'relative', width: '100px', height: '100px' }}>
-                  <img src={img} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
-                  <button onClick={() => removeGalleryImage(idx)} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: '#fff', border: 'none', borderRadius: '50%', padding: '4px 8px', cursor: 'pointer', fontSize: '10px' }}>X</button>
-                </div>
-              ))}
-              
-              <label style={{ width: '100px', height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '2px dashed var(--gold)', borderRadius: '8px', cursor: 'pointer', color: 'var(--gold)' }}>
-                <Plus size={24} />
-                <span style={{ fontSize: '10px', marginTop: '5px' }}>Add Photo</span>
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleGalleryImageUpload} />
-              </label>
-            </div>
-
-            <label style={labelStyle}>Redirect Link (For "Book This Event" button)</label>
-            <input value={currentItem?.link || ''} onChange={(e) => updateActiveItem({ link: e.target.value })} style={inputStyle} placeholder="/contact" />
-
+        {/* 4. SHOWREEL (Mirrors Home Page) */}
+        <section className="showreel-section" style={{ padding: '120px 10%', background: 'var(--bg)', textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+            <p className="eyebrow">THE CINEMATIC EXPERIENCE</p>
+            <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0 }}>Watch Our <span>Showreel</span></h2>
           </div>
+          <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+               <img src={content.showreelImg} alt="Showreel" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '8px', marginTop: '20px', textAlign: 'center' }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: uploading ? 'gray' : 'var(--gold)', color: '#000', padding: '10px 15px', borderRadius: '4px', cursor: uploading ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '13px' }}>
+                {uploading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Upload size={16} />} 
+                {uploading ? 'Uploading...' : 'Upload Showreel Background'}
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleImageUpload(e, 'showreelImg')} disabled={uploading} />
+              </label>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. TESTIMONIALS (Mirrors Home Page) */}
+        <section className="testimonials-section" style={{ padding: '100px 10%', background: 'var(--bg-light)', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+            <p className="eyebrow">CLIENT LOVE</p>
+            <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(40px, 5vw, 60px)', fontWeight: 400, margin: 0 }}>Words From <span>Our Clients</span></h2>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', maxWidth: '1200px', margin: '0 auto' }}>
+            {['testimonial1', 'testimonial2', 'testimonial3'].map((key, index) => (
+              <div key={key} style={{ background: 'rgba(255,255,255,0.02)', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)', textAlign: 'left' }}>
+                <textarea 
+                  value={content[key] || ''} 
+                  onChange={(e) => handleChange(key, e.target.value)} 
+                  style={{ width: '100%', background: 'transparent', border: '1px dashed rgba(255,255,255,0.3)', color: 'var(--text)', fontSize: '14px', lineHeight: '1.8', fontStyle: 'italic', resize: 'vertical', minHeight: '100px' }} 
+                />
+                <h4 style={{ fontFamily: 'var(--heading-font)', fontSize: '20px', color: 'var(--white)', marginTop: '20px' }}>
+                  {index === 0 ? 'Ananya & Rahul' : index === 1 ? 'Sarah & James' : 'Priya & Arjun'}
+                </h4>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 6. PORTFOLIO MANAGER LINK */}
+        <section style={{ padding: '100px 10%', textAlign: 'center', background: 'var(--bg)' }}>
+           <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', marginBottom: '20px' }}>Manage Full Portfolio</h2>
+           <p style={{ color: 'var(--muted)', marginBottom: '30px' }}>To edit the specific categories (Wedding, Birthday, Corporate) and add multiple gallery images, go to the Portfolio Manager.</p>
+           <button onClick={() => navigate('/admin_change/portfolio')} className="primary-btn" style={{ padding: '15px 30px' }}>
+             Go to Portfolio Manager
+           </button>
         </section>
 
       </div>
@@ -294,5 +238,32 @@ export default function AdminChange() {
   );
 }
 
-const labelStyle = { display: 'block', color: 'var(--gold)', marginBottom: '10px', fontSize: '14px', letterSpacing: '1px', marginTop: '20px' };
-const inputStyle = { width: '100%', padding: '15px', background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', fontSize: '15px', fontFamily: 'var(--body-font)', outline: 'none' };
+const styleSheet = document.createElement("style");
+styleSheet.textContent = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(styleSheet);
+
+const heroTitleStyle = {
+  background: 'transparent',
+  border: '1px dashed rgba(255,255,255,0.3)',
+  padding: '10px',
+  marginBottom: '20px',
+  lineHeight: '0.98',
+  letterSpacing: '-3px',
+  resize: 'vertical'
+};
+
+const heroDescStyle = {
+  maxWidth: '460px',
+  lineHeight: '1.9',
+  fontSize: '13px',
+  padding: '10px',
+  resize: 'vertical',
+  background: 'transparent',
+  border: '1px dashed rgba(255,255,255,0.3)',
+  width: '100%'
+};
