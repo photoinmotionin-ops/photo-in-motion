@@ -21,7 +21,7 @@ export default function AdminChange() {
     img2: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
     img3: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
     showreelImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80',
-    portfolioItems: [] // This will now hold MULTIPLE clients
+    portfolioItems: []
   };
 
   const [content, setContent] = useState(defaultContent);
@@ -63,10 +63,11 @@ export default function AdminChange() {
       if (res.ok) {
         alert('Website content updated successfully!');
       } else {
-        alert('Failed to save changes.');
+        const errData = await res.json();
+        alert(`Failed to save: ${errData.message || 'Unknown error'}`);
       }
     } catch (err) {
-      alert('Network error.');
+      alert('Network error. The images might be too large to save. Try uploading smaller images.');
     }
     setSaving(false);
   };
@@ -123,51 +124,55 @@ export default function AdminChange() {
     }
   };
 
-  const handleUploadImage = async (e, callback) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  // UPDATED UPLOAD FUNCTION WITH SIZE LIMIT AND COMPRESSION
+  const uploadToCloudinary = async (file) => {
     setUploading(true);
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    // This transformation forces the image to compress and resize if it's too large
+    formData.append('transformation', 'q_auto:good,f_auto,w_1200');
 
     try {
       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
         method: 'POST',
         body: formData
       });
+      
       const data = await res.json();
-      if (data.secure_url) callback(data.secure_url);
+      
+      if (!res.ok) {
+        throw new Error(data.error?.message || 'Failed to upload image');
+      }
+
+      return data.secure_url;
+    } catch (error) {
+      alert(error.message);
+      return null;
     } finally {
       setUploading(false);
     }
   };
 
+  const handleMainImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const url = await uploadToCloudinary(file);
+    if (url) handleUpdateClient('mainImage', url);
+  };
+
   const handleGalleryUpload = async (e, subCategory) => {
     const file = e.target.files[0];
     if (!file) return;
-    setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-    try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      if (data.secure_url) {
-        setEditingClient(prev => ({
-          ...prev,
-          subCategories: {
-            ...prev.subCategories,
-            [subCategory]: [...prev.subCategories[subCategory], data.secure_url]
-          }
-        }));
-      }
-    } finally {
-      setUploading(false);
+    const url = await uploadToCloudinary(file);
+    if (url) {
+      setEditingClient(prev => ({
+        ...prev,
+        subCategories: {
+          ...prev.subCategories,
+          [subCategory]: [...prev.subCategories[subCategory], url]
+        }
+      }));
     }
   };
 
@@ -199,7 +204,7 @@ export default function AdminChange() {
 
       <div style={{ paddingTop: '120px' }}>
         
-        {/* HOME CONTENT EDITOR (Kept as requested) */}
+        {/* HOME CONTENT EDITOR */}
         <section style={{ padding: '50px 10%', background: 'var(--bg)' }}>
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
             <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', marginBottom: '30px' }}>Edit Homepage Content</h2>
@@ -289,7 +294,7 @@ export default function AdminChange() {
                 {editingClient.mainImage && <img src={editingClient.mainImage} alt="Main" style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px' }} />}
                 <label style={{ padding: '15px 25px', background: 'var(--gold)', color: '#000', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
                   {uploading ? 'Uploading...' : 'Upload Cover Image'}
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleUploadImage(e, (url) => handleUpdateClient('mainImage', url))} />
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleMainImageUpload} />
                 </label>
               </div>
 
