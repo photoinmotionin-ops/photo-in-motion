@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { ArrowUpRight, ArrowDown, Play, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CinematicReveal from '../components/animations/CinematicReveal';
-import CameraCapture from '../components/animations/CameraCapture';
+//import CameraCapture from '../components/animations/CameraCapture';
+import CinematicStrip from '../components/animations/CinematicStrip'; 
 import EventPlanner from '../components/animations/EventPlanner';
 
 const maskReveal = { hidden: { y: "100%", rotate: 2 }, visible: { y: 0, rotate: 0, transition: { duration: 0.8, ease: [0.33, 1, 0.68, 1] } } }
