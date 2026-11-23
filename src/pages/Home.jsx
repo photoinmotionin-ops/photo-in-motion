@@ -74,7 +74,7 @@ export default function Home() {
         </motion.div>
       </section>
 
-      <CameraCapture />
+      <CinematicStrip />
       <CinematicReveal />
 
       {/* 2. INTRODUCTION */}
