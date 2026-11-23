@@ -1,368 +1,385 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { 
-  Film, 
-  Video, 
-  Camera, 
-  PhoneCall, 
-  Sparkles, 
-  Calendar, 
-  Radio, 
-  Sliders, 
-  Maximize2,
-  CheckCircle2,
-  ArrowRight
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { Film } from 'lucide-react';
 
-// Event shoot categories handled by the shoot director
-const eventShootRoll = [
+const rowTopWorks = [
   {
-    id: 1,
-    roll: "ROLL #01 · 50MM",
-    type: "ROYAL WEDDINGS",
-    title: "Vows in Golden Sunlight",
-    specs: "4K RAW · RED Komodo 6K · 24fps",
-    badge: "Full Day Ceremony",
-    img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=85",
-    tagline: "Drone aerials + 3-Camera Cinema Crew"
+    id: 't1',
+    title: 'Forever Begins',
+    category: 'WEDDINGS',
+    img: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=85'
   },
   {
-    id: 2,
-    roll: "ROLL #02 · 85MM",
-    type: "PRE-WEDDING CINEMA",
-    title: "Misty Sunrise by the Lake",
-    specs: "Sony FX3 · 85mm f/1.4 · S-Cinetone",
-    badge: "Destination Shoot",
-    img: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=85",
-    tagline: "Slow-motion poetry & intimate portraits"
+    id: 't2',
+    title: 'Golden Sunset Vows',
+    category: 'PRE-WEDDING',
+    img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=85'
   },
   {
-    id: 3,
-    roll: "ROLL #03 · 24MM",
-    type: "SANGEET & LIVE STAGE",
-    title: "Electric Beats & Fireworks",
-    specs: "120 FPS High-Speed · Gimbal Steadicam",
-    badge: "Night Event Rig",
-    img: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=85",
-    tagline: "Dynamic stage lighting & crowd euphoria"
+    id: 't3',
+    title: 'The Royal Baraat',
+    category: 'CELEBRATIONS',
+    img: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=85'
   },
   {
-    id: 4,
-    roll: "ROLL #04 · 35MM",
-    type: "EMOTIONAL HALDI",
-    title: "Showers of Marigold & Joy",
-    specs: "Natural Light · 1/500s Freeze Motion",
-    badge: "Candid Emotion",
-    img: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=900&q=85",
-    tagline: "Unstaged tears and laughter"
+    id: 't4',
+    title: 'Aura of Serenity',
+    category: 'PORTRAITURE',
+    img: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=900&q=85'
   },
   {
-    id: 5,
-    roll: "ROLL #05 · 105MM",
-    type: "LUXURY RECEPTION",
-    title: "Starlit Gala & First Dance",
-    specs: "Dual Operator · 32-bit Float Audio",
-    badge: "Black-Tie Evening",
-    img: "https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=900&q=85",
-    tagline: "Cinematic mood lighting & grand entrances"
+    id: 't5',
+    title: 'Moments in Harmony',
+    category: 'CINEMATIC',
+    img: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=900&q=85'
+  }
+];
+
+const rowBottomWorks = [
+  {
+    id: 'b1',
+    title: 'Marigold Showers',
+    category: 'HALDI RITUALS',
+    img: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=85'
   },
   {
-    id: 6,
-    roll: "ROLL #06 · 50MM",
-    type: "CELEBRITY & EVENTS",
-    title: "Fashion & Gala Red Carpet",
-    specs: "Continuous Studio Lighting · 8K Stills",
-    badge: "Editorial Master",
-    img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=900&q=85",
-    tagline: "Sharp editorial grade & crisp delivery"
+    id: 'b2',
+    title: 'Starlit First Dance',
+    category: 'RECEPTIONS',
+    img: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=900&q=85'
+  },
+  {
+    id: 'b3',
+    title: 'Whispers of Eternity',
+    category: 'DESTINATION',
+    img: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=900&q=85'
+  },
+  {
+    id: 'b4',
+    title: 'The Sacred Knot',
+    category: 'RITUALS',
+    img: 'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=900&q=85'
+  },
+  {
+    id: 'b5',
+    title: 'Chasing the Horizon',
+    category: 'PRE-WEDDING',
+    img: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=900&q=85'
   }
 ];
 
 export default function CinematicStrip() {
   const containerRef = useRef(null);
-  const [selectedFrame, setSelectedFrame] = useState(eventShootRoll[0]);
-  const [timecode, setTimecode] = useState("01:24:18:09");
 
-  // Scroll parallax animation
+  // Parallax scroll effects
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"]
   });
 
-  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 25 });
-  const xLeft = useTransform(smoothProgress, [0, 1], ["0%", "-35%"]);
-
-  // Live Director Timecode Generator
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date();
-      const h = String(now.getHours()).padStart(2, '0');
-      const m = String(now.getMinutes()).padStart(2, '0');
-      const s = String(now.getSeconds()).padStart(2, '0');
-      const ms = String(Math.floor(now.getMilliseconds() / 30)).padStart(2, '0');
-      setTimecode(`${h}:${m}:${s}:${ms}`);
-    }, 45);
-    return () => clearInterval(timer);
-  }, []);
+  const xRow1 = useTransform(scrollYProgress, [0, 1], ["0%", "-28%"]);
+  const xRow2 = useTransform(scrollYProgress, [0, 1], ["-28%", "0%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.6, 1, 1, 0.6]);
 
   return (
     <section 
-      ref={containerRef} 
-      className="relative w-full py-24 bg-[#060606] text-white overflow-hidden border-y border-[#c6a46b]/20"
-      style={{ fontFamily: 'var(--body-font, sans-serif)' }}
+      ref={containerRef}
+      className="cinematic-film-showcase-root"
+      style={{
+        position: 'relative',
+        width: '100%',
+        padding: '90px 0 100px',
+        background: '#050505',
+        overflow: 'hidden',
+        borderTop: '1px solid rgba(198, 164, 107, 0.15)',
+        borderBottom: '1px solid rgba(198, 164, 107, 0.15)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
     >
-      {/* Ambient Film Light Leaks in Background */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-r from-[#c6a46b]/10 via-[#c6a46b]/5 to-transparent blur-[120px] pointer-events-none" />
+      {/* Background Ambient Glow */}
+      <div 
+        style={{
+          position: 'absolute',
+          top: '35%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '750px',
+          height: '450px',
+          background: 'radial-gradient(circle, rgba(198, 164, 107, 0.12) 0%, rgba(198, 164, 107, 0) 70%)',
+          filter: 'blur(100px)',
+          pointerEvents: 'none',
+          zIndex: 1
+        }}
+      />
 
-      {/* 1. DIRECTOR'S LIVE SHOOT HUD (HEADER STATUS BAR) */}
-      <div className="max-w-6xl mx-auto px-6 mb-12">
-        <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-[#0f0e0d]/90 border border-[#c6a46b]/30 backdrop-blur-md shadow-2xl">
-          
-          {/* Left: Live Recording Status */}
-          <div className="flex items-center gap-3">
-            <span className="relative flex h-3.5 w-3.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-600" />
-            </span>
-            <span className="font-mono text-xs font-bold tracking-widest text-red-500 uppercase">
-              LIVE SHOOT PRODUCTION
-            </span>
-            <span className="hidden sm:inline-block text-[#c6a46b]/40 font-mono text-xs">|</span>
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-neutral-300 font-mono">
-              <Radio className="w-3.5 h-3.5 text-[#c6a46b]" />
-              <span>ON-LOCATION CINEMA CREW</span>
-            </span>
-          </div>
-
-          {/* Center: Camera Timecode Clock */}
-          <div className="font-mono text-xs text-[#c6a46b] bg-black/60 px-3 py-1.5 rounded-md border border-[#c6a46b]/30 tracking-widest">
-            TC <span className="text-white font-bold">{timecode}</span> · 24.000 FPS
-          </div>
-
-          {/* Right: Quick Call to Book Shoot */}
-          <div className="flex items-center gap-2">
-            <Link
-              to="/contact"
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#c6a46b] to-[#b38600] text-black text-xs font-bold hover:brightness-110 transition-transform active:scale-95 shadow-lg shadow-[#c6a46b]/20"
-            >
-              <PhoneCall className="w-3.5 h-3.5" />
-              <span>Book Event Shoot</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Section Heading */}
-        <div className="text-center mt-8">
-          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-[#c6a46b]/10 border border-[#c6a46b]/25 text-[#c6a46b] text-xs font-semibold uppercase tracking-widest mb-3">
-            <Film className="w-3.5 h-3.5" />
-            <span>35MM CINEMATIC FILM ROLL</span>
-          </div>
-          <h2 className="text-3xl sm:text-5xl font-normal text-[#f4efe6]" style={{ fontFamily: 'var(--heading-font, "Cinzel", serif)' }}>
-            Every Celebration, <span className="italic text-[#c6a46b]">Filmed Like Cinema</span>
-          </h2>
-          <p className="max-w-2xl mx-auto text-sm sm:text-base text-neutral-400 mt-3">
-            From pre-wedding sunrises to royal sangeet nights. We carry cinema-grade cameras, drone rigs, and master prime lenses right to your venue.
-          </p>
-        </div>
-      </div>
-
-      {/* 2. HORIZONTAL 35MM CONTINUOUS FILM STRIP WITH SPROCKETS */}
-      <div className="relative w-full overflow-hidden my-6">
-        
-        {/* Top Kodak 35mm Sprocket Strip */}
-        <div className="w-full flex justify-between px-4 py-2 bg-[#0a0a0a] border-y border-[#c6a46b]/25">
-          <div className="flex gap-4 overflow-hidden w-full opacity-60">
-            {[...Array(35)].map((_, i) => (
-              <div key={i} className="flex items-center gap-2 shrink-0">
-                <span className="w-4 h-2.5 rounded-sm bg-neutral-800 border border-neutral-700 block" />
-                <span className="text-[9px] font-mono text-[#c6a46b]/60">KODAK 5219 · {i * 4 + 10}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* The Moving Ribbon of Shoot Cards */}
-        <motion.div 
-          style={{ x: xLeft }}
-          className="flex gap-6 py-6 px-8 cursor-grab active:cursor-grabbing w-max"
+      {/* Title Badge */}
+      <div style={{ textAlign: 'center', marginBottom: '45px', position: 'relative', zIndex: 10, padding: '0 20px' }}>
+        <div 
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '5px 16px',
+            borderRadius: '9999px',
+            background: 'rgba(198, 164, 107, 0.08)',
+            border: '1px solid rgba(198, 164, 107, 0.25)',
+            color: 'var(--gold, #c6a46b)',
+            fontSize: '11px',
+            fontWeight: 600,
+            letterSpacing: '2.5px',
+            textTransform: 'uppercase',
+            marginBottom: '10px'
+          }}
         >
-          {eventShootRoll.concat(eventShootRoll).map((frame, index) => {
-            const isSelected = selectedFrame.id === frame.id;
+          <Film size={13} color="var(--gold, #c6a46b)" />
+          <span>CINEMATIC ARCHIVE</span>
+        </div>
 
-            return (
-              <div
-                key={`${frame.id}-${index}`}
-                onClick={() => setSelectedFrame(frame)}
-                className={`relative group shrink-0 w-[290px] sm:w-[360px] rounded-2xl overflow-hidden bg-[#111] border transition-all duration-500 ${
-                  isSelected 
-                    ? 'border-[#c6a46b] shadow-[0_0_35px_rgba(198,164,107,0.35)] scale-[1.02]' 
-                    : 'border-white/10 hover:border-[#c6a46b]/60 hover:scale-[1.01]'
-                }`}
-              >
-                {/* Photo with Zoom on Hover */}
-                <div className="relative aspect-[16/10] overflow-hidden">
-                  <img 
-                    src={frame.img} 
-                    alt={frame.title} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                  
-                  {/* Category Pill */}
-                  <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider bg-black/80 backdrop-blur-md text-[#c6a46b] border border-[#c6a46b]/30">
-                    {frame.type}
-                  </span>
+        <h3 
+          style={{
+            fontFamily: 'var(--heading-font, "Cinzel", serif)',
+            fontSize: 'clamp(28px, 4vw, 44px)',
+            color: 'var(--white, #fff)',
+            margin: '0 0 8px 0',
+            fontWeight: 400,
+            letterSpacing: '0.5px'
+          }}
+        >
+          Every Frame Tells A Story
+        </h3>
+        
+        <p style={{ color: 'var(--muted, #888)', fontSize: '13.5px', margin: 0, letterSpacing: '0.5px' }}>
+          Unfolding moments preserved in timeless motion.
+        </p>
+      </div>
 
-                  {/* Production Gear Badge */}
-                  <span className="absolute bottom-3 right-3 text-[10px] font-mono text-neutral-300 bg-black/70 px-2 py-0.5 rounded border border-white/10">
-                    {frame.specs.split('·')[0]}
-                  </span>
-                </div>
+      {/* DUAL-TRACK PARALLAX FILM REEL */}
+      <motion.div 
+        style={{ opacity, width: '100%', position: 'relative', zIndex: 5 }}
+        className="film-tracks-wrapper"
+      >
+        {/* ROW 1: Gliding Left */}
+        <div style={{ position: 'relative', width: '100%', overflow: 'hidden', padding: '12px 0' }}>
+          <div className="film-sprocket-row">
+            {[...Array(40)].map((_, i) => (
+              <div key={i} className="sprocket-cell">
+                <span className="sprocket-hole" />
+                <span className="sprocket-code">35MM · KODAK 500T</span>
+              </div>
+            ))}
+          </div>
 
-                {/* Shoot Details Info */}
-                <div className="p-4 bg-[#0d0c0b]">
-                  <div className="flex items-center justify-between text-xs text-[#c6a46b] font-mono mb-1">
-                    <span>{frame.roll}</span>
-                    <span className="text-white/40">{frame.badge}</span>
+          <motion.div style={{ x: xRow1 }} className="film-ribbon-row">
+            {rowTopWorks.concat(rowTopWorks).map((work, idx) => (
+              <div key={`top-${work.id}-${idx}`} className="film-cell-card group">
+                <div className="film-cell-inner">
+                  <img src={work.img} alt={work.title} className="film-cell-img" loading="lazy" />
+                  <div className="film-cell-overlay">
+                    <span className="film-cell-cat">{work.category}</span>
+                    <h5 className="film-cell-title">{work.title}</h5>
                   </div>
-                  <h4 className="text-base font-semibold text-white group-hover:text-[#c6a46b] transition-colors truncate">
-                    {frame.title}
-                  </h4>
-                  <p className="text-xs text-neutral-400 mt-1 line-clamp-1">
-                    {frame.tagline}
-                  </p>
-                </div>
-
-                {/* Interactive Click Indicator */}
-                <div className="px-4 py-2 bg-black/80 border-t border-white/5 flex items-center justify-between text-[11px] text-neutral-400">
-                  <span className="flex items-center gap-1.5 text-[#c6a46b]">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Click to inspect setup</span>
-                  </span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  <div className="film-frame-number">#{String((idx % rowTopWorks.length) + 1).padStart(2, '0')}</div>
                 </div>
               </div>
-            );
-          })}
-        </motion.div>
+            ))}
+          </motion.div>
 
-        {/* Bottom Kodak 35mm Sprocket Strip */}
-        <div className="w-full flex justify-between px-4 py-2 bg-[#0a0a0a] border-y border-[#c6a46b]/25">
-          <div className="flex gap-4 overflow-hidden w-full opacity-60">
-            {[...Array(35)].map((_, i) => (
-              <div key={i} className="flex items-center gap-2 shrink-0">
-                <span className="w-4 h-2.5 rounded-sm bg-neutral-800 border border-neutral-700 block" />
-                <span className="text-[9px] font-mono text-neutral-400">SAFETY FILM · 4K DCI</span>
+          <div className="film-sprocket-row">
+            {[...Array(40)].map((_, i) => (
+              <div key={i} className="sprocket-cell">
+                <span className="sprocket-hole" />
+                <span className="sprocket-code">SAFETY FILM</span>
               </div>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* 3. SELECTED SHOOT MONITOR & CALL DISPATCH MODAL */}
-      <div className="max-w-5xl mx-auto px-6 mt-12">
-        <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-[#141310] via-[#0c0b0a] to-black border border-[#c6a46b]/30 shadow-2xl relative overflow-hidden">
-          
-          <div className="absolute inset-0 bg-[radial-gradient(#c6a46b_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none" />
+        <div style={{ height: '24px' }} />
 
-          <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-            
-            {/* Left: Selected Frame Monitor Viewport */}
-            <div className="md:col-span-6 relative rounded-2xl overflow-hidden border border-[#c6a46b]/40 shadow-2xl group">
-              <img 
-                src={selectedFrame.img} 
-                alt={selectedFrame.title} 
-                className="w-full aspect-[4/3] object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              
-              {/* Director Viewfinder Overlays */}
-              <div className="absolute inset-0 p-4 flex flex-col justify-between pointer-events-none bg-gradient-to-t from-black/80 via-transparent to-black/60">
-                <div className="flex justify-between items-center text-xs font-mono text-amber-300">
-                  <span className="bg-red-600/90 text-white font-bold px-2 py-0.5 rounded text-[10px]">
-                    ● REC
-                  </span>
-                  <span>{selectedFrame.specs}</span>
-                </div>
-                
-                {/* Center Framing Reticle */}
-                <div className="self-center w-12 h-12 border border-white/40 border-dashed rounded-full flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 bg-[#c6a46b] rounded-full" />
-                </div>
+        {/* ROW 2: Gliding Right */}
+        <div style={{ position: 'relative', width: '100%', overflow: 'hidden', padding: '12px 0' }}>
+          <div className="film-sprocket-row">
+            {[...Array(40)].map((_, i) => (
+              <div key={i} className="sprocket-cell">
+                <span className="sprocket-hole" />
+                <span className="sprocket-code">4K DCI · 24FPS</span>
+              </div>
+            ))}
+          </div>
 
-                <div className="flex justify-between items-end text-xs font-mono text-white/80">
-                  <div>
-                    <span className="text-[#c6a46b] font-bold block">{selectedFrame.type}</span>
-                    <span>SHUTTER: 1/50 · ISO 400</span>
+          <motion.div style={{ x: xRow2 }} className="film-ribbon-row">
+            {rowBottomWorks.concat(rowBottomWorks).map((work, idx) => (
+              <div key={`bot-${work.id}-${idx}`} className="film-cell-card group">
+                <div className="film-cell-inner">
+                  <img src={work.img} alt={work.title} className="film-cell-img" loading="lazy" />
+                  <div className="film-cell-overlay">
+                    <span className="film-cell-cat">{work.category}</span>
+                    <h5 className="film-cell-title">{work.title}</h5>
                   </div>
-                  <span className="text-[10px] bg-black/80 px-2 py-1 rounded border border-white/10">
-                    BATTERY: 98%
-                  </span>
+                  <div className="film-frame-number">#{String((idx % rowBottomWorks.length) + 6).padStart(2, '0')}</div>
                 </div>
               </div>
-            </div>
+            ))}
+          </motion.div>
 
-            {/* Right: Event Shoot Pitch & Direct Booking Buttons */}
-            <div className="md:col-span-6 flex flex-col justify-center">
-              <div className="flex items-center gap-2 text-xs font-mono text-[#c6a46b] mb-2 uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Selected Event Production Package</span>
+          <div className="film-sprocket-row">
+            {[...Array(40)].map((_, i) => (
+              <div key={i} className="sprocket-cell">
+                <span className="sprocket-hole" />
+                <span className="sprocket-code">RAW COLOR GRADE</span>
               </div>
-
-              <h3 className="text-2xl sm:text-3xl font-semibold text-white mb-2" style={{ fontFamily: 'var(--heading-font, "Cinzel", serif)' }}>
-                {selectedFrame.title}
-              </h3>
-
-              <p className="text-sm text-neutral-300 leading-relaxed mb-4">
-                We handle the complete visual storytelling for your events. Whether it's a 3-day destination royal wedding, an intimate outdoor ceremony, or an energetic celebration night, our team ensures every tear and cheer is preserved forever.
-              </p>
-
-              {/* Equipment & Crew Checklist */}
-              <div className="grid grid-cols-2 gap-2 text-xs text-neutral-300 mb-6 bg-black/40 p-3 rounded-xl border border-white/10 font-mono">
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#c6a46b]" />
-                  <span>Dual 4K Cinema Cameras</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#c6a46b]" />
-                  <span>Licensed Drone 4K Pilot</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#c6a46b]" />
-                  <span>Fast Same-Week Teaser</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#c6a46b]" />
-                  <span>Color Graded Master Film</span>
-                </div>
-              </div>
-
-              {/* Action Buttons for Direct Call / WhatsApp */}
-              <div className="flex flex-wrap items-center gap-3">
-                <Link
-                  to="/contact"
-                  className="px-6 py-3 rounded-full bg-gradient-to-r from-[#c6a46b] to-[#b38600] text-black font-bold text-xs uppercase tracking-wider hover:brightness-110 shadow-lg shadow-[#c6a46b]/20 flex items-center gap-2 transition-transform active:scale-95"
-                >
-                  <PhoneCall className="w-4 h-4" />
-                  <span>Check Shoot Dates & Rates</span>
-                </Link>
-
-                <a
-                  href="https://wa.me/?text=Hi%20Photo%20In%20Motion%2C%20I%20would%20like%20to%20inquire%20about%20a%20photoshoot%20and%20videoshoot%20for%20my%20upcoming%20event."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-5 py-3 rounded-full bg-white/5 border border-white/20 text-white font-semibold text-xs hover:bg-white/10 transition-colors flex items-center gap-2"
-                >
-                  <Video className="w-4 h-4 text-[#c6a46b]" />
-                  <span>WhatsApp Inquiries</span>
-                </a>
-              </div>
-            </div>
-
+            ))}
           </div>
         </div>
-      </div>
+      </motion.div>
 
+      {/* Light Sweep Flare */}
+      <motion.div
+        animate={{ x: ['-120%', '220%'] }}
+        transition={{ repeat: Infinity, duration: 7, ease: "easeInOut", repeatDelay: 2 }}
+        style={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          width: '35%',
+          background: 'linear-gradient(90deg, transparent 0%, rgba(198, 164, 107, 0.12) 50%, rgba(255, 255, 255, 0.18) 55%, transparent 100%)',
+          transform: 'skewX(-25deg)',
+          pointerEvents: 'none',
+          zIndex: 8
+        }}
+      />
+
+      <style>{`
+        .film-sprocket-row {
+          width: 100%;
+          display: flex;
+          gap: 18px;
+          overflow: hidden;
+          padding: 6px 0;
+          opacity: 0.55;
+          user-select: none;
+          pointer-events: none;
+        }
+        .sprocket-cell {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+        .sprocket-hole {
+          width: 14px;
+          height: 10px;
+          border-radius: 2px;
+          background: #141414;
+          border: 1px solid #2a2a2a;
+          display: block;
+        }
+        .sprocket-code {
+          font-family: monospace;
+          font-size: 8px;
+          letter-spacing: 1.5px;
+          color: rgba(198, 164, 107, 0.6);
+        }
+        .film-ribbon-row {
+          display: flex;
+          gap: 22px;
+          width: max-content;
+          padding: 10px 0;
+          cursor: grab;
+        }
+        .film-ribbon-row:active {
+          cursor: grabbing;
+        }
+        .film-cell-card {
+          flex-shrink: 0;
+          width: 320px;
+          height: 210px;
+          border-radius: 12px;
+          overflow: hidden;
+          background: #101010;
+          border: 1px solid rgba(198, 164, 107, 0.25);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease;
+          position: relative;
+        }
+        .film-cell-card:hover {
+          transform: scale(1.05) translateY(-4px);
+          border-color: rgba(198, 164, 107, 0.8);
+          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(198, 164, 107, 0.35);
+          z-index: 10;
+        }
+        .film-cell-inner {
+          width: 100%;
+          height: 100%;
+          position: relative;
+          overflow: hidden;
+        }
+        .film-cell-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.7s ease;
+        }
+        .film-cell-card:hover .film-cell-img {
+          transform: scale(1.1);
+        }
+        .film-cell-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          padding: 14px 16px;
+          opacity: 0.9;
+        }
+        .film-cell-cat {
+          font-family: monospace;
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          color: var(--gold, #c6a46b);
+          text-transform: uppercase;
+          margin-bottom: 3px;
+        }
+        .film-cell-title {
+          font-family: var(--heading-font, "Cinzel", serif);
+          font-size: 14px;
+          font-weight: 400;
+          color: #fff;
+          margin: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .film-frame-number {
+          position: absolute;
+          top: 10px;
+          right: 12px;
+          font-family: monospace;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 1px;
+          color: rgba(255, 255, 255, 0.6);
+          background: rgba(0, 0, 0, 0.65);
+          padding: 2px 7px;
+          border-radius: 4px;
+          backdrop-filter: blur(4px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        @media (max-width: 768px) {
+          .film-cell-card {
+            width: 240px;
+            height: 160px;
+          }
+          .film-ribbon-row {
+            gap: 14px;
+          }
+        }
+      `}</style>
     </section>
   );
 }
