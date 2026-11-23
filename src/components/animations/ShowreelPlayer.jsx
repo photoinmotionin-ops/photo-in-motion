@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Play, 
@@ -7,14 +7,14 @@ import {
   VolumeX, 
   Maximize2, 
   X, 
-  Film, 
+  Layers, 
   ChevronLeft, 
   ChevronRight,
   Clock,
   Sparkles
 } from 'lucide-react';
 
-// 8 Curated demo shorts with verified direct CDN URLs and high-res posters
+// Stream-ready video URLs with zero attachment headers & full byte-range streaming
 const showreels = [
   {
     id: 'reel-1',
@@ -23,7 +23,7 @@ const showreels = [
     category: 'WEDDINGS',
     location: 'Udaivilas, Udaipur',
     duration: '0:38',
-    videoUrl: 'https://assets.mixkit.co/videos/42999/42999-720.mp4',
+    videoUrl: 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4',
     poster: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85',
     synopsis: 'A grand royal union captured in 4K anamorphic richness with intimate emotional cadences.'
   },
@@ -34,7 +34,7 @@ const showreels = [
     category: 'PRE-WEDDING',
     location: 'Pashan Lake, Pune',
     duration: '0:42',
-    videoUrl: 'https://assets.mixkit.co/videos/41001/41001-720.mp4',
+    videoUrl: 'https://assets.codepen.io/6093409/river.mp4',
     poster: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
     synopsis: 'Golden hour silhouettes, mist over water, and vows etched before the crowd arrives.'
   },
@@ -45,7 +45,7 @@ const showreels = [
     category: 'CELEBRATIONS',
     location: 'Grand Hyatt, Mumbai',
     duration: '0:35',
-    videoUrl: 'https://assets.mixkit.co/videos/40545/40545-720.mp4',
+    videoUrl: 'https://vjs.zencdn.net/v/oceans.mp4',
     poster: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
     synopsis: 'Explosive lighting, choreographies, and raw dance floor joy immortalized in cinematic 120fps.'
   },
@@ -56,7 +56,7 @@ const showreels = [
     category: 'RITUALS',
     location: 'Heritage Haveli, Jaipur',
     duration: '0:30',
-    videoUrl: 'https://assets.mixkit.co/videos/42523/42523-720.mp4',
+    videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
     poster: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85',
     synopsis: 'Flying turmeric powder, uninhibited laughter, and sacred blessings from elders.'
   },
@@ -67,42 +67,9 @@ const showreels = [
     category: 'RECEPTIONS',
     location: 'Taj Falaknuma, Hyderabad',
     duration: '0:45',
-    videoUrl: 'https://assets.mixkit.co/videos/40544/40544-720.mp4',
+    videoUrl: 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4',
     poster: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=85',
     synopsis: 'Sparklers illuminate the twilight as the couple takes their inaugural dance as one.'
-  },
-  {
-    id: 'reel-6',
-    number: '06',
-    title: 'Timeless Candid Laughter',
-    category: 'CANDIDS',
-    location: 'Vagator Beach, Goa',
-    duration: '0:28',
-    videoUrl: 'https://assets.mixkit.co/videos/42271/42271-720.mp4',
-    poster: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1200&q=85',
-    synopsis: 'Unposed, unscripted, and utterly beautiful moments caught in the warm coastal sun.'
-  },
-  {
-    id: 'reel-7',
-    number: '07',
-    title: 'Royal Heritage Walk',
-    category: 'HERITAGE',
-    location: 'Mehrangarh Fort, Jodhpur',
-    duration: '0:34',
-    videoUrl: 'https://assets.mixkit.co/videos/34487/34487-720.mp4',
-    poster: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=85',
-    synopsis: 'Regal architecture, sweeping crimson veils, and royal palace courtyards.'
-  },
-  {
-    id: 'reel-8',
-    number: '08',
-    title: 'Twilight Whispers',
-    category: 'CINEMATIC',
-    location: 'Gulmarg, Kashmir',
-    duration: '0:40',
-    videoUrl: 'https://assets.mixkit.co/videos/41000/41000-720.mp4',
-    poster: 'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=1200&q=85',
-    synopsis: 'Serene mountain horizons, pine breezes, and heartfelt eternal promises.'
   }
 ];
 
@@ -114,23 +81,13 @@ export default function ShowreelPlayer({ fallbackImg }) {
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState('0:00');
   const [isHovered, setIsHovered] = useState(false);
-  const [showCenterAction, setShowCenterAction] = useState(false);
 
   const mainVideoRef = useRef(null);
   const modalVideoRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const progressBarRef = useRef(null);
-  const actionTimeoutRef = useRef(null);
 
   const activeReel = showreels[activeReelIndex] || showreels[0];
-
-  const triggerActionFeedback = useCallback(() => {
-    setShowCenterAction(true);
-    if (actionTimeoutRef.current) clearTimeout(actionTimeoutRef.current);
-    actionTimeoutRef.current = setTimeout(() => {
-      setShowCenterAction(false);
-    }, 700);
-  }, []);
 
   const formatTime = (seconds) => {
     if (isNaN(seconds) || !seconds) return '0:00';
@@ -139,13 +96,17 @@ export default function ShowreelPlayer({ fallbackImg }) {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  // Safe reel switching with .load() and muted autoPlay
   useEffect(() => {
     const video = mainVideoRef.current;
     if (video) {
+      video.pause();
       video.currentTime = 0;
+      video.load();
       setProgress(0);
       setCurrentTime('0:00');
-      
+
+      video.muted = isMuted;
       const playPromise = video.play();
       if (playPromise !== undefined) {
         playPromise
@@ -153,14 +114,11 @@ export default function ShowreelPlayer({ fallbackImg }) {
           .catch(() => setIsPlaying(false));
       }
     }
-    return () => {
-      if (actionTimeoutRef.current) clearTimeout(actionTimeoutRef.current);
-    };
   }, [activeReelIndex]);
 
   const handleTimeUpdate = (e) => {
     const video = e.target;
-    if (video.duration) {
+    if (video && video.duration) {
       const p = (video.currentTime / video.duration) * 100;
       setProgress(p);
       setCurrentTime(formatTime(video.currentTime));
@@ -176,25 +134,24 @@ export default function ShowreelPlayer({ fallbackImg }) {
     if (!video) return;
 
     if (video.paused || video.ended) {
-      video.play()
-        .then(() => {
-          setIsPlaying(true);
-          triggerActionFeedback();
-        })
-        .catch(() => {
-          // If unmuted playback was blocked by browser policy, fallback to muted
-          if (!video.muted) {
-            video.muted = true;
-            setIsMuted(true);
-            video.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
-          } else {
-            setIsPlaying(false);
-          }
-        });
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setIsPlaying(true))
+          .catch((err) => {
+            console.warn('Playback error:', err);
+            if (!video.muted) {
+              video.muted = true;
+              setIsMuted(true);
+              video.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+            } else {
+              setIsPlaying(false);
+            }
+          });
+      }
     } else {
       video.pause();
       setIsPlaying(false);
-      triggerActionFeedback();
     }
   };
 
@@ -211,8 +168,8 @@ export default function ShowreelPlayer({ fallbackImg }) {
     }
   };
 
-  // Interactive scrubber seek
   const handleSeek = (e) => {
+    if (e) e.stopPropagation();
     if (!progressBarRef.current || !mainVideoRef.current) return;
     const rect = progressBarRef.current.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
@@ -236,10 +193,9 @@ export default function ShowreelPlayer({ fallbackImg }) {
         width: '100%', 
         maxWidth: '1100px', 
         margin: '0 auto',
-        padding: '0 8px 32px 8px',
+        padding: '0 8px 36px 8px',
         boxSizing: 'border-box',
-        color: '#f5f5f7',
-        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+        color: '#f5f5f7'
       }}
     >
       {/* 1. ACTIVE SHOWREEL PLAYER */}
@@ -251,12 +207,12 @@ export default function ShowreelPlayer({ fallbackImg }) {
           width: '100%',
           aspectRatio: '16/9',
           minHeight: '230px',
-          maxHeight: '580px',
+          maxHeight: '560px',
           borderRadius: '16px',
           overflow: 'hidden',
-          background: '#09090b',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(198, 164, 107, 0.1)',
+          background: '#050505',
+          border: '1px solid var(--border, rgba(255, 255, 255, 0.12))',
+          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
           userSelect: 'none'
         }}
       >
@@ -269,6 +225,7 @@ export default function ShowreelPlayer({ fallbackImg }) {
             transition={{ duration: 0.3 }}
             style={{ width: '100%', height: '100%', position: 'relative' }}
           >
+            {/* HTML5 Native Video */}
             <video
               ref={mainVideoRef}
               src={activeReel.videoUrl}
@@ -282,12 +239,12 @@ export default function ShowreelPlayer({ fallbackImg }) {
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
               onClick={togglePlay}
-              style={{ 
-                width: '100%', 
-                height: '100%', 
-                objectFit: 'cover', 
-                cursor: 'pointer', 
-                display: 'block' 
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                cursor: 'pointer'
               }}
             />
 
@@ -297,7 +254,7 @@ export default function ShowreelPlayer({ fallbackImg }) {
               style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.65) 100%)',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.6) 100%)',
                 cursor: 'pointer',
                 zIndex: 2
               }}
@@ -323,7 +280,7 @@ export default function ShowreelPlayer({ fallbackImg }) {
                   background: 'rgba(15, 15, 18, 0.75)',
                   backdropFilter: 'blur(12px)',
                   WebkitBackdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  border: '1px solid rgba(255,255,255,0.15)',
                   padding: '5px 12px',
                   borderRadius: '30px',
                   color: 'var(--gold, #d4af37)',
@@ -364,8 +321,8 @@ export default function ShowreelPlayer({ fallbackImg }) {
                   background: 'rgba(15, 15, 18, 0.75)',
                   backdropFilter: 'blur(12px)',
                   WebkitBackdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  color: '#ffffff',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  color: 'var(--white, #ffffff)',
                   padding: '5px 10px',
                   borderRadius: '8px',
                   display: 'flex',
@@ -383,7 +340,7 @@ export default function ShowreelPlayer({ fallbackImg }) {
               </button>
             </div>
 
-            {/* Center Play Button: Only visible when paused or briefly upon user tap */}
+            {/* Center Play Button: Shows when paused or on hover */}
             <div
               style={{
                 position: 'absolute',
@@ -391,8 +348,8 @@ export default function ShowreelPlayer({ fallbackImg }) {
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
                 zIndex: 15,
-                pointerEvents: (!isPlaying || isHovered || showCenterAction) ? 'auto' : 'none',
-                opacity: (!isPlaying || isHovered || showCenterAction) ? 1 : 0,
+                pointerEvents: (!isPlaying || isHovered) ? 'auto' : 'none',
+                opacity: (!isPlaying || isHovered) ? 1 : 0,
                 transition: 'opacity 0.25s ease'
               }}
             >
@@ -406,11 +363,11 @@ export default function ShowreelPlayer({ fallbackImg }) {
                   height: '60px',
                   borderRadius: '50%',
                   background: isPlaying 
-                    ? 'rgba(20, 20, 24, 0.65)' 
-                    : 'linear-gradient(135deg, #e5c378 0%, #c6a46b 100%)',
+                    ? 'rgba(20, 20, 24, 0.7)' 
+                    : 'var(--gold, #d4af37)',
                   backdropFilter: 'blur(10px)',
                   WebkitBackdropFilter: 'blur(10px)',
-                  border: isPlaying ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255, 255, 255, 0.6)',
+                  border: isPlaying ? '1px solid rgba(255,255,255,0.3)' : 'none',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -420,7 +377,7 @@ export default function ShowreelPlayer({ fallbackImg }) {
                     : '0 0 35px rgba(212, 175, 55, 0.6), 0 8px 25px rgba(0,0,0,0.5)',
                   cursor: 'pointer'
                 }}
-                aria-label={isPlaying ? 'Pause video' : 'Play video'}
+                aria-label={isPlaying ? "Pause video" : "Play video"}
               >
                 {isPlaying ? (
                   <Pause size={24} fill="#ffffff" />
@@ -430,7 +387,7 @@ export default function ShowreelPlayer({ fallbackImg }) {
               </motion.button>
             </div>
 
-            {/* Bottom Controls */}
+            {/* Bottom Controls Bar */}
             <div 
               style={{
                 position: 'absolute',
@@ -442,7 +399,7 @@ export default function ShowreelPlayer({ fallbackImg }) {
                 background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 70%, transparent 100%)'
               }}
             >
-              {/* Interactive Scrubber */}
+              {/* Interactive Scrubber Bar */}
               <div 
                 ref={progressBarRef}
                 onClick={handleSeek}
@@ -469,7 +426,7 @@ export default function ShowreelPlayer({ fallbackImg }) {
                     style={{
                       width: `${progress}%`,
                       height: '100%',
-                      background: 'linear-gradient(90deg, #d4af37, #f3e5ab)',
+                      background: 'var(--gold, #d4af37)',
                       borderRadius: '3px',
                       transition: 'width 0.1s linear'
                     }}
@@ -477,7 +434,7 @@ export default function ShowreelPlayer({ fallbackImg }) {
                 </div>
               </div>
 
-              {/* Title & Compact Controls */}
+              {/* Title & Controls */}
               <div 
                 style={{ 
                   display: 'flex', 
@@ -564,7 +521,7 @@ export default function ShowreelPlayer({ fallbackImg }) {
         </AnimatePresence>
       </div>
 
-      {/* 2. HORIZONTAL THUMBNAIL RIBBON */}
+      {/* 2. HORIZONTAL REEL PICKER */}
       <div style={{ marginTop: '22px', textAlign: 'left' }}>
         <div 
           style={{ 
@@ -587,8 +544,8 @@ export default function ShowreelPlayer({ fallbackImg }) {
               textTransform: 'uppercase' 
             }}
           >
-            <Film size={14} />
-            <span>Select Demo Short ({showreels.length})</span>
+            <Layers size={13} />
+            <span>Select Reel ({showreels.length})</span>
           </div>
 
           <div style={{ display: 'flex', gap: '6px' }}>
