@@ -8,109 +8,103 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
-  perspective: 1200px;
 }
 
-/* Cinematic Film Grain Overlay */
-.film-grain {
+/* Background Glow */
+.cinematic-glow {
   position: absolute;
-  inset: -100%;
-  background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Dissolve_Noise_Texture.png');
-  opacity: 0.04;
-  pointer-events: none;
-  animation: grain 8s steps(10) infinite;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(198, 164, 107, 0.15) 0%, rgba(0,0,0,0) 70%);
+  border-radius: 50%;
   z-index: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
-@keyframes grain {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-5%, -10%); }
-  20% { transform: translate(-15%, 5%); }
-  30% { transform: translate(7%, -25%); }
-  40% { transform: translate(-5%, 25%); }
-  50% { transform: translate(-15%, 10%); }
-  60% { transform: translate(15%, 0%); }
-  70% { transform: translate(0%, 15%); }
-  80% { transform: translate(3%, 35%); }
-  90% { transform: translate(-10%, 10%); }
+/* Floating Particles */
+.particles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background-color: var(--gold);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--gold);
 }
 
 .animation-stage {
   position: relative;
   width: 100%;
-  max-width: 1000px;
+  max-width: 900px;
   height: 500px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transform-style: preserve-3d;
   z-index: 2;
 }
 
-/* The Rotating Lens Ring */
-.lens-ring {
+/* Rotating Rings */
+.rotating-ring {
   position: absolute;
-  width: 440px;
-  height: 440px;
   border-radius: 50%;
-  border: 1px solid rgba(198, 164, 107, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: 2px dashed rgba(198, 164, 107, 0.3);
 }
 
-/* The little ticks on the lens ring */
-.ring-tick {
-  position: absolute;
-  width: 4px;
-  height: 12px;
-  background: rgba(198, 164, 107, 0.6);
-  border-radius: 2px;
-}
-.ring-tick:nth-child(1) { top: 0; }
-.ring-tick:nth-child(2) { bottom: 0; }
-.ring-tick:nth-child(3) { left: 0; width: 12px; height: 4px; }
-.ring-tick:nth-child(4) { right: 0; width: 12px; height: 4px; }
-
-/* The Cinematic Aperture Frame */
-.aperture-frame {
-  position: absolute;
+.rotating-ring.outer {
   width: 450px;
   height: 450px;
-  border-radius: 50%;
-  border: 1px solid rgba(198, 164, 107, 0.4);
-  background: rgba(255, 255, 255, 0.01);
-  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-/* The lines that make it look like a camera viewfinder */
-.aperture-line {
+.rotating-ring.inner {
+  width: 350px;
+  height: 350px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Main Central Image */
+.main-image-wrapper {
   position: absolute;
-  width: 60%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(198, 164, 107, 0.4), transparent);
+  z-index: 10;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid #050505;
+  box-shadow: 0 0 50px rgba(198, 164, 107, 0.4);
 }
-.aperture-line.top { top: 20%; }
-.aperture-line.bottom { bottom: 20%; }
 
-/* Side Film Strip Images */
+.main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Side Images */
 .side-image-wrapper {
   position: absolute;
-  z-index: 3;
+  z-index: 5;
   width: 120px;
   height: 160px;
-  border-radius: 8px; /* Film strip rectangle */
+  border-radius: 8px;
   overflow: hidden;
   border: 2px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
 }
+
 .side-image-wrapper.left {
   left: 10%;
   transform: rotate(-10deg);
 }
+
 .side-image-wrapper.right {
   right: 10%;
   transform: rotate(10deg);
@@ -122,38 +116,10 @@
   object-fit: cover;
 }
 
-/* Main Central Image Wrapper */
-.main-image-wrapper {
-  position: absolute;
-  z-index: 10;
-  width: 360px;
-  height: 360px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 4px solid #050505;
-  box-shadow: 0 0 0 1px rgba(198, 164, 107, 0.3), 0 30px 60px rgba(0, 0, 0, 0.8);
-}
-
-.main-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Light Sweep Effect */
-.light-sweep {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
-  transform: skewX(-20deg);
-  z-index: 12;
-  mix-blend-mode: overlay;
-}
-
 /* Text Content */
 .reveal-content {
   position: absolute;
-  bottom: 8%;
+  bottom: 10%;
   text-align: center;
   z-index: 20;
 }
@@ -162,31 +128,29 @@
   font-family: 'Cormorant Garamond', serif;
   font-size: clamp(44px, 6vw, 68px);
   margin: 0;
-  color: #f4efe6;
+  color: var(--white);
   font-weight: 400;
   line-height: 1.1;
-  letter-spacing: -1px;
 }
 
 .reveal-content h2 span {
-  color: #c6a46b;
+  color: var(--gold);
   font-style: italic;
 }
 
 .reveal-content p {
-  color: #aaa39a;
+  color: var(--muted);
   font-family: 'Manrope', sans-serif;
   margin-top: 15px;
   font-size: 15px;
   line-height: 1.8;
 }
 
-/* Mobile Responsiveness */
+/* Mobile */
 @media (max-width: 768px) {
-  .animation-stage { height: 400px; }
-  .lens-ring { width: 300px; height: 300px; }
-  .aperture-frame { width: 320px; height: 320px; }
-  .main-image-wrapper { width: 260px; height: 260px; }
-  .side-image-wrapper { width: 80px; height: 100px; display: none; /* Hide side images on small screens */ }
+  .rotating-ring.outer { width: 300px; height: 300px; }
+  .rotating-ring.inner { width: 240px; height: 240px; }
+  .main-image-wrapper { width: 220px; height: 220px; }
+  .side-image-wrapper { width: 80px; height: 100px; display: none; } /* Hide sides on mobile */
   .reveal-content { bottom: 5%; }
 }
