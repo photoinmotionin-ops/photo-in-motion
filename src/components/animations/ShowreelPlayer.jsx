@@ -14,7 +14,7 @@ import {
   Sparkles
 } from 'lucide-react';
 
-// Stream-ready MP4 video URLs (tested & verified for HTML5 streaming)
+// Streamable video URLs with no 403 blocks or download headers
 const showreels = [
   {
     id: 'reel-1',
@@ -96,7 +96,6 @@ export default function ShowreelPlayer({ fallbackImg }) {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  // Safe reel switching with .load() and muted autoPlay
   useEffect(() => {
     const video = mainVideoRef.current;
     if (video) {
@@ -138,8 +137,7 @@ export default function ShowreelPlayer({ fallbackImg }) {
       if (playPromise !== undefined) {
         playPromise
           .then(() => setIsPlaying(true))
-          .catch((err) => {
-            console.warn('Playback error:', err);
+          .catch(() => {
             if (!video.muted) {
               video.muted = true;
               setIsMuted(true);
@@ -225,7 +223,6 @@ export default function ShowreelPlayer({ fallbackImg }) {
             transition={{ duration: 0.3 }}
             style={{ width: '100%', height: '100%', position: 'relative' }}
           >
-            {/* HTML5 Native Video */}
             <video
               ref={mainVideoRef}
               src={activeReel.videoUrl}
@@ -248,7 +245,6 @@ export default function ShowreelPlayer({ fallbackImg }) {
               }}
             />
 
-            {/* Gradient Scrim */}
             <div 
               onClick={togglePlay}
               style={{
@@ -340,7 +336,7 @@ export default function ShowreelPlayer({ fallbackImg }) {
               </button>
             </div>
 
-            {/* Center Play Button: Shows when paused or on hover */}
+            {/* Center Play Button */}
             <div
               style={{
                 position: 'absolute',
@@ -399,7 +395,6 @@ export default function ShowreelPlayer({ fallbackImg }) {
                 background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 70%, transparent 100%)'
               }}
             >
-              {/* Interactive Scrubber Bar */}
               <div 
                 ref={progressBarRef}
                 onClick={handleSeek}
@@ -434,7 +429,6 @@ export default function ShowreelPlayer({ fallbackImg }) {
                 </div>
               </div>
 
-              {/* Title & Controls */}
               <div 
                 style={{ 
                   display: 'flex', 
