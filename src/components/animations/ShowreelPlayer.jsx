@@ -14,7 +14,7 @@ import {
   Sparkles
 } from 'lucide-react';
 
-// Stream-ready video URLs with zero attachment headers & full byte-range streaming
+// Stream-ready MP4 video URLs (tested & verified for HTML5 streaming)
 const showreels = [
   {
     id: 'reel-1',
