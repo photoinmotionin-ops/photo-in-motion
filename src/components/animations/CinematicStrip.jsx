@@ -12,34 +12,43 @@ export default function CinematicStrip() {
   const y2 = useTransform(scrollYProgress, [0, 1], ["10%", "-10%"]);
 
   return (
-    <section ref={ref} style={{ height: '100vh', background: '#050505', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
+    <section ref={ref} style={{ 
+      height: '100vh', 
+      background: '#050505', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      overflow: 'hidden', 
+      position: 'relative',
+      padding: '0 20px'
+    }}>
       
       {/* The Film Strip Container */}
       <motion.div 
         initial={{ width: 0, opacity: 0 }}
-        animate={isInView ? { width: '80%', opacity: 1 } : { width: 0, opacity: 0 }}
+        animate={isInView ? { width: '100%', opacity: 1 } : { width: 0, opacity: 0 }}
         transition={{ duration: 1.5, ease: "easeInOut" }}
         style={{ 
           position: 'relative', 
-          height: '400px', 
+          height: '500px', 
           borderTop: '4px dashed rgba(198, 164, 107, 0.5)', 
           borderBottom: '4px dashed rgba(198, 164, 107, 0.5)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
-          maxWidth: '1200px',
-          margin: '0 auto'
+          maxWidth: '1200px'
         }}
       >
         {/* Left Film Sprockets */}
         <div style={{ position: 'absolute', left: '10px', top: 0, bottom: 0, width: '15px', display: 'flex', flexDirection: 'column', justifyContent: 'space-around', opacity: 0.5 }}>
-           {[...Array(8)].map((_, i) => <div key={i} style={{ width: '100%', height: '12px', background: '#333', borderRadius: '2px' }} />)}
+           {[...Array(10)].map((_, i) => <div key={i} style={{ width: '100%', height: '15px', background: '#333', borderRadius: '2px' }} />)}
         </div>
 
         {/* Right Film Sprockets */}
         <div style={{ position: 'absolute', right: '10px', top: 0, bottom: 0, width: '15px', display: 'flex', flexDirection: 'column', justifyContent: 'space-around', opacity: 0.5 }}>
-           {[...Array(8)].map((_, i) => <div key={i} style={{ width: '100%', height: '12px', background: '#333', borderRadius: '2px' }} />)}
+           {[...Array(10)].map((_, i) => <div key={i} style={{ width: '100%', height: '15px', background: '#333', borderRadius: '2px' }} />)}
         </div>
 
         {/* The Images inside the strip */}
@@ -66,17 +75,40 @@ export default function CinematicStrip() {
         initial={{ opacity: 0, y: 20 }}
         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
         transition={{ duration: 1, delay: 1 }}
-        style={{ textAlign: 'center', marginTop: '50px' }}
+        style={{ textAlign: 'center', marginTop: '30px', padding: '0 20px' }}
       >
-        <Film size={24} color="var(--gold)" style={{ margin: '0 auto 10px' }} />
-        <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', margin: 0 }}>
+        <Film size={20} color="var(--gold)" style={{ margin: '0 auto 10px' }} />
+        <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '24px', color: 'var(--white)', margin: 0 }}>
           Every Frame Tells a Story
         </h3>
-        <p style={{ color: 'var(--muted)', fontSize: '15px', marginTop: '10px' }}>
+        <p style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '8px' }}>
           Capturing the essence of your most precious moments.
         </p>
       </motion.div>
 
+      {/* Mobile Responsive Styles */}
+      <style>{`
+        @media (max-width: 768px) {
+          section > div:nth-child(2) {
+            height: 300px !important;
+            padding: 0 10px !important;
+          }
+          section > div:nth-child(2) > div:nth-child(3) {
+            padding: 0 20px !important;
+            gap: 10px !important;
+          }
+          section h3 {
+            font-size: 20px !important;
+          }
+          section p {
+            font-size: 12px !important;
+          }
+          section svg {
+            width: 16px !important;
+            height: 16px !important;
+          }
+        }
+      `}</style>
     </section>
   )
 }
