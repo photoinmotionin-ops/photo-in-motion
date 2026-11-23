@@ -3,91 +3,154 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Camera, 
   Aperture, 
-  Sliders
+  Sliders, 
+  Play, 
+  Pause, 
+  Mic 
 } from 'lucide-react';
 
-const cameraPerspectives = [
+const masterShotGallery = [
   {
-    id: 'focal-85',
+    id: 'shot-01',
     lens: '85mm f/1.4',
-    name: 'The Signature Portrait',
-    role: 'SHALLOW DEPTH OF FIELD · EYE-AF LOCK',
-    desc: 'Separates the subject from the background with creamy optical bokeh, locking onto eye micro-expressions.',
-    shutter: '1/400s',
+    category: 'BRIDAL PORTRAITURE',
+    focalName: 'The Signature Bokeh',
+    desc: 'Creamy optical depth with tack-sharp focus on the bridal veil and eye highlights.',
+    shutter: '1/500s',
     aperture: 'f/1.4',
+    apertureRatio: 0.95,
     iso: 'ISO 100',
-    kelvin: '5600K',
-    afPoints: { x: '52%', y: '38%' },
+    kelvin: '5600K Daylight',
+    afCoords: { x: '52%', y: '36%' },
     imgGraded: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85',
-    imgRaw: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=30'
+    imgRaw: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=25'
   },
   {
-    id: 'focal-24',
+    id: 'shot-02',
     lens: '24mm f/2.8',
-    name: 'The Architectural Grandeur',
-    role: 'ULTRA-WIDE PERSPECTIVE · VENUE & MANDAP',
-    desc: 'Captures the monumental scale of your celebration venue, chandeliers, and the grand entrance in 4K clarity.',
+    category: 'ROYAL VENUE & MANDAP',
+    focalName: 'Architectural Grandeur',
+    desc: 'Capturing the monumental scale of grand chandeliers, palace pillars, and floral ceilings.',
     shutter: '1/250s',
     aperture: 'f/4.0',
+    apertureRatio: 0.55,
     iso: 'ISO 400',
-    kelvin: '3200K',
-    afPoints: { x: '50%', y: '55%' },
+    kelvin: '3200K Tungsten',
+    afCoords: { x: '50%', y: '58%' },
     imgGraded: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
-    imgRaw: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=30'
+    imgRaw: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=25'
   },
   {
-    id: 'focal-50',
+    id: 'shot-03',
     lens: '50mm f/1.2',
-    name: 'The Human Connection',
-    role: 'NATURAL FIELD OF VIEW · UNSTAGED CANDIDS',
-    desc: 'Replicates natural human vision to capture raw laughter, flying flowers, and tearful hugs without interference.',
+    category: 'UNSTAGED CANDIDS',
+    focalName: 'Joyous Marigold Haldi',
+    desc: 'Freeze-motion laughter and flying marigold petals with natural human field of view.',
     shutter: '1/800s',
     aperture: 'f/1.8',
+    apertureRatio: 0.88,
     iso: 'ISO 200',
-    kelvin: '5200K',
-    afPoints: { x: '46%', y: '42%' },
+    kelvin: '5200K Warm Sunlight',
+    afCoords: { x: '48%', y: '42%' },
     imgGraded: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85',
-    imgRaw: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=30'
+    imgRaw: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=25'
   },
   {
-    id: 'focal-135',
+    id: 'shot-04',
     lens: '135mm f/2.0',
-    name: 'The Intimate Telephoto',
-    role: 'DISTANT COMPRESSION · STOLEN GLANCES',
-    desc: 'Discreet long-distance compression that documents sacred rituals and private glances from across the room.',
-    shutter: '1/500s',
+    category: 'INTIMATE TELEPHOTO',
+    focalName: 'Stolen Glance in the Mist',
+    desc: 'Unobtrusive compression from afar, preserving tender moments without intruding.',
+    shutter: '1/640s',
     aperture: 'f/2.0',
-    iso: 'ISO 800',
-    kelvin: '4800K',
-    afPoints: { x: '58%', y: '35%' },
+    apertureRatio: 0.78,
+    iso: 'ISO 640',
+    kelvin: '4800K Golden Dawn',
+    afCoords: { x: '58%', y: '35%' },
     imgGraded: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
-    imgRaw: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=30'
+    imgRaw: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=25'
+  },
+  {
+    id: 'shot-05',
+    lens: '35mm f/1.4',
+    category: 'EVENING RECEPTION GALA',
+    focalName: 'The First Dance',
+    desc: 'Cinematic wide-aperture capture of starlit waltzes and ambient venue spotlights.',
+    shutter: '1/200s',
+    aperture: 'f/1.4',
+    apertureRatio: 0.95,
+    iso: 'ISO 800',
+    kelvin: '3800K Ambiance',
+    afCoords: { x: '51%', y: '45%' },
+    imgGraded: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=85',
+    imgRaw: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=25'
+  },
+  {
+    id: 'shot-06',
+    lens: '85mm f/1.4',
+    category: 'EDITORIAL PORTRAIT',
+    focalName: 'Serenity & Grace',
+    desc: 'Studio-quality natural window sidelight highlighting jewelry and embroidery details.',
+    shutter: '1/320s',
+    aperture: 'f/1.6',
+    apertureRatio: 0.9,
+    iso: 'ISO 160',
+    kelvin: '5500K Studio',
+    afCoords: { x: '45%', y: '32%' },
+    imgGraded: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=85',
+    imgRaw: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=25'
   }
 ];
 
 export default function EventPlanner() {
-  const [activeFocalIndex, setActiveFocalIndex] = useState(0);
+  const [currentShotIndex, setCurrentShotIndex] = useState(0);
   const [isGraded, setIsGraded] = useState(true);
-  const [isShutterFired, setIsShutterFired] = useState(false);
-  const [isAutoCycling, setIsAutoCycling] = useState(true);
+  const [isShutterFlashing, setIsShutterFlashing] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [cycleProgress, setCycleProgress] = useState(0);
+  const [customAfPoint, setCustomAfPoint] = useState(null);
 
-  const currentShot = cameraPerspectives[activeFocalIndex];
+  const CYCLE_DURATION = 3800; // 3.8 seconds per photo
+  const currentShot = masterShotGallery[currentShotIndex];
 
+  // Automated Smooth Progress Timer & Image Cycling
   useEffect(() => {
-    if (!isAutoCycling) return;
-    const interval = setInterval(() => {
-      triggerLensChange((activeFocalIndex + 1) % cameraPerspectives.length);
-    }, 4500);
-    return () => clearInterval(interval);
-  }, [activeFocalIndex, isAutoCycling]);
+    if (!isPlaying) return;
 
-  const triggerLensChange = (nextIndex) => {
-    setIsShutterFired(true);
+    const intervalStep = 50;
+    const stepIncrement = (intervalStep / CYCLE_DURATION) * 100;
+
+    const progressTimer = setInterval(() => {
+      setCycleProgress((prev) => {
+        if (prev >= 100) {
+          triggerNextShot();
+          return 0;
+        }
+        return prev + stepIncrement;
+      });
+    }, intervalStep);
+
+    return () => clearInterval(progressTimer);
+  }, [currentShotIndex, isPlaying]);
+
+  const triggerNextShot = (explicitIndex = null) => {
+    setIsShutterFlashing(true);
+    setCustomAfPoint(null);
     setTimeout(() => {
-      setActiveFocalIndex(nextIndex);
-      setIsShutterFired(false);
-    }, 280);
+      setCurrentShotIndex((prev) => (explicitIndex !== null ? explicitIndex : (prev + 1) % masterShotGallery.length));
+      setIsShutterFlashing(false);
+      setCycleProgress(0);
+    }, 240);
   };
+
+  const handleViewfinderClick = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+    const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
+    setCustomAfPoint({ x: `${xPercent.toFixed(1)}%`, y: `${yPercent.toFixed(1)}%` });
+  };
+
+  const activeFocus = customAfPoint || currentShot.afCoords;
 
   return (
     <section 
@@ -95,7 +158,7 @@ export default function EventPlanner() {
       style={{
         position: 'relative',
         width: '100%',
-        padding: '120px 6%',
+        padding: '110px 5% 100px',
         background: '#070707',
         color: '#fff',
         overflow: 'hidden',
@@ -106,42 +169,41 @@ export default function EventPlanner() {
         alignItems: 'center'
       }}
     >
-      {/* Background Atmosphere */}
       <div 
         style={{
           position: 'absolute',
-          top: '30%',
+          top: '25%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: '750px',
-          height: '450px',
-          background: 'radial-gradient(circle, rgba(198, 164, 107, 0.12) 0%, transparent 70%)',
-          filter: 'blur(100px)',
+          width: '800px',
+          height: '500px',
+          background: 'radial-gradient(circle, rgba(198, 164, 107, 0.14) 0%, transparent 70%)',
+          filter: 'blur(110px)',
           pointerEvents: 'none'
         }}
       />
 
-      {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: '45px', position: 'relative', zIndex: 10 }}>
+      <div style={{ textAlign: 'center', marginBottom: '40px', position: 'relative', zIndex: 10 }}>
         <div 
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '6px 16px',
+            padding: '6px 18px',
             borderRadius: '9999px',
             background: 'rgba(198, 164, 107, 0.08)',
-            border: '1px solid rgba(198, 164, 107, 0.25)',
+            border: '1px solid rgba(198, 164, 107, 0.28)',
             color: 'var(--gold, #c6a46b)',
             fontSize: '11px',
             fontWeight: 700,
             letterSpacing: '2.5px',
             textTransform: 'uppercase',
-            marginBottom: '12px'
+            marginBottom: '14px',
+            backdropFilter: 'blur(8px)'
           }}
         >
           <Camera size={14} color="var(--gold, #c6a46b)" />
-          <span>THE MASTER'S CAMERA EYE</span>
+          <span>REAL-TIME CAMERA FOCUS ENGINE</span>
         </div>
 
         <h2 
@@ -150,96 +212,144 @@ export default function EventPlanner() {
             fontSize: 'clamp(32px, 5vw, 56px)',
             fontWeight: 400,
             color: 'var(--white, #fff)',
-            margin: '0 0 12px 0'
+            margin: '0 0 12px 0',
+            letterSpacing: '0.2px'
           }}
         >
-          Anatomy of a <span style={{ color: 'var(--gold, #c6a46b)', fontStyle: 'italic' }}>Cinematic Frame</span>
+          Through the <span style={{ color: 'var(--gold, #c6a46b)', fontStyle: 'italic' }}>Director's Viewfinder</span>
         </h2>
 
-        <p style={{ color: 'var(--muted, #888)', fontSize: '14.5px', maxWidth: '620px', margin: '0 auto', lineHeight: 1.6 }}>
-          Automated multi-lens tracking and master cinema color grading designed to capture every glance with precision.
+        <p style={{ color: 'var(--muted, #888)', fontSize: '14px', maxWidth: '640px', margin: '0 auto', lineHeight: 1.6 }}>
+          Automated live camera tracking, multi-lens switching, and master cinema color grading in continuous motion.
         </p>
       </div>
 
-      {/* VIEWFINDER CONTAINER */}
       <div 
         style={{
           position: 'relative',
           width: '100%',
-          maxWidth: '1100px',
+          maxWidth: '1120px',
           borderRadius: '24px',
           overflow: 'hidden',
-          background: '#0f0e0d',
-          border: '1px solid rgba(198, 164, 107, 0.3)',
-          boxShadow: '0 30px 80px rgba(0, 0, 0, 0.85)',
+          background: '#0c0c0b',
+          border: '1px solid rgba(198, 164, 107, 0.35)',
+          boxShadow: '0 30px 90px rgba(0, 0, 0, 0.9)',
           zIndex: 10
         }}
-        onMouseEnter={() => setIsAutoCycling(false)}
-        onMouseLeave={() => setIsAutoCycling(true)}
       >
-        {/* Top Viewfinder Status */}
+        {/* Top Status & Controls */}
         <div 
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '14px 24px',
-            background: 'rgba(10, 10, 10, 0.85)',
-            backdropFilter: 'blur(10px)',
+            padding: '14px 22px',
+            background: 'rgba(12, 12, 11, 0.95)',
             borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            fontSize: '11.5px',
+            fontSize: '11px',
             fontFamily: 'monospace',
             color: 'rgba(255, 255, 255, 0.7)'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#ef4444', fontWeight: 'bold' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', display: 'inline-block', boxShadow: '0 0 8px #ef4444' }} />
-              LIVE EYE-AF ACTIVE
+              <span className="live-rec-dot" />
+              LIVE SHOT SEQUENCE
             </span>
             <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-            <span style={{ color: 'var(--gold, #c6a46b)' }}>PRORES 422 HQ · 4K 10-BIT</span>
+            <span style={{ color: '#22c55e', fontWeight: 600 }}>AI EYE-AF LOCKED</span>
+            <span style={{ color: 'rgba(255,255,255,0.2)' }} className="hidden sm:inline">|</span>
+            <span style={{ color: 'var(--gold, #c6a46b)' }} className="hidden sm:inline">
+              4K CINEMA DCI · 24.00 FPS
+            </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsGraded(!isGraded)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '7px',
-              padding: '5px 14px',
-              borderRadius: '9999px',
-              background: isGraded ? 'rgba(198, 164, 107, 0.18)' : 'rgba(255, 255, 255, 0.06)',
-              border: isGraded ? '1px solid var(--gold, #c6a46b)' : '1px solid rgba(255, 255, 255, 0.15)',
-              color: isGraded ? 'var(--gold, #c6a46b)' : '#fff',
-              fontSize: '11px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.25s ease'
-            }}
-          >
-            <Sliders size={12} />
-            <span>{isGraded ? 'CINEMA LUT: 35MM GOLD' : 'RAW S-LOG3 SENSOR'}</span>
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              type="button"
+              onClick={() => setIsPlaying(!isPlaying)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 12px',
+                borderRadius: '9999px',
+                background: isPlaying ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.15)',
+                border: isPlaying ? '1px solid rgba(34, 197, 94, 0.4)' : '1px solid rgba(239, 68, 68, 0.4)',
+                color: isPlaying ? '#4ade80' : '#f87171',
+                fontSize: '10.5px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              {isPlaying ? <Pause size={12} /> : <Play size={12} />}
+              <span>{isPlaying ? 'AUTO-CHANGING' : 'PAUSED'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsGraded(!isGraded)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 12px',
+                borderRadius: '9999px',
+                background: isGraded ? 'rgba(198, 164, 107, 0.18)' : 'rgba(255, 255, 255, 0.06)',
+                border: isGraded ? '1px solid var(--gold, #c6a46b)' : '1px solid rgba(255, 255, 255, 0.15)',
+                color: isGraded ? 'var(--gold, #c6a46b)' : '#fff',
+                fontSize: '10.5px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.25s ease'
+              }}
+            >
+              <Sliders size={12} />
+              <span>{isGraded ? '35MM GOLD LUT' : 'RAW S-LOG SENSOR'}</span>
+            </button>
+          </div>
         </div>
 
-        {/* Viewfinder Monitor Screen */}
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', overflow: 'hidden', background: '#000' }}>
+        {/* Auto-Countdown Progress Bar */}
+        <div style={{ width: '100%', height: '3px', background: 'rgba(255, 255, 255, 0.08)', position: 'relative' }}>
+          <div 
+            style={{ 
+              width: `${cycleProgress}%`, 
+              height: '100%', 
+              background: 'linear-gradient(90deg, var(--gold, #c6a46b), #f8d794)',
+              transition: 'width 0.05s linear',
+              boxShadow: '0 0 10px rgba(198, 164, 107, 0.8)'
+            }} 
+          />
+        </div>
+
+        {/* Viewfinder Main Viewport */}
+        <div 
+          onClick={handleViewfinderClick}
+          style={{ 
+            position: 'relative', 
+            width: '100%', 
+            aspectRatio: '16/9', 
+            overflow: 'hidden', 
+            background: '#000',
+            cursor: 'crosshair'
+          }}
+          title="Click anywhere to manual focus"
+        >
           <AnimatePresence mode="wait">
             <motion.img
               key={`${currentShot.id}-${isGraded}`}
               src={isGraded ? currentShot.imgGraded : currentShot.imgRaw}
-              alt={currentShot.name}
-              initial={{ opacity: 0, scale: 1.08 }}
+              alt={currentShot.focalName}
+              initial={{ opacity: 0, scale: 1.12 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.65, ease: "easeOut" }}
+              transition={{ duration: 0.75, ease: "easeOut" }}
               style={{
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                filter: isGraded ? 'none' : 'grayscale(35%) contrast(85%) brightness(115%)'
+                filter: isGraded ? 'none' : 'grayscale(45%) contrast(80%) brightness(120%)'
               }}
             />
           </AnimatePresence>
@@ -250,57 +360,161 @@ export default function EventPlanner() {
               position: 'absolute',
               inset: 0,
               background: '#000',
-              opacity: isShutterFired ? 1 : 0,
+              opacity: isShutterFlashing ? 1 : 0,
               pointerEvents: 'none',
-              transition: 'opacity 0.15s ease-out',
-              zIndex: 30
+              transition: 'opacity 0.12s ease-out',
+              zIndex: 35
             }}
           />
 
-          {/* Eye-AF Box Tracker */}
-          <motion.div 
-            animate={{
-              left: currentShot.afPoints.x,
-              top: currentShot.afPoints.y,
-              scale: [1, 0.95, 1],
-              borderColor: ['#c6a46b', '#22c55e', '#c6a46b']
-            }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          <div className="viewfinder-light-leak" />
+
+          {/* 3x3 Composition Grid */}
+          <div 
             style={{
               position: 'absolute',
-              width: '64px',
-              height: '64px',
+              inset: 0,
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr 1fr',
+              gridTemplateRows: '1fr 1fr 1fr',
+              pointerEvents: 'none',
+              zIndex: 10,
+              opacity: 0.22
+            }}
+          >
+            <div style={{ borderRight: '1px solid rgba(255,255,255,0.4)', borderBottom: '1px solid rgba(255,255,255,0.4)' }} />
+            <div style={{ borderRight: '1px solid rgba(255,255,255,0.4)', borderBottom: '1px solid rgba(255,255,255,0.4)' }} />
+            <div style={{ borderBottom: '1px solid rgba(255,255,255,0.4)' }} />
+            <div style={{ borderRight: '1px solid rgba(255,255,255,0.4)', borderBottom: '1px solid rgba(255,255,255,0.4)' }} />
+            <div style={{ borderRight: '1px solid rgba(255,255,255,0.4)', borderBottom: '1px solid rgba(255,255,255,0.4)' }} />
+            <div style={{ borderBottom: '1px solid rgba(255,255,255,0.4)' }} />
+          </div>
+
+          {/* AI Eye-AF Target */}
+          <motion.div 
+            animate={{
+              left: activeFocus.x,
+              top: activeFocus.y,
+              scale: [1, 0.94, 1]
+            }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            style={{
+              position: 'absolute',
+              width: '68px',
+              height: '68px',
               transform: 'translate(-50%, -50%)',
-              border: '1.5px solid var(--gold, #c6a46b)',
-              borderRadius: '8px',
+              border: '1.5px solid #22c55e',
+              borderRadius: '6px',
               pointerEvents: 'none',
               zIndex: 20,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 0 15px rgba(198, 164, 107, 0.4)'
+              boxShadow: '0 0 18px rgba(34, 197, 94, 0.45)'
             }}
           >
             <div style={{ width: '4px', height: '4px', background: '#22c55e', borderRadius: '50%' }} />
+            <span style={{ position: 'absolute', top: '-2px', left: '-2px', width: '8px', height: '8px', borderTop: '2px solid #fff', borderLeft: '2px solid #fff' }} />
+            <span style={{ position: 'absolute', bottom: '-2px', right: '-2px', width: '8px', height: '8px', borderBottom: '2px solid #fff', borderRight: '2px solid #fff' }} />
             <span 
               style={{
                 position: 'absolute',
-                top: '-18px',
+                top: '-20px',
                 left: 0,
                 fontSize: '9px',
                 fontFamily: 'monospace',
+                fontWeight: 700,
                 background: 'rgba(0,0,0,0.85)',
                 color: '#22c55e',
-                padding: '1px 5px',
+                padding: '1px 6px',
                 borderRadius: '3px',
-                border: '1px solid #22c55e'
+                border: '1px solid rgba(34, 197, 94, 0.6)',
+                whiteSpace: 'nowrap'
               }}
             >
-              [AF-LOCK]
+              [AF-C LOCK 99%]
             </span>
           </motion.div>
 
-          {/* Bottom Telemetry Bar */}
+          {/* Optical Iris Gauge & Audio Meter */}
+          <div 
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              zIndex: 25,
+              pointerEvents: 'none'
+            }}
+          >
+            <div 
+              style={{
+                background: 'rgba(10, 10, 10, 0.85)',
+                backdropFilter: 'blur(8px)',
+                padding: '8px 12px',
+                borderRadius: '12px',
+                border: '1px solid rgba(198, 164, 107, 0.35)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '11px',
+                fontFamily: 'monospace'
+              }}
+            >
+              <div 
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  border: '1.5px solid var(--gold, #c6a46b)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: '#000'
+                }}
+              >
+                <div 
+                  style={{
+                    width: `${Math.round(currentShot.apertureRatio * 14)}px`,
+                    height: `${Math.round(currentShot.apertureRatio * 14)}px`,
+                    borderRadius: '50%',
+                    background: 'var(--gold, #c6a46b)',
+                    transition: 'all 0.4s ease'
+                  }}
+                />
+              </div>
+              <span style={{ color: 'var(--gold, #c6a46b)', fontWeight: 700 }}>
+                {currentShot.aperture}
+              </span>
+            </div>
+
+            <div 
+              style={{
+                background: 'rgba(10, 10, 10, 0.85)',
+                backdropFilter: 'blur(8px)',
+                padding: '6px 12px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <Mic size={11} color="#4ade80" />
+              <div style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', height: '10px' }}>
+                <span className="audio-bar bar-1" />
+                <span className="audio-bar bar-2" />
+                <span className="audio-bar bar-3" />
+                <span className="audio-bar bar-4" />
+                <span className="audio-bar bar-5" />
+              </div>
+              <span style={{ fontSize: '9px', fontFamily: 'monospace', color: 'rgba(255,255,255,0.5)' }}>-14dB</span>
+            </div>
+          </div>
+
+          {/* Telemetry Bar */}
           <div 
             style={{
               position: 'absolute',
@@ -308,114 +522,152 @@ export default function EventPlanner() {
               left: 0,
               right: 0,
               padding: '16px 24px',
-              background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)',
+              background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, transparent 100%)',
               display: 'flex',
               alignItems: 'flex-end',
               justifyContent: 'space-between',
               fontFamily: 'monospace',
-              fontSize: '12px',
+              fontSize: '11.5px',
               color: '#fff',
-              zIndex: 25
+              zIndex: 25,
+              pointerEvents: 'none'
             }}
           >
-            <div style={{ display: 'flex', gap: '18px', alignItems: 'center' }}>
-              <span style={{ color: 'var(--gold, #c6a46b)', fontWeight: 'bold' }}>{currentShot.lens}</span>
-              <span>EXP: {currentShot.shutter}</span>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ color: 'var(--gold, #c6a46b)', fontWeight: 'bold' }}>
+                {currentShot.lens}
+              </span>
+              <span>SHUTTER: {currentShot.shutter}</span>
               <span>IRIS: {currentShot.aperture}</span>
               <span>{currentShot.iso}</span>
-              <span>{currentShot.kelvin}</span>
+              <span className="hidden sm:inline">{currentShot.kelvin}</span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'rgba(255,255,255,0.7)' }}>
-              <span>BATTERY: 94%</span>
-              <span style={{ color: '#22c55e' }}>CARD 1: 4K RAW OK</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', color: 'rgba(255,255,255,0.75)' }}>
+              <span className="hidden sm:inline">DUAL SD: V90 OK</span>
+              <span style={{ color: '#22c55e', fontWeight: 600 }}>BATT: 98%</span>
             </div>
           </div>
         </div>
 
-        {/* BOTTOM LENS SELECTOR CARDS */}
+        {/* Bottom Story & Lens Selector Thumbnails */}
         <div 
           style={{
-            padding: '24px 30px',
-            background: '#0d0c0b',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            padding: '20px 24px',
+            background: '#0d0d0c',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
             gap: '16px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+            flexWrap: 'wrap'
           }}
         >
-          {cameraPerspectives.map((persp, idx) => {
-            const isSelected = idx === activeFocalIndex;
+          <div style={{ flex: 1, minWidth: '240px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--gold, #c6a46b)', fontWeight: 700, letterSpacing: '1px' }}>
+                {currentShot.category}
+              </span>
+              <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
+              <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>
+                SHOT 0{currentShotIndex + 1} OF 0{masterShotGallery.length}
+              </span>
+            </div>
+            <h4 style={{ fontFamily: 'var(--heading-font, "Cinzel", serif)', fontSize: '16px', color: '#fff', margin: '0 0 3px 0' }}>
+              {currentShot.focalName}
+            </h4>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.4 }}>
+              {currentShot.desc}
+            </p>
+          </div>
 
-            return (
-              <button
-                key={persp.id}
-                type="button"
-                onClick={() => triggerLensChange(idx)}
-                style={{
-                  textAlign: 'left',
-                  padding: '16px',
-                  borderRadius: '16px',
-                  background: isSelected ? 'rgba(198, 164, 107, 0.12)' : 'rgba(255, 255, 255, 0.02)',
-                  border: isSelected ? '1px solid var(--gold, #c6a46b)' : '1px solid rgba(255, 255, 255, 0.06)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  position: 'relative'
-                }}
-              >
-                {isSelected && (
-                  <motion.div
-                    layoutId="activeLensIndicator"
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: '20px',
-                      right: '20px',
-                      height: '2px',
-                      background: 'var(--gold, #c6a46b)',
-                      boxShadow: '0 0 10px var(--gold, #c6a46b)'
-                    }}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {masterShotGallery.map((shot, idx) => {
+              const isSelected = idx === currentShotIndex;
+
+              return (
+                <button
+                  key={shot.id}
+                  type="button"
+                  onClick={() => triggerNextShot(idx)}
+                  style={{
+                    position: 'relative',
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    border: isSelected ? '2px solid var(--gold, #c6a46b)' : '1px solid rgba(255, 255, 255, 0.2)',
+                    background: '#000',
+                    cursor: 'pointer',
+                    padding: 0,
+                    transition: 'all 0.3s ease',
+                    boxShadow: isSelected ? '0 0 14px rgba(198, 164, 107, 0.6)' : 'none',
+                    transform: isSelected ? 'scale(1.1)' : 'scale(1)'
+                  }}
+                  title={`${shot.lens} - ${shot.focalName}`}
+                >
+                  <img 
+                    src={shot.imgGraded} 
+                    alt={shot.lens} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isSelected ? 1 : 0.55 }}
                   />
-                )}
-
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <span 
-                    style={{
-                      fontFamily: 'monospace',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      color: isSelected ? 'var(--gold, #c6a46b)' : 'rgba(255,255,255,0.5)'
-                    }}
-                  >
-                    {persp.lens}
-                  </span>
-                  {isSelected && <Aperture size={14} color="var(--gold, #c6a46b)" className="animate-spin-slow" />}
-                </div>
-
-                <h4 style={{ fontFamily: 'var(--heading-font, "Cinzel", serif)', fontSize: '15px', color: '#fff', margin: '0 0 4px 0' }}>
-                  {persp.name}
-                </h4>
-
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.5 }}>
-                  {persp.role}
-                </p>
-              </button>
-            );
-          })}
+                  {isSelected && (
+                    <span 
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        border: '1.5px solid var(--gold, #c6a46b)',
+                        borderRadius: '50%'
+                      }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       <style>{`
-        .animate-spin-slow {
-          animation: spinSlow 8s linear infinite;
+        .live-rec-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #ef4444;
+          display: inline-block;
+          box-shadow: 0 0 8px #ef4444;
+          animation: recPulse 1.2s infinite ease-in-out;
         }
-        @keyframes spinSlow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        @keyframes recPulse {
+          0% { opacity: 0.4; transform: scale(0.85); }
+          50% { opacity: 1; transform: scale(1.15); }
+          100% { opacity: 0.4; transform: scale(0.85); }
+        }
+        .viewfinder-light-leak {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, rgba(198, 164, 107, 0.1) 0%, transparent 40%, rgba(255, 255, 255, 0.05) 100%);
+          pointer-events: none;
+          z-index: 12;
+        }
+        .audio-bar {
+          width: 2.5px;
+          border-radius: 1px;
+          background: #22c55e;
+          animation: audioWave 1s infinite alternate ease-in-out;
+        }
+        .bar-1 { height: 4px; animation-delay: 0.1s; }
+        .bar-2 { height: 8px; animation-delay: 0.3s; }
+        .bar-3 { height: 10px; animation-delay: 0.15s; }
+        .bar-4 { height: 6px; animation-delay: 0.4s; }
+        .bar-5 { height: 9px; animation-delay: 0.25s; background: #eab308; }
+        @keyframes audioWave {
+          0% { height: 3px; }
+          100% { height: 11px; }
         }
         @media (max-width: 768px) {
           .camera-focus-engine-root {
-            padding: 80px 4% !important;
+            padding: 70px 4% !important;
           }
         }
       `}</style>

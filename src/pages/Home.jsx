@@ -1,182 +1,646 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowUpRight, ArrowDown, Play, Star } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import CinematicReveal from '../components/animations/CinematicReveal';
-//import CameraCapture from '../components/animations/CameraCapture';
-import CinematicStrip from '../components/animations/CinematicStrip'; 
-import EventPlanner from '../components/animations/EventPlanner';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Play, 
+  Pause, 
+  Volume2, 
+  VolumeX, 
+  Maximize2, 
+  X, 
+  Layers, 
+  ChevronLeft, 
+  ChevronRight,
+  Clock
+} from 'lucide-react';
 
-const maskReveal = { hidden: { y: "100%", rotate: 2 }, visible: { y: 0, rotate: 0, transition: { duration: 0.8, ease: [0.33, 1, 0.68, 1] } } }
-const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } } }
-const staggerContainer = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.1 } } }
+const showreels = [
+  {
+    id: 'reel-1',
+    number: '01',
+    title: 'The Royal Wedding Saga',
+    category: 'WEDDINGS',
+    location: 'Udaivilas, Udaipur',
+    duration: '0:38',
+    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-bride-holding-a-bouquet-of-flowers-42999-large.mp4',
+    poster: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85',
+    synopsis: 'A grand royal union captured in 4K anamorphic richness with intimate emotional cadences.'
+  },
+  {
+    id: 'reel-2',
+    number: '02',
+    title: 'Golden Sunset Vows',
+    category: 'PRE-WEDDING',
+    location: 'Pashan Lake, Pune',
+    duration: '0:42',
+    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-young-couple-walking-in-a-field-at-sunset-41001-large.mp4',
+    poster: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
+    synopsis: 'Golden hour silhouettes, mist over water, and vows etched before the crowd arrives.'
+  },
+  {
+    id: 'reel-3',
+    number: '03',
+    title: 'Euphoria of the Sangeet',
+    category: 'CELEBRATIONS',
+    location: 'Grand Hyatt, Mumbai',
+    duration: '0:35',
+    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-confetti-falling-on-dancers-in-a-club-40545-large.mp4',
+    poster: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
+    synopsis: 'Explosive lighting, choreographies, and raw dance floor joy immortalized in cinematic 120fps.'
+  },
+  {
+    id: 'reel-4',
+    number: '04',
+    title: 'Marigold Showers & Sacred Haldi',
+    category: 'RITUALS',
+    location: 'Heritage Haveli, Jaipur',
+    duration: '0:30',
+    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-hands-throwing-yellow-powder-at-a-festival-42523-large.mp4',
+    poster: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85',
+    synopsis: 'Flying turmeric powder, uninhibited laughter, and sacred blessings from elders.'
+  },
+  {
+    id: 'reel-5',
+    number: '05',
+    title: 'Midnight Waltz & First Dance',
+    category: 'RECEPTIONS',
+    location: 'Taj Falaknuma, Hyderabad',
+    duration: '0:45',
+    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-young-couple-dancing-at-a-party-40544-large.mp4',
+    poster: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=85',
+    synopsis: 'Sparklers illuminate the twilight as the couple takes their inaugural dance as one.'
+  }
+];
 
-const featuredWorks = [
-  { number: '01', category: 'WEDDINGS', title: 'Forever Begins', key: 'img1' },
-  { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', key: 'img2' },
-  { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', key: 'img3' },
-]
+export default function ShowreelPlayer({ fallbackImg }) {
+  const [activeReelIndex, setActiveReelIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState('0:00');
 
-const testimonials = [
-  { name: 'Ananya & Rahul', rating: 5 },
-  { name: 'Sarah & James', rating: 5 },
-  { name: 'Priya & Arjun', rating: 5 },
-]
+  const mainVideoRef = useRef(null);
+  const modalVideoRef = useRef(null);
+  const scrollContainerRef = useRef(null);
 
-export default function Home() {
-  const [content, setContent] = useState({
-    heroTitle: 'Every Frame.\nA Timeless Story.',
-    heroSub: "We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.",
-    storyTitle: 'Moments pass.\nStories stay forever.',
-    storyText: 'At Photo In Motion, we believe every celebration has a story worth telling. Through thoughtful photography and cinematic filmmaking, we preserve the feelings behind every frame.',
-    testimonial1: 'They captured the essence of our wedding perfectly.',
-    testimonial2: 'The cinematic film they created for us is an absolute masterpiece.',
-    testimonial3: 'Professional, unobtrusive, and incredibly talented.',
-    img1: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85',
-    img2: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
-    img3: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
-    showreelImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80'
-  });
+  const activeReel = showreels[activeReelIndex];
 
+  // Auto-play when active reel changes
   useEffect(() => {
-    fetch('/api/enquiry?action=get_content')
-      .then(res => res.json())
-      .then(data => {
-        if (Object.keys(data).length > 0) {
-          setContent(data);
-        }
+    if (mainVideoRef.current) {
+      mainVideoRef.current.currentTime = 0;
+      mainVideoRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch(() => {
+        setIsPlaying(false);
       });
-  }, []);
+    }
+    setProgress(0);
+  }, [activeReelIndex]);
+
+  const handleTimeUpdate = (e) => {
+    const video = e.target;
+    if (video && video.duration) {
+      const p = (video.currentTime / video.duration) * 100;
+      setProgress(p);
+
+      const mins = Math.floor(video.currentTime / 60);
+      const secs = Math.floor(video.currentTime % 60);
+      setCurrentTime(`${mins}:${secs < 10 ? '0' : ''}${secs}`);
+    }
+  };
+
+  const togglePlay = (e) => {
+    if (e) e.stopPropagation();
+    if (mainVideoRef.current) {
+      if (mainVideoRef.current.paused) {
+        mainVideoRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch((err) => {
+          console.warn("Playback error:", err);
+        });
+      } else {
+        mainVideoRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  };
+
+  const toggleMute = (e) => {
+    if (e) e.stopPropagation();
+    if (mainVideoRef.current) {
+      mainVideoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const scrollThumbnails = (direction) => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = direction === 'left' ? -260 : 260;
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+    <div style={{ width: '100%', maxWidth: '1100px', margin: '0 auto' }}>
       
-      {/* 1. HERO SECTION */}
-      <section className="hero" id="home">
-        <div className="hero-overlay" />
-        <motion.div className="hero-content" initial="hidden" animate="visible" variants={staggerContainer}>
-          <div style={{ overflow: 'hidden' }}><motion.p className="eyebrow" variants={maskReveal}>WEDDING · EVENTS · CINEMATIC FILMS</motion.p></div>
-          <h1 style={{ whiteSpace: 'pre-line' }}>
-            <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}>{content.heroTitle}</motion.div></div>
-          </h1>
-          <motion.p className="hero-description" variants={fadeUp}>
-            {content.heroSub}
-          </motion.p>
-          <motion.div className="hero-actions" variants={fadeUp}>
-            <Link to="/portfolio" className="primary-btn">Explore Our Work <ArrowUpRight size={18} /></Link>
-            <Link to="/contact" className="secondary-btn" style={{ borderBottom: '1px solid var(--gold)' }}>Book Your Experience</Link>
-          </motion.div>
-        </motion.div>
-        <motion.div className="hero-bottom" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5, duration: 1 }}>
-          <span>BASED IN INDIA · AVAILABLE WORLDWIDE</span>
-          <a href="#story">SCROLL TO EXPLORE <ArrowDown size={15} /></a>
-          <span>EST. WITH PASSION</span>
-        </motion.div>
-      </section>
+      {/* ========================================================
+          1. ACTIVE SHOWREEL PLAYER WITH RESPONSIVE SCREEN
+      ======================================================== */}
+      <div 
+        onClick={togglePlay}
+        style={{
+          position: 'relative',
+          width: '100%',
+          aspectRatio: '16/9',
+          minHeight: '260px',
+          maxHeight: '560px',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          background: '#050505',
+          border: '1px solid var(--border)',
+          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
+          cursor: 'pointer'
+        }}
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeReel.id}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.02 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            style={{ width: '100%', height: '100%', position: 'relative' }}
+          >
+            {/* HTML5 Video */}
+            <video
+              ref={mainVideoRef}
+              src={activeReel.videoUrl}
+              poster={activeReel.poster || fallbackImg}
+              autoPlay
+              loop
+              muted={isMuted}
+              playsInline
+              onTimeUpdate={handleTimeUpdate}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block'
+              }}
+            />
 
-      <CinematicStrip />
-      <CinematicReveal />
+            {/* Gradient Scrim */}
+            <div 
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.6) 100%)',
+                pointerEvents: 'none'
+              }}
+            />
 
-      {/* 2. INTRODUCTION */}
-      <motion.section className="intro-section" id="story" style={{ padding: '120px 10%' }} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer}>
-        <motion.p className="eyebrow" variants={fadeUp}>MORE THAN JUST PHOTOGRAPHY</motion.p>
-        <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0, whiteSpace: 'pre-line' }}>
-          <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}>{content.storyTitle}</motion.div></div>
-        </h2>
-        <motion.p variants={fadeUp} style={{ maxWidth: '800px', margin: '40px auto 0', fontSize: '15px', lineHeight: '2', color: 'var(--muted)' }}>
-          {content.storyText}
-        </motion.p>
-      </motion.section>
+            {/* Top Bar: Clean Tag & Cinema Button */}
+            <div 
+              style={{
+                position: 'absolute',
+                top: '12px',
+                left: '12px',
+                right: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+                zIndex: 10
+              }}
+            >
+              <div 
+                style={{
+                  background: 'rgba(0,0,0,0.7)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  padding: '5px 10px',
+                  borderRadius: '20px',
+                  color: 'var(--gold)',
+                  fontSize: '10px',
+                  letterSpacing: '0.8px',
+                  textTransform: 'uppercase',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  maxWidth: '70%',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ff3b30', flexShrink: 0 }} />
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {activeReel.category} · {activeReel.location}
+                </span>
+              </div>
 
-      {/* 3. FEATURED WORKS */}
-      <section className="portfolio-section" style={{ padding: '100px 10%', background: 'var(--bg-light)' }}>
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer} style={{ textAlign: 'center' }}>
-          <motion.p className="eyebrow" variants={fadeUp}>A COLLECTION OF MEMORIES</motion.p>
-          <h2>
-            <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}>Selected</motion.div></div>
-            <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}><span>Stories</span></motion.div></div>
-          </h2>
-        </motion.div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsModalOpen(true);
+                }}
+                style={{
+                  background: 'rgba(0,0,0,0.7)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--white)',
+                  padding: '5px 10px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: '11px',
+                  cursor: 'pointer',
+                  flexShrink: 0
+                }}
+              >
+                <Maximize2 size={13} />
+                <span>Cinema</span>
+              </button>
+            </div>
 
-        <motion.div className="portfolio-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={staggerContainer}>
-          {featuredWorks.map((item) => (
-            <motion.article className="portfolio-card" key={item.number} style={{ backgroundImage: `url("${content[item.key]}")` }} variants={fadeUp} whileHover={{ y: -10, scale: 1.02, boxShadow: "0px 20px 40px rgba(0,0,0,0.4)" }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
-              <span>{item.number} / {item.category}</span>
-              <h3>{item.title}</h3>
-              <Link to="/portfolio" className="portfolio-link">Explore Story <ArrowUpRight size={17} /></Link>
-            </motion.article>
-          ))}
-        </motion.div>
-        
-        <div style={{ textAlign: 'center', marginTop: '60px' }}>
-          <Link to="/portfolio" className="secondary-btn" style={{ borderBottom: '1px solid var(--gold)' }}>
-            View All Stories
-          </Link>
-        </div>
-      </section>
+            {/* Perfect Center Play/Pause Button */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 15,
+                pointerEvents: 'auto'
+              }}
+            >
+              <motion.button
+                type="button"
+                onClick={togglePlay}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.92 }}
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  background: 'var(--gold)',
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#111',
+                  boxShadow: '0 0 30px rgba(198, 164, 107, 0.55)',
+                  cursor: 'pointer'
+                }}
+                aria-label={isPlaying ? "Pause video" : "Play video"}
+              >
+                {isPlaying ? (
+                  <Pause size={24} fill="#111" />
+                ) : (
+                  <Play size={24} fill="#111" style={{ marginLeft: '3px' }} />
+                )}
+              </motion.button>
+            </div>
 
-      {/* 4. SHOWREEL */}
-      <section className="showreel-section" style={{ padding: '120px 10%', background: 'var(--bg)', textAlign: 'center' }}>
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
-          <motion.p className="eyebrow" variants={fadeUp}>THE CINEMATIC EXPERIENCE</motion.p>
-          <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: '0 0 50px 0' }}>
-            <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}>Watch Our</motion.div></div>
-            <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}><span>Showreel</span></motion.div></div>
-          </h2>
-          <motion.div variants={fadeUp} style={{ position: 'relative', width: '100%', maxWidth: '1000px', margin: '0 auto', aspectRatio: '16/9', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)', cursor: 'pointer' }} whileHover={{ scale: 1.01 }}>
-            <img src={content.showreelImg} alt="Showreel" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <motion.div whileHover={{ scale: 1.1 }} style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111', boxShadow: '0 0 30px rgba(198, 164, 107, 0.4)' }}>
-                <Play size={32} fill="#111" style={{ marginLeft: '5px' }} />
-              </motion.div>
+            {/* Bottom Controls Bar */}
+            <div 
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                padding: '12px 14px',
+                zIndex: 10
+              }}
+            >
+              {/* Scrub Progress Line */}
+              <div 
+                style={{
+                  width: '100%',
+                  height: '3px',
+                  background: 'rgba(255,255,255,0.25)',
+                  borderRadius: '2px',
+                  marginBottom: '10px',
+                  overflow: 'hidden'
+                }}
+              >
+                <div 
+                  style={{
+                    width: `${progress}%`,
+                    height: '100%',
+                    background: 'var(--gold)',
+                    transition: 'width 0.15s linear'
+                  }}
+                />
+              </div>
+
+              {/* Responsive Bottom Details */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                <div style={{ textAlign: 'left', minWidth: 0, flex: 1 }}>
+                  <h3 
+                    style={{ 
+                      margin: 0, 
+                      color: 'var(--white)', 
+                      fontSize: 'clamp(14px, 3.5vw, 20px)', 
+                      fontFamily: 'var(--heading-font)', 
+                      fontWeight: 400,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {activeReel.title}
+                  </h3>
+                  <p 
+                    style={{ 
+                      margin: '2px 0 0 0', 
+                      color: 'var(--muted)', 
+                      fontSize: '11px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {activeReel.synopsis}
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    onClick={toggleMute}
+                    style={{
+                      background: 'rgba(0,0,0,0.7)',
+                      backdropFilter: 'blur(8px)',
+                      border: '1px solid var(--border)',
+                      color: isMuted ? 'var(--muted)' : 'var(--gold)',
+                      padding: '5px 10px',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '11px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                    <span>{isMuted ? 'MUTE' : 'UNMUTE'}</span>
+                  </button>
+
+                  <span style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'monospace' }}>
+                    {currentTime}
+                  </span>
+                </div>
+              </div>
             </div>
           </motion.div>
-        </motion.div>
-      </section>
+        </AnimatePresence>
+      </div>
 
-      <EventPlanner />
+      {/* ========================================================
+          2. HORIZONTAL REEL PICKER SCROLLBAR (MOBILE & DESKTOP)
+      ======================================================== */}
+      <div style={{ marginTop: '20px', textAlign: 'left' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--gold)', fontSize: '11px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+            <Layers size={13} />
+            <span>Select Reel ({showreels.length})</span>
+          </div>
 
-      {/* 5. TESTIMONIALS */}
-      <section className="testimonials-section" style={{ padding: '100px 10%', background: 'var(--bg-light)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
-          <motion.p className="eyebrow" variants={fadeUp}>CLIENT LOVE</motion.p>
-          <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(40px, 5vw, 60px)', fontWeight: 400, margin: '0 0 50px 0' }}>
-            <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}>Words From</motion.div></div>
-            <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}><span>Our Clients</span></motion.div></div>
-          </h2>
-        </motion.div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', maxWidth: '1200px', margin: '0 auto' }}>
-          {testimonials.map((test, index) => (
-            <motion.div key={test.name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.2 }} style={{ background: 'rgba(255,255,255,0.02)', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)', textAlign: 'left' }}>
-              <div style={{ display: 'flex', gap: '5px', color: 'var(--gold)', marginBottom: '20px' }}>
-                {[...Array(test.rating)].map((_, i) => <Star key={i} size={16} fill="var(--gold)" />)}
-              </div>
-              <p style={{ color: 'var(--text)', fontSize: '14px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '20px' }}>
-                "{content[`testimonial${index + 1}`]}"
-              </p>
-              <h4 style={{ fontFamily: 'var(--heading-font)', fontSize: '20px', color: 'var(--white)', margin: 0 }}>{test.name}</h4>
-            </motion.div>
-          ))}
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button
+              type="button"
+              onClick={() => scrollThumbnails('left')}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid var(--border)',
+                color: 'var(--white)',
+                width: '30px',
+                height: '30px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer'
+              }}
+              aria-label="Scroll left"
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollThumbnails('right')}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid var(--border)',
+                color: 'var(--white)',
+                width: '30px',
+                height: '30px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer'
+              }}
+              aria-label="Scroll right"
+            >
+              <ChevronRight size={15} />
+            </button>
+          </div>
         </div>
-      </section>
 
-      {/* 6. FINAL CTA */}
-      <motion.section className="contact-section" style={{ padding: '120px 10%', background: 'var(--bg)', textAlign: 'center' }} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
-        <motion.p className="eyebrow" variants={fadeUp}>LET'S CREATE SOMETHING TIMELESS</motion.p>
-        <h2>
-          <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}>Your story deserves</motion.div></div>
-          <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}>to be <span>remembered.</span></motion.div></div>
-        </h2>
-        <motion.p className="contact-description" variants={fadeUp}>
-          Have a celebration coming up? Let's talk about how we can turn your moments into lasting memories.
-        </motion.p>
-        <motion.div variants={fadeUp}>
-          <Link to="/contact" className="primary-btn" style={{ marginTop: '38px', display: 'inline-flex' }}>
-            Start A Conversation <ArrowUpRight size={18} />
-          </Link>
-        </motion.div>
-      </motion.section>
+        {/* Swipeable Thumbnails Ribbon */}
+        <div
+          ref={scrollContainerRef}
+          style={{
+            display: 'flex',
+            gap: '12px',
+            overflowX: 'auto',
+            paddingBottom: '8px',
+            scrollSnapType: 'x mandatory',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none'
+          }}
+        >
+          {showreels.map((reel, idx) => {
+            const isSelected = idx === activeReelIndex;
+            return (
+              <motion.div
+                key={reel.id}
+                whileHover={{ y: -3 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setActiveReelIndex(idx)}
+                style={{
+                  flex: '0 0 clamp(200px, 60vw, 250px)',
+                  scrollSnapAlign: 'start',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  background: isSelected ? 'rgba(198, 164, 107, 0.1)' : 'rgba(255,255,255,0.02)',
+                  border: isSelected ? '1px solid var(--gold)' : '1px solid var(--border)',
+                  boxShadow: isSelected ? '0 6px 20px rgba(198, 164, 107, 0.25)' : 'none',
+                  transition: 'all 0.3s'
+                }}
+              >
+                <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', overflow: 'hidden' }}>
+                  <img 
+                    src={reel.poster} 
+                    alt={reel.title} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' }} />
+                  
+                  {isSelected && (
+                    <span 
+                      style={{
+                        position: 'absolute',
+                        top: '6px',
+                        left: '6px',
+                        background: 'var(--gold)',
+                        color: '#111',
+                        fontSize: '8px',
+                        fontWeight: 700,
+                        padding: '2px 6px',
+                        borderRadius: '8px',
+                        letterSpacing: '0.8px',
+                        textTransform: 'uppercase'
+                      }}
+                    >
+                      Now Playing
+                    </span>
+                  )}
 
-    </motion.div>
-  )
+                  <span 
+                    style={{
+                      position: 'absolute',
+                      bottom: '6px',
+                      right: '6px',
+                      background: 'rgba(0,0,0,0.7)',
+                      color: 'var(--white)',
+                      fontSize: '9px',
+                      padding: '2px 5px',
+                      borderRadius: '4px',
+                      fontFamily: 'monospace',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '3px'
+                    }}
+                  >
+                    <Clock size={10} /> {reel.duration}
+                  </span>
+                </div>
+
+                <div style={{ padding: '10px' }}>
+                  <span style={{ fontSize: '9px', color: 'var(--gold)', letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
+                    {reel.number} · {reel.category}
+                  </span>
+                  <h4 style={{ margin: 0, color: 'var(--white)', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {reel.title}
+                  </h4>
+                  <p style={{ margin: '3px 0 0 0', color: 'var(--muted)', fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {reel.location}
+                  </p>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ========================================================
+          3. FULLSCREEN POP-UP MODAL (THEATER VIEW)
+      ======================================================== */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              background: 'rgba(0, 0, 0, 0.96)',
+              backdropFilter: 'blur(20px)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '16px'
+            }}
+          >
+            <div 
+              style={{
+                width: '100%',
+                maxWidth: '1100px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingBottom: '12px',
+                borderBottom: '1px solid var(--border)'
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0, color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '18px' }}>
+                  {activeReel.title}
+                </h3>
+                <p style={{ margin: '2px 0 0 0', color: 'var(--gold)', fontSize: '11px' }}>
+                  {activeReel.category} · {activeReel.location}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: 'none',
+                  color: 'var(--white)',
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div 
+              style={{
+                width: '100%',
+                maxWidth: '1100px',
+                aspectRatio: '16/9',
+                maxHeight: '75vh',
+                marginTop: '12px',
+                borderRadius: '14px',
+                overflow: 'hidden',
+                background: '#000',
+                border: '1px solid var(--border)',
+                boxShadow: '0 30px 80px rgba(0,0,0,0.9)'
+              }}
+            >
+              <video
+                ref={modalVideoRef}
+                src={activeReel.videoUrl}
+                poster={activeReel.poster}
+                autoPlay
+                controls
+                playsInline
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
