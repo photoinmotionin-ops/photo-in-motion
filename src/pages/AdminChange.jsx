@@ -80,17 +80,30 @@ export default function AdminChange() {
   };
 
   // --- EVENT TYPE MANAGEMENT ---
-  const handleAddEventType = () => {
+   const handleAddEventType = () => {
     const newType = prompt("Enter new Event Type (e.g., Anniversary):");
     if (newType && !content.eventTypes.includes(newType)) {
-      setContent(prev => ({
-        ...prev,
-        eventTypes: [...prev.eventTypes, newType]
-      }));
+      setContent(prev => {
+        // 1. Remove 'Others' from the list temporarily
+        const typesWithoutOthers = prev.eventTypes.filter(t => t !== 'Others');
+        // 2. Add the new type
+        const updatedTypes = [...typesWithoutOthers, newType];
+        // 3. Add 'Others' back at the very end
+        return {
+          ...prev,
+          eventTypes: [...updatedTypes, 'Others']
+        };
+      });
     }
   };
 
   const handleDeleteEventType = (typeToRemove) => {
+    // Prevent deleting 'Others' entirely
+    if (typeToRemove === 'Others') {
+      alert("The 'Others' option cannot be deleted. It is a mandatory fallback.");
+      return;
+    }
+    
     setContent(prev => ({
       ...prev,
       eventTypes: prev.eventTypes.filter(t => t !== typeToRemove)

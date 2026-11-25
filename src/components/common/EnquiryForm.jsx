@@ -22,7 +22,13 @@ export default function EnquiryForm({ isOpen, onClose }) {
         .then(res => res.json())
         .then(data => {
           if (data.eventTypes && data.eventTypes.length > 0) {
-            setEventTypes(data.eventTypes);
+            // SORTING LOGIC: Ensure "Others" is always the last item
+            const sortedTypes = [...data.eventTypes].sort((a, b) => {
+              if (a === 'Others') return 1;  // 'Others' goes down
+              if (b === 'Others') return -1; // 'Others' goes down
+              return 0; // Keep original order for the rest
+            });
+            setEventTypes(sortedTypes);
           }
         })
         .catch(() => {});
