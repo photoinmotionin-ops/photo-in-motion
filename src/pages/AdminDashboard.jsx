@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Mail, Phone, Calendar, MapPin, DollarSign, Clock, Edit } from 'lucide-react';
+import { LogOut, Mail, Phone, Calendar, MapPin, DollarSign, Clock, Edit, Trash2, CheckCircle2, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function AdminDashboard() {
@@ -9,7 +9,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const adminName = localStorage.getItem('adminName');
 
-    useEffect(() => {
+  useEffect(() => {
     if (localStorage.getItem('isAdmin') !== 'true') {
       navigate('/admin/login');
       return;
@@ -40,11 +40,26 @@ export default function AdminDashboard() {
     navigate('/admin/login');
   };
 
+  // Placeholder for Delete Functionality
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete this enquiry?")) {
+      // Here you would call your API to delete from MongoDB
+      // fetch(`/api/enquiry?action=delete&id=${id}`)...
+      alert("Delete functionality to be connected to API.");
+    }
+  };
+
+  // Placeholder for WhatsApp / Reply
+  const handleReply = (phone) => {
+    window.open(`https://wa.me/${phone}`, '_blank');
+  };
+
   if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading Enquiries...</div>;
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', padding: '40px 5%', paddingTop: '120px' }}>
 
+      {/* HEADER */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '20px' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--heading-font)', fontSize: '36px', color: 'var(--white)', margin: 0 }}>Admin Dashboard</h1>
@@ -62,29 +77,56 @@ export default function AdminDashboard() {
 
       <h2 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '24px', marginBottom: '20px' }}>Total Enquiries: {enquiries.length}</h2>
 
+      {/* ENQUIRIES GRID */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
         {enquiries.map((enq) => (
           <motion.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             key={enq._id}
-            style={{ background: '#171717', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}
+            style={{ background: '#171717', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', position: 'relative', display: 'flex', flexDirection: 'column' }}
           >
+            
+            {/* Top Right Icon */}
             <div style={{ position: 'absolute', top: '20px', right: '20px', color: 'var(--gold)' }}>
               <Clock size={20} />
             </div>
+
             <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '26px', color: 'var(--gold)', margin: '0 0 20px' }}>{enq.name}</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text)', fontSize: '14px' }}>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'var(--text)', fontSize: '14px', flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Mail size={16} color="var(--muted)" /> {enq.email}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Phone size={16} color="var(--muted)" /> {enq.phone}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Calendar size={16} color="var(--muted)" /> {enq.eventDate} ({enq.eventType})</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><MapPin size={16} color="var(--muted)" /> {enq.location || 'N/A'}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><DollarSign size={16} color="var(--muted)" /> Budget: {enq.budget}</div>
             </div>
+
+            {/* Requirements / Other Description */}
             {enq.requirements && (
               <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '13px', color: 'var(--muted)', fontStyle: 'italic', borderLeft: '2px solid var(--gold)' }}>
                 "{enq.requirements}"
               </div>
             )}
+
+            {/* NEW: ACTION BUTTONS */}
+            <div style={{ display: 'flex', gap: '10px', marginTop: '25px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
+              
+              <button 
+                onClick={() => handleReply(enq.phone)}
+                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'rgba(37, 211, 102, 0.1)', color: '#25D366', border: '1px solid rgba(37, 211, 102, 0.3)', padding: '10px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
+              >
+                <MessageCircle size={16} /> Reply
+              </button>
+
+              <button 
+                onClick={() => handleDelete(enq._id)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 0, 0, 0.1)', color: '#ff4d4d', border: '1px solid rgba(255, 0, 0, 0.3)', padding: '10px 15px', borderRadius: '8px', cursor: 'pointer' }}
+                title="Delete Enquiry"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+
           </motion.div>
         ))}
       </div>
