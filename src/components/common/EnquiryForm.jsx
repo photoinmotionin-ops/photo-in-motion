@@ -121,16 +121,43 @@ export default function EnquiryForm({ isOpen, onClose }) {
                     {step === 2 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>2. EVENT DETAILS</h4>
-                        <select name="eventType" value={formData.eventType} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting}>
-                          <option value="">Select Event Type *</option>
-                          {eventTypes.map(type => <option key={type} value={type}>{type}</option>)}
-                        </select>
+                        
+                        {/* CUSTOM DROPDOWN */}
+                        <div className="custom-select-wrapper" style={{ marginBottom: '15px' }}>
+                          <select 
+                            name="eventType" 
+                            value={formData.eventType} 
+                            onChange={handleChange} 
+                            required 
+                            style={getInputStyle(isSubmitting)} 
+                            disabled={isSubmitting}
+                            className="custom-select"
+                          >
+                            <option value="" disabled>Select Event Type *</option>
+                            {eventTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                          </select>
+                        </div>
+
                         {formData.eventType === 'Others' && (
                           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
                             <textarea name="otherDescription" placeholder="Please describe your event type *" value={formData.otherDescription} onChange={handleChange} required style={{ ...getInputStyle(isSubmitting), height: '80px' }} disabled={isSubmitting} />
                           </motion.div>
                         )}
-                        <input type="date" name="eventDate" value={formData.eventDate} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
+
+                        {/* CUSTOM DATE PICKER */}
+                        <div style={{ marginBottom: '15px' }}>
+                          <input 
+                            type="date" 
+                            name="eventDate" 
+                            value={formData.eventDate} 
+                            onChange={handleChange} 
+                            required 
+                            style={{ ...getInputStyle(isSubmitting), colorScheme: 'dark' }} 
+                            disabled={isSubmitting} 
+                            className="custom-date-picker"
+                          />
+                        </div>
+
                         <input type="text" name="location" placeholder="Event Location / City *" value={formData.location} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
                       </motion.div>
                     )}
@@ -142,13 +169,25 @@ export default function EnquiryForm({ isOpen, onClose }) {
                           <label style={checkboxStyle}><input type="checkbox" name="services" value="photography" onChange={handleChange} disabled={isSubmitting} /> Photography</label>
                           <label style={checkboxStyle}><input type="checkbox" name="services" value="cinematography" onChange={handleChange} disabled={isSubmitting} /> Cinematography</label>
                         </div>
-                        <select name="budget" value={formData.budget} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting}>
-                          <option value="">Select Budget Range *</option>
-                          <option value="under-50k">Under ₹50,000</option>
-                          <option value="50k-1l">₹50,000 - ₹1,00,000</option>
-                          <option value="1l-3l">₹1,00,000 - ₹3,00,000</option>
-                          <option value="above-3l">Above ₹3,00,000</option>
-                        </select>
+                        
+                        {/* CUSTOM BUDGET DROPDOWN */}
+                        <div className="custom-select-wrapper">
+                          <select 
+                            name="budget" 
+                            value={formData.budget} 
+                            onChange={handleChange} 
+                            required 
+                            style={getInputStyle(isSubmitting)} 
+                            disabled={isSubmitting}
+                            className="custom-select"
+                          >
+                            <option value="" disabled>Select Budget Range *</option>
+                            <option value="under-50k">Under ₹50,000</option>
+                            <option value="50k-1l">₹50,000 - ₹1,00,000</option>
+                            <option value="1l-3l">₹1,00,000 - ₹3,00,000</option>
+                            <option value="above-3l">Above ₹3,00,000</option>
+                          </select>
+                        </div>
                       </motion.div>
                     )}
 
@@ -181,7 +220,45 @@ export default function EnquiryForm({ isOpen, onClose }) {
 }
 
 const styleSheet = document.createElement("style");
-styleSheet.textContent = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+styleSheet.textContent = `
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+  /* CUSTOM DROPDOWN THEME */
+  .custom-select-wrapper {
+    position: relative;
+  }
+  
+  .custom-select {
+    appearance: none; /* Remove default arrow */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c6a46b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 15px;
+    padding-right: 40px !important;
+    cursor: pointer;
+  }
+
+  /* Style the options inside the dropdown */
+  .custom-select option {
+    background-color: #171717;
+    color: #fff;
+    padding: 15px;
+  }
+
+  /* CUSTOM DATE PICKER THEME */
+  .custom-date-picker::-webkit-calendar-picker-indicator {
+    filter: invert(0.8) sepia(1) saturate(5) hue-rotate(10deg);
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+  }
+  
+  .custom-date-picker::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
+`;
 document.head.appendChild(styleSheet);
 
 const getInputStyle = (isSubmitting) => ({
