@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Camera, 
-  Aperture, 
   Sliders, 
   Play, 
   Pause, 
   Mic 
 } from 'lucide-react';
 
-const masterShotGallery = [
+const defaultMasterShotGallery = [
   {
     id: 'shot-01',
     lens: '85mm f/1.4',
@@ -21,7 +20,6 @@ const masterShotGallery = [
     apertureRatio: 0.95,
     iso: 'ISO 100',
     kelvin: '5600K Daylight',
-    afCoords: { x: '52%', y: '36%' },
     imgGraded: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85',
     imgRaw: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=25'
   },
@@ -36,7 +34,6 @@ const masterShotGallery = [
     apertureRatio: 0.55,
     iso: 'ISO 400',
     kelvin: '3200K Tungsten',
-    afCoords: { x: '50%', y: '58%' },
     imgGraded: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
     imgRaw: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=25'
   },
@@ -51,7 +48,6 @@ const masterShotGallery = [
     apertureRatio: 0.88,
     iso: 'ISO 200',
     kelvin: '5200K Warm Sunlight',
-    afCoords: { x: '48%', y: '42%' },
     imgGraded: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85',
     imgRaw: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=25'
   },
@@ -66,7 +62,6 @@ const masterShotGallery = [
     apertureRatio: 0.78,
     iso: 'ISO 640',
     kelvin: '4800K Golden Dawn',
-    afCoords: { x: '58%', y: '35%' },
     imgGraded: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
     imgRaw: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=25'
   },
@@ -81,7 +76,6 @@ const masterShotGallery = [
     apertureRatio: 0.95,
     iso: 'ISO 800',
     kelvin: '3800K Ambiance',
-    afCoords: { x: '51%', y: '45%' },
     imgGraded: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=85',
     imgRaw: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=25'
   },
@@ -96,22 +90,23 @@ const masterShotGallery = [
     apertureRatio: 0.9,
     iso: 'ISO 160',
     kelvin: '5500K Studio',
-    afCoords: { x: '45%', y: '32%' },
     imgGraded: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=85',
     imgRaw: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=25'
   }
 ];
 
-export default function EventPlanner() {
+export default function EventPlanner({ shots = null }) {
+  const gallery = (shots && shots.length > 0) ? shots : defaultMasterShotGallery;
+
   const [currentShotIndex, setCurrentShotIndex] = useState(0);
   const [isGraded, setIsGraded] = useState(true);
-  const [isShutterFlashing, setIsShutterFlashing] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [cycleProgress, setCycleProgress] = useState(0);
-  const [customAfPoint, setCustomAfPoint] = useState(null);
 
-  const CYCLE_DURATION = 3800; // 3.8 seconds per photo
-  const currentShot = masterShotGallery[currentShotIndex];
+  // 5.2 seconds per photo for a relaxed cinematic showcase
+  const CYCLE_DURATION = 5200; 
+
+  const currentShot = gallery[currentShotIndex] || gallery[0];
 
   // Automated Smooth Progress Timer & Image Cycling
   useEffect(() => {
@@ -131,26 +126,14 @@ export default function EventPlanner() {
     }, intervalStep);
 
     return () => clearInterval(progressTimer);
-  }, [currentShotIndex, isPlaying]);
+  }, [currentShotIndex, isPlaying, gallery.length]);
 
   const triggerNextShot = (explicitIndex = null) => {
-    setIsShutterFlashing(true);
-    setCustomAfPoint(null);
-    setTimeout(() => {
-      setCurrentShotIndex((prev) => (explicitIndex !== null ? explicitIndex : (prev + 1) % masterShotGallery.length));
-      setIsShutterFlashing(false);
-      setCycleProgress(0);
-    }, 240);
+    setCycleProgress(0);
+    setCurrentShotIndex((prev) => 
+      explicitIndex !== null ? explicitIndex : (prev + 1) % gallery.length
+    );
   };
-
-  const handleViewfinderClick = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
-    const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
-    setCustomAfPoint({ x: `${xPercent.toFixed(1)}%`, y: `${yPercent.toFixed(1)}%` });
-  };
-
-  const activeFocus = customAfPoint || currentShot.afCoords;
 
   return (
     <section 
@@ -169,6 +152,7 @@ export default function EventPlanner() {
         alignItems: 'center'
       }}
     >
+      {/* Background Ambient Glow */}
       <div 
         style={{
           position: 'absolute',
@@ -183,6 +167,7 @@ export default function EventPlanner() {
         }}
       />
 
+      {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '40px', position: 'relative', zIndex: 10 }}>
         <div 
           style={{
@@ -224,6 +209,7 @@ export default function EventPlanner() {
         </p>
       </div>
 
+      {/* Main Viewfinder Frame */}
       <div 
         style={{
           position: 'relative',
@@ -257,8 +243,6 @@ export default function EventPlanner() {
               LIVE SHOT SEQUENCE
             </span>
             <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-            <span style={{ color: '#22c55e', fontWeight: 600 }}>AI EYE-AF LOCKED</span>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }} className="hidden sm:inline">|</span>
             <span style={{ color: 'var(--gold, #c6a46b)' }} className="hidden sm:inline">
               4K CINEMA DCI · 24.00 FPS
             </span>
@@ -325,27 +309,33 @@ export default function EventPlanner() {
 
         {/* Viewfinder Main Viewport */}
         <div 
-          onClick={handleViewfinderClick}
+          onClick={() => triggerNextShot()}
           style={{ 
             position: 'relative', 
             width: '100%', 
             aspectRatio: '16/9', 
             overflow: 'hidden', 
-            background: '#000',
-            cursor: 'crosshair'
+            background: '#050505',
+            cursor: 'pointer'
           }}
-          title="Click anywhere to manual focus"
+          title="Click to advance frame"
         >
-          <AnimatePresence mode="wait">
+          {/* SMOOTH CROSS-FADE / POP TRANSITION */}
+          <AnimatePresence mode="popLayout">
             <motion.img
-              key={`${currentShot.id}-${isGraded}`}
-              src={isGraded ? currentShot.imgGraded : currentShot.imgRaw}
+              key={`${currentShot.id || currentShotIndex}-${isGraded}`}
+              src={isGraded ? currentShot.imgGraded : (currentShot.imgRaw || currentShot.imgGraded)}
               alt={currentShot.focalName}
-              initial={{ opacity: 0, scale: 1.12 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.75, ease: "easeOut" }}
+              initial={{ opacity: 0, scale: 1.06, filter: 'blur(8px)' }}
+              animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, scale: 0.98, filter: 'blur(4px)' }}
+              transition={{ 
+                duration: 0.9, 
+                ease: [0.25, 1, 0.5, 1] 
+              }}
               style={{
+                position: 'absolute',
+                inset: 0,
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
@@ -353,19 +343,6 @@ export default function EventPlanner() {
               }}
             />
           </AnimatePresence>
-
-          {/* Shutter Blade Flash */}
-          <div 
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: '#000',
-              opacity: isShutterFlashing ? 1 : 0,
-              pointerEvents: 'none',
-              transition: 'opacity 0.12s ease-out',
-              zIndex: 35
-            }}
-          />
 
           <div className="viewfinder-light-leak" />
 
@@ -379,7 +356,7 @@ export default function EventPlanner() {
               gridTemplateRows: '1fr 1fr 1fr',
               pointerEvents: 'none',
               zIndex: 10,
-              opacity: 0.22
+              opacity: 0.16
             }}
           >
             <div style={{ borderRight: '1px solid rgba(255,255,255,0.4)', borderBottom: '1px solid rgba(255,255,255,0.4)' }} />
@@ -389,52 +366,6 @@ export default function EventPlanner() {
             <div style={{ borderRight: '1px solid rgba(255,255,255,0.4)', borderBottom: '1px solid rgba(255,255,255,0.4)' }} />
             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.4)' }} />
           </div>
-
-          {/* AI Eye-AF Target */}
-          <motion.div 
-            animate={{
-              left: activeFocus.x,
-              top: activeFocus.y,
-              scale: [1, 0.94, 1]
-            }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-            style={{
-              position: 'absolute',
-              width: '68px',
-              height: '68px',
-              transform: 'translate(-50%, -50%)',
-              border: '1.5px solid #22c55e',
-              borderRadius: '6px',
-              pointerEvents: 'none',
-              zIndex: 20,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 0 18px rgba(34, 197, 94, 0.45)'
-            }}
-          >
-            <div style={{ width: '4px', height: '4px', background: '#22c55e', borderRadius: '50%' }} />
-            <span style={{ position: 'absolute', top: '-2px', left: '-2px', width: '8px', height: '8px', borderTop: '2px solid #fff', borderLeft: '2px solid #fff' }} />
-            <span style={{ position: 'absolute', bottom: '-2px', right: '-2px', width: '8px', height: '8px', borderBottom: '2px solid #fff', borderRight: '2px solid #fff' }} />
-            <span 
-              style={{
-                position: 'absolute',
-                top: '-20px',
-                left: 0,
-                fontSize: '9px',
-                fontFamily: 'monospace',
-                fontWeight: 700,
-                background: 'rgba(0,0,0,0.85)',
-                color: '#22c55e',
-                padding: '1px 6px',
-                borderRadius: '3px',
-                border: '1px solid rgba(34, 197, 94, 0.6)',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              [AF-C LOCK 99%]
-            </span>
-          </motion.div>
 
           {/* Optical Iris Gauge & Audio Meter */}
           <div 
@@ -477,8 +408,8 @@ export default function EventPlanner() {
               >
                 <div 
                   style={{
-                    width: `${Math.round(currentShot.apertureRatio * 14)}px`,
-                    height: `${Math.round(currentShot.apertureRatio * 14)}px`,
+                    width: `${Math.round((currentShot.apertureRatio || 0.8) * 14)}px`,
+                    height: `${Math.round((currentShot.apertureRatio || 0.8) * 14)}px`,
                     borderRadius: '50%',
                     background: 'var(--gold, #c6a46b)',
                     transition: 'all 0.4s ease'
@@ -570,7 +501,7 @@ export default function EventPlanner() {
               </span>
               <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
               <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>
-                SHOT 0{currentShotIndex + 1} OF 0{masterShotGallery.length}
+                SHOT 0{currentShotIndex + 1} OF 0{gallery.length}
               </span>
             </div>
             <h4 style={{ fontFamily: 'var(--heading-font, "Cinzel", serif)', fontSize: '16px', color: '#fff', margin: '0 0 3px 0' }}>
@@ -582,12 +513,12 @@ export default function EventPlanner() {
           </div>
 
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {masterShotGallery.map((shot, idx) => {
+            {gallery.map((shot, idx) => {
               const isSelected = idx === currentShotIndex;
 
               return (
                 <button
-                  key={shot.id}
+                  key={shot.id || idx}
                   type="button"
                   onClick={() => triggerNextShot(idx)}
                   style={{
