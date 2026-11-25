@@ -86,13 +86,14 @@ export default function AdminChange() {
       description: 'Description...',
       mainImage: '',
       link: '/contact',
-      subCategories: {
+      // If it's a Wedding, initialize with sub-categories. Otherwise, leave empty.
+      subCategories: selectedCategory === 'Wedding' ? {
         'Engagement': [],
         'Pre-Wedding': [],
         'Mehendi & Haldi': [],
         'Marriage': [],
         'Reception': []
-      }
+      } : {}
     };
     setContent(prev => ({
       ...prev,
@@ -166,13 +167,25 @@ export default function AdminChange() {
     if (!file) return;
     const url = await uploadToCloudinary(file);
     if (url) {
-      setEditingClient(prev => ({
-        ...prev,
-        subCategories: {
-          ...prev.subCategories,
-          [subCategory]: [...prev.subCategories[subCategory], url]
-        }
-      }));
+      if (selectedCategory === 'Wedding') {
+        setEditingClient(prev => ({
+          ...prev,
+          subCategories: {
+            ...prev.subCategories,
+            [subCategory]: [...(prev.subCategories?.[subCategory] || []), url]
+          }
+        }));
+      } else {
+        // For non-wedding, we can treat the entire gallery as one flat list
+        // We'll store it inside a generic 'General' key to maintain the same structure
+        setEditingClient(prev => ({
+          ...prev,
+          subCategories: {
+            ...prev.subCategories,
+            'General': [...(prev.subCategories?.General || []), url]
+          }
+        }));
+      }
     }
   };
 
@@ -298,25 +311,51 @@ export default function AdminChange() {
                 </label>
               </div>
 
-              <label style={labelStyle}>Gallery Images by Sub-Category</label>
-              {WEDDING_SUB_CATEGORIES.map(subCat => (
-                <div key={subCat} style={{ marginBottom: '20px', background: '#1a1a1a', padding: '20px', borderRadius: '8px' }}>
-                  <h4 style={{ color: 'var(--gold)', marginBottom: '15px' }}>{subCat}</h4>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                    {(editingClient.subCategories?.[subCat] || []).map((img, idx) => (
-                      <div key={idx} style={{ position: 'relative', width: '100px', height: '100px' }}>
-                        <img src={img} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
-                        <button onClick={() => removeGalleryImage(subCat, idx)} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: '#fff', border: 'none', borderRadius: '50%', padding: '4px 8px', cursor: 'pointer', fontSize: '10px' }}>X</button>
+              {/* CONDITIONAL RENDERING FOR GALLERY */}
+              {selectedCategory === 'Wedding' ? (
+                // WEDDING: Show specific sub-categories
+                <>
+                  <label style={labelStyle}>Gallery Images by Sub-Category</label>
+                  {WEDDING_SUB_CATEGORIES.map(subCat => (
+                    <div key={subCat} style={{ marginBottom: '20px', background: '#1a1a1a', padding: '20px', borderRadius: '8px' }}>
+                      <h4 style={{ color: 'var(--gold)', marginBottom: '15px' }}>{subCat}</h4>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                        {(editingClient.subCategories?.[subCat] || []).map((img, idx) => (
+                          <div key={idx} style={{ position: 'relative', width: '100px', height: '100px' }}>
+                            <img src={img} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                            <button onClick={() => removeGalleryImage(subCat, idx)} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: '#fff', border: 'none', borderRadius: '50%', padding: '4px 8px', cursor: 'pointer', fontSize: '10px' }}>X</button>
+                          </div>
+                        ))}
+                        <label style={{ width: '100px', height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '2px dashed var(--gold)', borderRadius: '8px', cursor: 'pointer', color: 'var(--gold)' }}>
+                          <Plus size={24} />
+                          <span style={{ fontSize: '10px', marginTop: '5px' }}>Add Photo</span>
+                          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleGalleryUpload(e, subCat)} />
+                        </label>
                       </div>
-                    ))}
-                    <label style={{ width: '100px', height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '2px dashed var(--gold)', borderRadius: '8px', cursor: 'pointer', color: 'var(--gold)' }}>
-                      <Plus size={24} />
-                      <span style={{ fontSize: '10px', marginTop: '5px' }}>Add Photo</span>
-                      <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleGalleryUpload(e, subCat)} />
-                    </label>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                // BIRTHDAY / CORPORATE: Show a single flat gallery
+                <>
+                  <label style={labelStyle}>Gallery Images</label>
+                  <div style={{ background: '#1a1a1a', padding: '20px', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                      {(editingClient.subCategories?.['General'] || []).map((img, idx) => (
+                        <div key={idx} style={{ position: 'relative', width: '100px', height: '100px' }}>
+                          <img src={img} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                          <button onClick={() => removeGalleryImage('General', idx)} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: '#fff', border: 'none', borderRadius: '50%', padding: '4px 8px', cursor: 'pointer', fontSize: '10px' }}>X</button>
+                        </div>
+                      ))}
+                      <label style={{ width: '100px', height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '2px dashed var(--gold)', borderRadius: '8px', cursor: 'pointer', color: 'var(--gold)' }}>
+                        <Plus size={24} />
+                        <span style={{ fontSize: '10px', marginTop: '5px' }}>Add Photo</span>
+                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleGalleryUpload(e, 'General')} />
+                      </label>
+                    </div>
                   </div>
-                </div>
-              ))}
+                </>
+              )}
 
               <button onClick={handleSaveClient} className="primary-btn" style={{ width: '100%', marginTop: '20px', padding: '15px' }}>Save This Client</button>
             </div>
