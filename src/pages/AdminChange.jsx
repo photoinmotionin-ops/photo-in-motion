@@ -5,7 +5,6 @@ import { Save, ArrowLeft, Upload, Loader2, Plus, Trash2, Edit2 } from 'lucide-re
 const CLOUDINARY_CLOUD_NAME = 'kwqsty9w';
 const CLOUDINARY_UPLOAD_PRESET = 'portfolio_upload';
 
-const MAIN_CATEGORIES = ['Wedding', 'Birthday', 'Corporate'];
 const WEDDING_SUB_CATEGORIES = ['Engagement', 'Pre-Wedding', 'Mehendi & Haldi', 'Marriage', 'Reception'];
 
 export default function AdminChange() {
@@ -21,15 +20,16 @@ export default function AdminChange() {
     img2: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
     img3: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
     showreelImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80',
-    portfolioItems: []
+    portfolioItems: [],
+    categories: ['Wedding', 'Birthday', 'Corporate'] // NEW: Dynamic categories array
   };
 
   const [content, setContent] = useState(defaultContent);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-
-  const [selectedCategory, setSelectedCategory] = useState(MAIN_CATEGORIES[0]);
+  
+  const [selectedCategory, setSelectedCategory] = useState('Wedding');
   const [editingClient, setEditingClient] = useState(null);
 
   const navigate = useNavigate();
@@ -39,12 +39,13 @@ export default function AdminChange() {
       navigate('/admin/login');
       return;
     }
-
+    
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(data => {
         if (Object.keys(data).length > 0) {
-          setContent({ ...defaultContent, ...data, portfolioItems: data.portfolioItems || [] });
+          const safeCategories = data.categories && data.categories.length > 0 ? data.categories : ['Wedding', 'Birthday', 'Corporate'];
+          setContent({ ...defaultContent, ...data, portfolioItems: data.portfolioItems || [], categories: safeCategories });
         }
         setLoading(false);
       })
@@ -59,7 +60,7 @@ export default function AdminChange() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'save_content', content })
       });
-
+      
       if (res.ok) {
         alert('Website content updated successfully!');
       } else {
@@ -67,13 +68,25 @@ export default function AdminChange() {
         alert(`Failed to save: ${errData.message || 'Unknown error'}`);
       }
     } catch (err) {
-      alert('Network error. The images might be too large to save. Try uploading smaller images.');
+      alert('Network error. The images might be too large to save.');
     }
     setSaving(false);
   };
 
   const handleChange = (key, value) => {
     setContent(prev => ({ ...prev, [key]: value }));
+  };
+
+  // --- CATEGORY MANAGEMENT ---
+  const handleAddCategory = () => {
+    const newCat = prompt("Enter new category name (e.g., Car Inauguration):");
+    if (newCat && !content.categories.includes(newCat)) {
+      setContent(prev => ({
+        ...prev,
+        categories: [...prev.categories, newCat]
+      }));
+      setSelectedCategory(newCat); // Instantly switch to the new category
+    }
   };
 
   // --- MULTI-CLIENT PORTFOLIO LOGIC ---
@@ -86,13 +99,8 @@ export default function AdminChange() {
       description: 'Description...',
       mainImage: '',
       link: '/contact',
-      // If it's a Wedding, initialize with sub-categories. Otherwise, leave empty.
       subCategories: selectedCategory === 'Wedding' ? {
-        'Engagement': [],
-        'Pre-Wedding': [],
-        'Mehendi & Haldi': [],
-        'Marriage': [],
-        'Reception': []
+        'Engagement': [], 'Pre-Wedding': [], 'Mehendi & Haldi': [], 'Marriage': [], 'Reception': []
       } : {}
     };
     setContent(prev => ({
@@ -109,7 +117,7 @@ export default function AdminChange() {
   const handleSaveClient = () => {
     setContent(prev => ({
       ...prev,
-      portfolioItems: prev.portfolioItems.map(item =>
+      portfolioItems: prev.portfolioItems.map(item => 
         item.id === editingClient.id ? editingClient : item
       )
     }));
@@ -125,27 +133,20 @@ export default function AdminChange() {
     }
   };
 
-  // UPDATED UPLOAD FUNCTION WITH SIZE LIMIT AND COMPRESSION
-  // UPDATED UPLOAD FUNCTION (Removed Transformation Parameter)
   const uploadToCloudinary = async (file) => {
     setUploading(true);
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    // REMOVED: formData.append('transformation', 'q_auto:good,f_auto,w_1200');
 
     try {
       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
         method: 'POST',
         body: formData
       });
-
+      
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error?.message || 'Failed to upload image');
-      }
-
+      if (!res.ok) throw new Error(data.error?.message || 'Failed to upload image');
       return data.secure_url;
     } catch (error) {
       alert(error.message);
@@ -176,8 +177,6 @@ export default function AdminChange() {
           }
         }));
       } else {
-        // For non-wedding, we can treat the entire gallery as one flat list
-        // We'll store it inside a generic 'General' key to maintain the same structure
         setEditingClient(prev => ({
           ...prev,
           subCategories: {
@@ -205,7 +204,7 @@ export default function AdminChange() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '100px' }}>
-
+      
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)', zIndex: 100, padding: '20px 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <button onClick={() => navigate('/admin/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>
           <ArrowLeft size={20} /> Back to Dashboard
@@ -216,12 +215,11 @@ export default function AdminChange() {
       </div>
 
       <div style={{ paddingTop: '120px' }}>
-
-        {/* HOME CONTENT EDITOR */}
+        
         <section style={{ padding: '50px 10%', background: 'var(--bg)' }}>
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
             <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', marginBottom: '30px' }}>Edit Homepage Content</h2>
-
+            
             <label style={labelStyle}>Hero Title</label>
             <textarea value={content.heroTitle} onChange={(e) => handleChange('heroTitle', e.target.value)} style={{ ...inputStyle, height: '80px' }} />
 
@@ -236,7 +234,7 @@ export default function AdminChange() {
 
             <label style={labelStyle}>Testimonial 1</label>
             <textarea value={content.testimonial1} onChange={(e) => handleChange('testimonial1', e.target.value)} style={{ ...inputStyle, height: '60px' }} />
-
+            
             <label style={labelStyle}>Testimonial 2</label>
             <textarea value={content.testimonial2} onChange={(e) => handleChange('testimonial2', e.target.value)} style={{ ...inputStyle, height: '60px' }} />
 
@@ -245,16 +243,16 @@ export default function AdminChange() {
           </div>
         </section>
 
-        {/* MULTI-CLIENT PORTFOLIO MANAGER */}
         <section style={{ padding: '100px 10%', background: 'var(--bg-light)' }}>
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <p className="eyebrow">MANAGE EVENTS</p>
             <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0 }}>Portfolio <span>Manager</span></h2>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '50px' }}>
-            {MAIN_CATEGORIES.map(cat => (
-              <button
+          {/* DYNAMIC CATEGORY TABS WITH + BUTTON */}
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '50px', flexWrap: 'wrap' }}>
+            {content.categories.map(cat => (
+              <button 
                 key={cat}
                 onClick={() => { setSelectedCategory(cat); setEditingClient(null); }}
                 style={{ padding: '15px 30px', borderRadius: '30px', border: 'none', background: selectedCategory === cat ? 'var(--gold)' : '#222', color: selectedCategory === cat ? '#000' : '#fff', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
@@ -262,9 +260,16 @@ export default function AdminChange() {
                 {cat}
               </button>
             ))}
+            
+            {/* The Add Category Button */}
+            <button 
+              onClick={handleAddCategory}
+              style={{ padding: '15px 25px', borderRadius: '30px', border: '2px dashed var(--gold)', background: 'transparent', color: 'var(--gold)', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '5px' }}
+            >
+              <Plus size={18} /> Add Category
+            </button>
           </div>
 
-          {/* LIST OF CLIENTS */}
           {!editingClient && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px', maxWidth: '1200px', margin: '0 auto' }}>
               {filteredClients.map(client => (
@@ -279,8 +284,8 @@ export default function AdminChange() {
                   </div>
                 </div>
               ))}
-
-              <button
+              
+              <button 
                 onClick={handleCreateClient}
                 style={{ background: 'rgba(255,255,255,0.05)', border: '2px dashed rgba(255,255,255,0.2)', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', cursor: 'pointer', color: 'var(--gold)' }}
               >
@@ -290,7 +295,6 @@ export default function AdminChange() {
             </div>
           )}
 
-          {/* EDIT CLIENT FORM */}
           {editingClient && (
             <div style={{ maxWidth: '800px', margin: '0 auto', background: '#111', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)' }}>
               <button onClick={() => setEditingClient(null)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', marginBottom: '20px' }}>← Back to List</button>
@@ -311,9 +315,7 @@ export default function AdminChange() {
                 </label>
               </div>
 
-              {/* CONDITIONAL RENDERING FOR GALLERY */}
               {selectedCategory === 'Wedding' ? (
-                // WEDDING: Show specific sub-categories
                 <>
                   <label style={labelStyle}>Gallery Images by Sub-Category</label>
                   {WEDDING_SUB_CATEGORIES.map(subCat => (
@@ -336,7 +338,6 @@ export default function AdminChange() {
                   ))}
                 </>
               ) : (
-                // BIRTHDAY / CORPORATE: Show a single flat gallery
                 <>
                   <label style={labelStyle}>Gallery Images</label>
                   <div style={{ background: '#1a1a1a', padding: '20px', borderRadius: '8px' }}>

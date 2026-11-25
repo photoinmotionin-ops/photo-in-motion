@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Play } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
 export default function Portfolio() {
   const [portfolioItems, setPortfolioItems] = useState([]);
+  const [categories, setCategories] = useState(['Wedding', 'Birthday', 'Corporate']);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
   const [currentPage, setCurrentPage] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Check for mobile device
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -25,12 +25,14 @@ export default function Portfolio() {
         if (data.portfolioItems) {
           setPortfolioItems(data.portfolioItems);
         }
+        if (data.categories && data.categories.length > 0) {
+          setCategories(data.categories);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
-  // Reset page when category changes
   useEffect(() => {
     setCurrentPage(0);
   }, [activeCategory]);
@@ -39,8 +41,6 @@ export default function Portfolio() {
     ? portfolioItems 
     : portfolioItems.filter(item => item.category === activeCategory);
 
-  // Determine how many items to show per page based on screen size
-  // Desktop: 6 (3 columns x 2 rows), Mobile: 3 (1 column x 3 rows)
   const itemsPerPage = isMobile ? 3 : 6;
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   
@@ -49,14 +49,11 @@ export default function Portfolio() {
     (currentPage + 1) * itemsPerPage
   );
 
-  // Auto-cycle pages every 5 seconds
   useEffect(() => {
     if (totalPages <= 1) return;
-
     const interval = setInterval(() => {
       setCurrentPage((prev) => (prev + 1) % totalPages);
     }, 5000);
-
     return () => clearInterval(interval);
   }, [totalPages, activeCategory]);
 
@@ -75,7 +72,6 @@ export default function Portfolio() {
       
       <section style={{ padding: '0 5% 80px' }}>
         
-        {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <p className="eyebrow">A COLLECTION OF MEMORIES</p>
           <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0 }}>
@@ -83,9 +79,21 @@ export default function Portfolio() {
           </h2>
         </div>
 
-        {/* Category Filters */}
+        {/* DYNAMIC CATEGORY FILTERS */}
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '40px', flexWrap: 'wrap' }}>
-          {['All', 'Wedding', 'Corporate'].map(cat => (
+          <button 
+            onClick={() => setActiveCategory('All')}
+            style={{ 
+              background: 'transparent', border: '1px solid ' + (activeCategory === 'All' ? 'var(--gold)' : 'rgba(255,255,255,0.1)'), 
+              color: activeCategory === 'All' ? 'var(--gold)' : 'var(--muted)', 
+              fontSize: '14px', cursor: 'pointer', padding: '8px 20px', borderRadius: '20px',
+              transition: 'all 0.3s'
+            }}
+          >
+            All
+          </button>
+          
+          {categories.map(cat => (
             <button 
               key={cat}
               onClick={() => setActiveCategory(cat)}
@@ -101,7 +109,6 @@ export default function Portfolio() {
           ))}
         </div>
 
-        {/* The Animated Grid */}
         <div style={{ position: 'relative', minHeight: isMobile ? '600px' : '750px', maxWidth: '1400px', margin: '0 auto' }}>
           <AnimatePresence mode="wait">
             <motion.div
@@ -133,7 +140,6 @@ export default function Portfolio() {
                       background: '#111'
                     }}
                   >
-                    {/* Image with Zoom Effect */}
                     <motion.img 
                       src={item.mainImage} 
                       alt={item.title} 
@@ -142,10 +148,8 @@ export default function Portfolio() {
                       style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: 0.8 }} 
                     />
                     
-                    {/* Gradient Overlay */}
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent 60%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '25px' }}>
                       
-                      {/* Gold Border Animation on Hover */}
                       <motion.div 
                         variants={{ hover: { opacity: 1 } }}
                         initial={{ opacity: 0 }}
@@ -170,7 +174,6 @@ export default function Portfolio() {
           </AnimatePresence>
         </div>
 
-        {/* Progress Bar / Pagination Dots */}
         {totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '40px', position: 'relative', zIndex: 10 }}>
             {Array.from({ length: totalPages }).map((_, idx) => (
