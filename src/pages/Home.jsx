@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowUpRight, ArrowDown, Play, Pause, Volume2, VolumeX, 
   Star, MapPin, Sparkles, Film, Maximize2, X 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CinematicReveal from '../components/animations/CinematicReveal';
-//import CameraCapture from '../components/animations/CameraCapture';
 import CinematicStrip from '../components/animations/CinematicStrip'; 
 import EventPlanner from '../components/animations/EventPlanner';
 
@@ -20,13 +19,17 @@ const featuredWorks = [
   { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', key: 'img3' },
 ];
 
+// EXPANDED TO 6 TESTIMONIALS FOR DESKTOP GROUPING
 const testimonials = [
-  { name: 'Ananya & Rahul', rating: 5 },
-  { name: 'Sarah & James', rating: 5 },
-  { name: 'Priya & Arjun', rating: 5 },
+  { name: 'Ananya & Rahul', rating: 5, key: 'testimonial1' },
+  { name: 'Sarah & James', rating: 5, key: 'testimonial2' },
+  { name: 'Priya & Arjun', rating: 5, key: 'testimonial3' },
+  { name: 'Neha & Vikram', rating: 5, key: 'testimonial4' },
+  { name: 'Riya & Karan', rating: 5, key: 'testimonial5' },
+  { name: 'Simran & Aditya', rating: 5, key: 'testimonial6' },
 ];
 
-// 10s–15s Short video clips (safe for inline playback on mobile & desktop)
+// 10s–15s Short video clips 
 const shortReels = [
   {
     id: 'reel-1',
@@ -89,6 +92,9 @@ export default function Home() {
     testimonial1: 'They captured the essence of our wedding perfectly.',
     testimonial2: 'The cinematic film they created for us is an absolute masterpiece.',
     testimonial3: 'Professional, unobtrusive, and incredibly talented.',
+    testimonial4: 'Every frame was a work of art. We couldn\'t be happier.',
+    testimonial5: 'They turned our special day into a cinematic experience.',
+    testimonial6: 'The attention to detail was flawless. Highly recommended!',
     img1: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85',
     img2: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
     img3: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
@@ -103,11 +109,24 @@ export default function Home() {
   const [currentTime, setCurrentTime] = useState('0:00');
   const [isCinemaMode, setIsCinemaMode] = useState(false);
 
+  // Testimonial State
+  const [isMobile, setIsMobile] = useState(false);
+  const [activeTestimonialGroup, setActiveTestimonialGroup] = useState(0); // For Desktop (0, 1, 2...)
+  const [activeTestimonialSingle, setActiveTestimonialSingle] = useState(0); // For Mobile (0, 1, 2...)
+
   const videoRef = useRef(null);
   const modalVideoRef = useRef(null);
   const progressBarRef = useRef(null);
 
   const activeReel = shortReels[activeReelIndex];
+
+  // Check screen size on load and resize
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 900);
+    checkMobile(); // Check on mount
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Fetch backend content
   useEffect(() => {
@@ -121,7 +140,21 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  // When video index changes (user clicks another video OR video ends), load and auto-play
+  // Auto-cycle Testimonials (Different logic for Desktop vs Mobile)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isMobile) {
+        setActiveTestimonialSingle((prev) => (prev + 1) % testimonials.length);
+      } else {
+        // Group testimonials in chunks of 3
+        const totalGroups = Math.ceil(testimonials.length / 3);
+        setActiveTestimonialGroup((prev) => (prev + 1) % totalGroups);
+      }
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [isMobile]);
+
+  // When video index changes, load and auto-play
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
@@ -147,7 +180,6 @@ export default function Home() {
     if (modalVideoRef.current) modalVideoRef.current.muted = isMuted;
   }, [isMuted]);
 
-  // When a video finishes, automatically jump to the next video
   const handleVideoEnded = () => {
     setActiveReelIndex(prev => (prev + 1) % shortReels.length);
   };
@@ -192,6 +224,11 @@ export default function Home() {
     video.currentTime = percentage * video.duration;
     setProgress(percentage * 100);
   };
+
+  // Calculate current testimonials to show
+  const startIdx = activeTestimonialGroup * 3;
+  const currentDesktopTestimonials = testimonials.slice(startIdx, startIdx + 3);
+  const currentMobileTestimonial = testimonials[activeTestimonialSingle];
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -542,8 +579,8 @@ export default function Home() {
 
       <EventPlanner />
 
-      {/* 5. TESTIMONIALS */}
-      <section className="testimonials-section" style={{ padding: '100px 10%', background: 'var(--bg-light)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
+      {/* 5. TESTIMONIALS (RESPONSIVE: DESKTOP GROUPS OF 3 / MOBILE SLIDER) */}
+      <section className="testimonials-section" style={{ padding: '100px 10%', background: 'var(--bg-light)', textAlign: 'center', borderTop: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
           <motion.p className="eyebrow" variants={fadeUp}>CLIENT LOVE</motion.p>
           <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(40px, 5vw, 60px)', fontWeight: 400, margin: '0 0 50px 0' }}>
@@ -551,17 +588,84 @@ export default function Home() {
             <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}><span>Our Clients</span></motion.div></div>
           </h2>
         </motion.div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', maxWidth: '1200px', margin: '0 auto' }}>
-          {testimonials.map((test, index) => (
-            <motion.div key={test.name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.2 }} style={{ background: 'rgba(255,255,255,0.02)', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)', textAlign: 'left' }}>
-              <div style={{ display: 'flex', gap: '5px', color: 'var(--gold)', marginBottom: '20px' }}>
-                {[...Array(test.rating)].map((_, i) => <Star key={i} size={16} fill="var(--gold)" />)}
-              </div>
-              <p style={{ color: 'var(--text)', fontSize: '14px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '20px' }}>
-                "{content[`testimonial${index + 1}`]}"
-              </p>
-              <h4 style={{ fontFamily: 'var(--heading-font)', fontSize: '20px', color: 'var(--white)', margin: 0 }}>{test.name}</h4>
-            </motion.div>
+
+        {isMobile ? (
+          /* MOBILE VIEW: SLIDER (1 at a time) */
+          <div style={{ position: 'relative', maxWidth: '600px', margin: '0 auto', minHeight: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={activeTestimonialSingle}
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+                style={{ 
+                  background: 'rgba(255,255,255,0.02)', 
+                  padding: '40px', 
+                  borderRadius: '16px', 
+                  border: '1px solid var(--border)', 
+                  textAlign: 'center',
+                  width: '100%',
+                  position: 'absolute'
+                }}
+              >
+                <div style={{ display: 'flex', gap: '5px', color: 'var(--gold)', justifyContent: 'center', marginBottom: '20px' }}>
+                  {[...Array(currentMobileTestimonial.rating)].map((_, i) => <Star key={i} size={18} fill="var(--gold)" />)}
+                </div>
+                <p style={{ color: 'var(--text)', fontSize: '15px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '25px' }}>
+                  "{content[currentMobileTestimonial.key]}"
+                </p>
+                <h4 style={{ fontFamily: 'var(--heading-font)', fontSize: '22px', color: 'var(--white)', margin: 0 }}>
+                  {currentMobileTestimonial.name}
+                </h4>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        ) : (
+          /* DESKTOP VIEW: GRID OF 3 (Changes every 4s) */
+          <div style={{ position: 'relative', maxWidth: '1200px', margin: '0 auto', minHeight: '300px' }}>
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={activeTestimonialGroup}
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+                style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '30px', position: 'absolute', width: '100%' }}
+              >
+                {currentDesktopTestimonials.map((test) => (
+                  <div key={test.name} style={{ background: 'rgba(255,255,255,0.02)', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)', textAlign: 'left' }}>
+                    <div style={{ display: 'flex', gap: '5px', color: 'var(--gold)', marginBottom: '20px' }}>
+                      {[...Array(test.rating)].map((_, i) => <Star key={i} size={16} fill="var(--gold)" />)}
+                    </div>
+                    <p style={{ color: 'var(--text)', fontSize: '14px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '20px' }}>
+                      "{content[test.key]}"
+                    </p>
+                    <h4 style={{ fontFamily: 'var(--heading-font)', fontSize: '20px', color: 'var(--white)', margin: 0 }}>{test.name}</h4>
+                  </div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        )}
+        
+        {/* Navigation Dots (Optional, for visual feedback) */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '30px', zIndex: 10, position: 'relative' }}>
+          {(isMobile ? testimonials : Array.from({ length: Math.ceil(testimonials.length / 3) })).map((_, index) => (
+            <button
+              key={index}
+              onClick={() => isMobile ? setActiveTestimonialSingle(index) : setActiveTestimonialGroup(index)}
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: (isMobile ? activeTestimonialSingle : activeTestimonialGroup) === index ? 'var(--gold)' : 'rgba(255,255,255,0.2)',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.3s',
+                padding: 0
+              }}
+            />
           ))}
         </div>
       </section>
