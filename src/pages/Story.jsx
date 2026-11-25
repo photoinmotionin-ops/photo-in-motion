@@ -1,12 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
-  Calendar, Award, Camera, Film, User, Star, 
-  MapPin, Sparkles, CheckCircle2, ArrowRight, ShieldCheck, Video
+  Camera, Award, ShieldCheck, MapPin, Sparkles, CheckCircle2, ArrowRight
 } from 'lucide-react';
 
-// Built-in YouTube SVG (guarantees compatibility across all lucide-react versions)
+// Built-in YouTube SVG
 const YoutubeIcon = ({ size = 20, color = "currentColor" }) => (
   <svg 
     width={size} 
@@ -23,7 +22,6 @@ const YoutubeIcon = ({ size = 20, color = "currentColor" }) => (
   </svg>
 );
 
-// Animation Variants
 const maskReveal = { 
   hidden: { y: "100%", rotate: 2 }, 
   visible: { y: 0, rotate: 0, transition: { duration: 0.8, ease: [0.33, 1, 0.68, 1] } } 
@@ -39,47 +37,93 @@ const staggerContainer = {
   visible: { opacity: 1, transition: { staggerChildren: 0.16, delayChildren: 0.1 } } 
 };
 
-// Milestones based on the founder's authentic journey
-const milestones = [
+// Default Milestones (Icons mapped per index)
+const milestoneIcons = [Camera, ShieldCheck, YoutubeIcon, Award];
+
+const defaultMilestones = [
   {
     year: '2005',
     tag: 'THE HUMBLE GENESIS',
     title: 'One Man, One Camera in Kendrapara',
-    desc: 'Founded by Munu as a solo visionary in Kendrapara. Driven by an uncompromising passion for raw human emotion and the craft of visual storytelling.',
-    icon: Camera
+    desc: 'Founded by Munu as a solo visionary in Kendrapara. Driven by an uncompromising passion for raw human emotion and the craft of visual storytelling.'
   },
   {
     year: '2012',
     tag: 'HIGH-PROFILE TRUST',
     title: 'State Dignitaries & VIP Events',
-    desc: 'Entrusted with documenting high-security, prestigious events for Members of Legislative Assembly (MLAs) and Deputy Chief Ministers (Deputy CMs).',
-    icon: ShieldCheck
+    desc: 'Entrusted with documenting high-security, prestigious events for Members of Legislative Assembly (MLAs) and Deputy Chief Ministers (Deputy CMs).'
   },
   {
     year: '2018',
     tag: 'MEDIA EVOLUTION',
     title: 'Fashion, Shorts & Digital Productions',
-    desc: 'Expanded into commercial fashion portfolios, high-engagement short-form cinema, and viral YouTube film productions with modern 4K optics.',
-    icon: YoutubeIcon
+    desc: 'Expanded into commercial fashion portfolios, high-engagement short-form cinema, and viral YouTube film productions with modern 4K optics.'
   },
   {
     year: 'Present',
     tag: 'CINEMATIC BENCHMARK',
     title: 'Photo In Motion Studio',
-    desc: 'Over two decades of celebrated heritage. A premiere destination across India for luxury wedding films, VIP events, and cinematic portraits.',
-    icon: Award
+    desc: 'Over two decades of celebrated heritage. A premiere destination across India for luxury wedding films, VIP events, and cinematic portraits.'
   }
 ];
 
-// Experience highlights
-const experienceStats = [
+const defaultStats = [
   { number: '2005', label: 'Est. in Kendrapara', sub: '20+ Years Heritage' },
   { number: 'VIPs', label: 'MLAs & Deputy CMs', sub: 'Trusted at Highest Level' },
   { number: 'Digital', label: 'Models & YouTube', sub: 'Modern Shorts & Viral Media' },
   { number: '1000+', label: 'Stories Captured', sub: 'Timeless Legacies' }
 ];
 
+const defaultArenas = [
+  { title: 'VIP & Dignitary Coverage', desc: 'Extensive hands-on experience filming MLAs, Deputy Chief Ministers, and corporate dignitaries with utmost discretion and cinematic speed.' },
+  { title: 'Fashion & Model Portfolios', desc: 'High-end magazine style portraiture, editorial lighting setups, and agency-grade model portfolios crafted to turn heads.' },
+  { title: 'Shorts & YouTube Productions', desc: 'Modern vertical short cinema, Reels, and 4K YouTube storytelling tailored with rhythmic pacing and cinematic sound design.' }
+];
+
 export default function Story() {
+  const [data, setData] = useState({
+    storyHeroEyebrow: 'THE LEGACY SINCE 2005',
+    storyHeroHeading: 'Moments pass.\nStories stay forever.',
+    storyHeroParagraph: 'At Photo In Motion Studio, our story is etched in patience, passion, and two decades of relentless craftsmanship. From our beginnings in Kendrapara to documenting state leaders, fashion icons, and royal weddings, we preserve the heartbeat behind every frame.',
+    storyStats: defaultStats,
+    storyFounderImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
+    storyFounderName: 'Munu',
+    storyFounderRole: 'Visionary Filmmaker & Founder, Photo In Motion',
+    storyFounderOrigin: 'Kendrapara, Odisha · Since 2005',
+    storyOriginHeading: "From One Person's Vision to a Cinematic Powerhouse",
+    storyOriginP1: "In 2005, in the historic town of Kendrapara, Photo In Motion began with just one person — Munu. With a single camera and an unwavering obsession with natural lighting and unposed emotional depth, every frame was treated as sacred art.",
+    storyOriginP2: "What started as local wedding memories quickly evolved into a trusted production brand. As word spread, our lens captured high-profile state leaders — including MLAs and Deputy Chief Ministers — commanding the highest discretion, speed, and cinematic poise.",
+    storyMilestones: defaultMilestones,
+    storyArenas: defaultArenas
+  });
+
+  // Fetch admin saved data
+  useEffect(() => {
+    fetch('/api/enquiry?action=get_content')
+      .then(res => res.json())
+      .then(saved => {
+        if (saved && Object.keys(saved).length > 0) {
+          setData(prev => ({
+            ...prev,
+            storyHeroEyebrow: saved.storyHeroEyebrow || prev.storyHeroEyebrow,
+            storyHeroHeading: saved.storyHeroHeading || prev.storyHeroHeading,
+            storyHeroParagraph: saved.storyHeroParagraph || prev.storyHeroParagraph,
+            storyStats: saved.storyStats || prev.storyStats,
+            storyFounderImg: saved.storyFounderImg || prev.storyFounderImg,
+            storyFounderName: saved.storyFounderName || prev.storyFounderName,
+            storyFounderRole: saved.storyFounderRole || prev.storyFounderRole,
+            storyFounderOrigin: saved.storyFounderOrigin || prev.storyFounderOrigin,
+            storyOriginHeading: saved.storyOriginHeading || prev.storyOriginHeading,
+            storyOriginP1: saved.storyOriginP1 || prev.storyOriginP1,
+            storyOriginP2: saved.storyOriginP2 || prev.storyOriginP2,
+            storyMilestones: saved.storyMilestones || prev.storyMilestones,
+            storyArenas: saved.storyArenas || prev.storyArenas
+          }));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <motion.div 
       initial={{ opacity: 0 }} 
@@ -97,16 +141,13 @@ export default function Story() {
         variants={staggerContainer}
       >
         <motion.p className="eyebrow" variants={fadeUp}>
-          THE LEGACY SINCE 2005
+          {data.storyHeroEyebrow}
         </motion.p>
         
-        <h1 style={{ fontFamily: 'var(--heading-font, serif)', fontSize: 'clamp(46px, 6.5vw, 84px)', fontWeight: 400, margin: '15px 0 30px', lineHeight: 1.05 }}>
-          <div style={{ overflow: 'hidden' }}>
-            <motion.div variants={maskReveal}>Moments pass.</motion.div>
-          </div>
+        <h1 style={{ fontFamily: 'var(--heading-font, serif)', fontSize: 'clamp(46px, 6.5vw, 84px)', fontWeight: 400, margin: '15px 0 30px', lineHeight: 1.05, whiteSpace: 'pre-line' }}>
           <div style={{ overflow: 'hidden' }}>
             <motion.div variants={maskReveal}>
-              <span style={{ color: 'var(--gold, #c6a46b)', fontStyle: 'italic' }}>Stories stay forever.</span>
+              {data.storyHeroHeading}
             </motion.div>
           </div>
         </h1>
@@ -115,7 +156,7 @@ export default function Story() {
           variants={fadeUp} 
           style={{ maxWidth: '820px', margin: '0 auto', fontSize: '15px', lineHeight: '2', color: 'var(--text, #d2cec8)' }}
         >
-          At <strong>Photo In Motion Studio</strong>, our story is etched in patience, passion, and two decades of relentless craftsmanship. From our beginnings in Kendrapara to documenting state leaders, fashion icons, and royal weddings, we preserve the heartbeat behind every frame.
+          {data.storyHeroParagraph}
         </motion.p>
 
         {/* Stats Strip */}
@@ -134,7 +175,7 @@ export default function Story() {
             boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
           }}
         >
-          {experienceStats.map((stat, idx) => (
+          {(data.storyStats || defaultStats).map((stat, idx) => (
             <motion.div 
               key={idx}
               whileHover={{ y: -5 }}
@@ -154,7 +195,7 @@ export default function Story() {
         </motion.div>
       </motion.section>
 
-      {/* 2. THE FOUNDER'S JOURNEY (Munu & Kendrapara Origin) */}
+      {/* 2. THE FOUNDER'S JOURNEY (MUNU & KENDRAPARA) */}
       <section style={{ padding: '80px 10%', background: 'var(--bg-light, #171717)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '50px', alignItems: 'center' }}>
           
@@ -178,8 +219,8 @@ export default function Story() {
               }}
             >
               <img 
-                src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85" 
-                alt="Photo In Motion Heritage"
+                src={data.storyFounderImg} 
+                alt={data.storyFounderName}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }} 
               />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)' }} />
@@ -189,13 +230,13 @@ export default function Story() {
                   THE FOUNDER
                 </span>
                 <h3 style={{ fontFamily: 'var(--heading-font, serif)', fontSize: '28px', color: '#fff', margin: '10px 0 4px' }}>
-                  Munu
+                  {data.storyFounderName}
                 </h3>
                 <p style={{ margin: 0, fontSize: '13px', color: 'var(--text, #d2cec8)' }}>
-                  Visionary Filmmaker & Founder, Photo In Motion
+                  {data.storyFounderRole}
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--gold, #c6a46b)', marginTop: '8px' }}>
-                  <MapPin size={12} /> Kendrapara, Odisha · Since 2005
+                  <MapPin size={12} /> {data.storyFounderOrigin}
                 </div>
               </div>
             </div>
@@ -233,15 +274,15 @@ export default function Story() {
           >
             <p className="eyebrow" style={{ color: 'var(--gold, #c6a46b)' }}>HOW IT BEGAN</p>
             <h2 style={{ fontFamily: 'var(--heading-font, serif)', fontSize: 'clamp(36px, 4.5vw, 56px)', fontWeight: 400, margin: '10px 0 25px' }}>
-              From One Person's Vision to a <span style={{ color: 'var(--gold, #c6a46b)', fontStyle: 'italic' }}>Cinematic Powerhouse</span>
+              {data.storyOriginHeading}
             </h2>
             
             <p style={{ fontSize: '14px', lineHeight: '2', color: 'var(--text, #d2cec8)', marginBottom: '18px' }}>
-              In <strong>2005</strong>, in the historic town of <strong>Kendrapara</strong>, Photo In Motion began with just <strong>one person — Munu</strong>. With a single camera and an unwavering obsession with natural lighting and unposed emotional depth, every frame was treated as sacred art.
+              {data.storyOriginP1}
             </p>
 
             <p style={{ fontSize: '14px', lineHeight: '2', color: 'var(--muted, #aaa)', marginBottom: '28px' }}>
-              What started as local wedding memories quickly evolved into a trusted production brand. As word spread, our lens captured high-profile state leaders — including <strong>MLAs and Deputy Chief Ministers</strong> — commanding the highest discretion, speed, and cinematic poise.
+              {data.storyOriginP2}
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', borderTop: '1px solid var(--border, rgba(255,255,255,0.1))', paddingTop: '20px' }}>
@@ -275,8 +316,8 @@ export default function Story() {
 
         {/* Timeline Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '25px', maxWidth: '1200px', margin: '0 auto', textAlign: 'left' }}>
-          {milestones.map((item, index) => {
-            const Icon = item.icon;
+          {(data.storyMilestones || defaultMilestones).map((item, index) => {
+            const Icon = milestoneIcons[index] || Camera;
             return (
               <motion.div 
                 key={index}
@@ -329,7 +370,7 @@ export default function Story() {
         </div>
       </section>
 
-      {/* 4. EXPERTISE & VERSATILITY (VIPs, Fashion, YouTube) */}
+      {/* 4. EXPERTISE & VERSATILITY */}
       <section style={{ padding: '90px 10%', background: 'var(--bg-light, #171717)', textAlign: 'center' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <p className="eyebrow">VERSATILITY & EXPERTISE</p>
@@ -338,55 +379,26 @@ export default function Story() {
           </h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '22px', textAlign: 'left' }}>
-            
-            {/* VIP & Political */}
-            <motion.div 
-              whileHover={{ y: -6 }}
-              style={{ background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '14px', border: '1px solid var(--border)' }}
-            >
-              <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(198, 164, 107, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
-                <ShieldCheck size={22} color="var(--gold, #c6a46b)" />
-              </div>
-              <h3 style={{ fontSize: '20px', color: '#fff', margin: '0 0 10px 0', fontFamily: 'var(--heading-font)' }}>
-                VIP & Dignitary Coverage
-              </h3>
-              <p style={{ fontSize: '13px', lineHeight: '1.8', color: 'var(--muted, #aaa)', margin: 0 }}>
-                Extensive hands-on experience filming MLAs, Deputy Chief Ministers, and corporate dignitaries with utmost discretion and cinematic speed.
-              </p>
-            </motion.div>
-
-            {/* Model & Fashion */}
-            <motion.div 
-              whileHover={{ y: -6 }}
-              style={{ background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '14px', border: '1px solid var(--border)' }}
-            >
-              <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(198, 164, 107, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
-                <Camera size={22} color="var(--gold, #c6a46b)" />
-              </div>
-              <h3 style={{ fontSize: '20px', color: '#fff', margin: '0 0 10px 0', fontFamily: 'var(--heading-font)' }}>
-                Fashion & Model Portfolios
-              </h3>
-              <p style={{ fontSize: '13px', lineHeight: '1.8', color: 'var(--muted, #aaa)', margin: 0 }}>
-                High-end magazine style portraiture, editorial lighting setups, and agency-grade model portfolios crafted to turn heads.
-              </p>
-            </motion.div>
-
-            {/* Shorts & YouTube Cinema */}
-            <motion.div 
-              whileHover={{ y: -6 }}
-              style={{ background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '14px', border: '1px solid var(--border)' }}
-            >
-              <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(198, 164, 107, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
-                <YoutubeIcon size={22} color="var(--gold, #c6a46b)" />
-              </div>
-              <h3 style={{ fontSize: '20px', color: '#fff', margin: '0 0 10px 0', fontFamily: 'var(--heading-font)' }}>
-                Shorts & YouTube Productions
-              </h3>
-              <p style={{ fontSize: '13px', lineHeight: '1.8', color: 'var(--muted, #aaa)', margin: 0 }}>
-                Modern vertical short cinema, Reels, and 4K YouTube storytelling tailored with rhythmic pacing and cinematic sound design.
-              </p>
-            </motion.div>
-
+            {(data.storyArenas || defaultArenas).map((arena, idx) => {
+              const Icon = idx === 0 ? ShieldCheck : idx === 1 ? Camera : YoutubeIcon;
+              return (
+                <motion.div 
+                  key={idx}
+                  whileHover={{ y: -6 }}
+                  style={{ background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '14px', border: '1px solid var(--border)' }}
+                >
+                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(198, 164, 107, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
+                    <Icon size={22} color="var(--gold, #c6a46b)" />
+                  </div>
+                  <h3 style={{ fontSize: '20px', color: '#fff', margin: '0 0 10px 0', fontFamily: 'var(--heading-font)' }}>
+                    {arena.title}
+                  </h3>
+                  <p style={{ fontSize: '13px', lineHeight: '1.8', color: 'var(--muted, #aaa)', margin: 0 }}>
+                    {arena.desc}
+                  </p>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>

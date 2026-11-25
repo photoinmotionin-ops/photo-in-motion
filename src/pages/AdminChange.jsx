@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Save, ArrowLeft, Upload, Loader2, Plus, Trash2, Edit2, 
   Image as ImageIcon, Film, Video, Aperture, Camera, MessageSquare, 
-  Sparkles, Layers, Sliders, CheckCircle2 
+  Sparkles, Layers, BookOpen, Clock, ShieldCheck
 } from 'lucide-react';
 
 const CLOUDINARY_CLOUD_NAME = 'kwqsty9w';
@@ -12,20 +12,26 @@ const WEDDING_SUB_CATEGORIES = ['Engagement', 'Pre-Wedding', 'Mehendi & Haldi', 
 
 export default function AdminChange() {
   const defaultContent = {
-    // 1. HERO & INTRO
+    // ----------------------------------------------------
+    // 1. HOME: HERO & INTRO
+    // ----------------------------------------------------
     heroTitle: 'Every Frame.\nA Timeless Story.',
     heroSub: "We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.",
     storyTitle: 'Moments pass.\nStories stay forever.',
     storyText: 'At Photo In Motion, we believe every celebration has a story worth telling. Through thoughtful photography and cinematic filmmaking, we preserve the feelings behind every frame.',
     
-    // 2. FEATURED WORKS (3 CARDS)
+    // ----------------------------------------------------
+    // 2. HOME: FEATURED WORKS (3 CARDS)
+    // ----------------------------------------------------
     featuredWorks: [
       { number: '01', category: 'WEDDINGS', title: 'Forever Begins', img: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85' },
       { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', img: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85' },
       { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85' }
     ],
 
-    // 3. CINEMATIC FILM STRIP (TOP & BOTTOM ROWS)
+    // ----------------------------------------------------
+    // 3. HOME: CINEMATIC FILM STRIP
+    // ----------------------------------------------------
     stripTopWorks: [
       { id: 't1', title: 'Forever Begins', category: 'WEDDINGS', img: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=85' },
       { id: 't2', title: 'Golden Sunset Vows', category: 'PRE-WEDDING', img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=85' },
@@ -41,7 +47,9 @@ export default function AdminChange() {
       { id: 'b5', title: 'Chasing the Horizon', category: 'PRE-WEDDING', img: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=900&q=85' }
     ],
 
-    // 4. 360° ORBIT GALLERY (CinematicReveal)
+    // ----------------------------------------------------
+    // 4. HOME: 360° ORBIT GALLERY (CinematicReveal)
+    // ----------------------------------------------------
     orbitMoments: [
       { id: 1, tag: "ROYAL WEDDING", title: "Forever Begins at Sacred Dusk", focal: "85mm • f/1.4 • ISO 100", desc: "Vows whispered beneath temple archways as the golden hour blesses every vow.", url: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=300&q=80" },
       { id: 2, tag: "CINEMATIC HALDI", title: "Golden Petals & Joyous Tears", focal: "50mm • f/1.2 • ISO 200", desc: "Unbridled laughter and flying marigold showers captured in slow-motion warmth.", url: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=300&q=80" },
@@ -51,7 +59,9 @@ export default function AdminChange() {
       { id: 6, tag: "SOUL PORTRAIT", title: "Elegance in The Mirror", focal: "85mm • f/1.4 • ISO 100", desc: "The bridal veil catching soft natural window light in profound stillness.", url: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=300&q=80" }
     ],
 
-    // 5. SHOWREEL VIDEO PLAYER (CLIPS & REELS)
+    // ----------------------------------------------------
+    // 5. HOME: SHOWREEL VIDEOS
+    // ----------------------------------------------------
     showreels: [
       { id: 'reel-1', number: '01', title: 'The Royal Wedding Saga', category: 'WEDDINGS', location: 'Udaivilas, Udaipur', duration: '0:10', videoUrl: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4', poster: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85', synopsis: 'A grand royal union captured in 4K anamorphic richness with intimate emotional cadences.' },
       { id: 'reel-2', number: '02', title: 'Golden Sunset Vows', category: 'PRE-WEDDING', location: 'Pashan Lake, Pune', duration: '0:10', videoUrl: 'https://assets.codepen.io/6093409/river.mp4', poster: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85', synopsis: 'Golden hour silhouettes, mist over water, and vows etched before the crowd arrives.' },
@@ -60,7 +70,9 @@ export default function AdminChange() {
       { id: 'reel-5', number: '05', title: 'Midnight Waltz & First Dance', category: 'RECEPTIONS', location: 'Taj Falaknuma, Hyderabad', duration: '0:10', videoUrl: 'https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4', poster: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=85', synopsis: 'Sparklers illuminate the twilight as the couple takes their inaugural dance as one.' }
     ],
 
-    // 6. DIRECTOR'S VIEWFINDER (EventPlanner shots)
+    // ----------------------------------------------------
+    // 6. HOME: DIRECTOR'S VIEWFINDER (EventPlanner)
+    // ----------------------------------------------------
     viewfinderShots: [
       { id: 'shot-01', lens: '85mm f/1.4', category: 'BRIDAL PORTRAITURE', focalName: 'The Signature Bokeh', desc: 'Creamy optical depth with tack-sharp focus on the bridal veil and eye highlights.', shutter: '1/500s', aperture: 'f/1.4', iso: 'ISO 100', kelvin: '5600K Daylight', imgGraded: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85', imgRaw: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=25' },
       { id: 'shot-02', lens: '24mm f/2.8', category: 'ROYAL VENUE & MANDAP', focalName: 'Architectural Grandeur', desc: 'Capturing the monumental scale of grand chandeliers, palace pillars, and floral ceilings.', shutter: '1/250s', aperture: 'f/4.0', iso: 'ISO 400', kelvin: '3200K Tungsten', imgGraded: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85', imgRaw: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=25' },
@@ -70,7 +82,9 @@ export default function AdminChange() {
       { id: 'shot-06', lens: '85mm f/1.4', category: 'EDITORIAL PORTRAIT', focalName: 'Serenity & Grace', desc: 'Studio-quality natural window sidelight highlighting jewelry and embroidery details.', shutter: '1/320s', aperture: 'f/1.6', iso: 'ISO 160', kelvin: '5500K Studio', imgGraded: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=85', imgRaw: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=25' }
     ],
 
-    // 7. CLIENT TESTIMONIALS (6 items)
+    // ----------------------------------------------------
+    // 7. HOME: TESTIMONIALS (6 items)
+    // ----------------------------------------------------
     testimonials: [
       { name: 'Ananya & Rahul', text: 'They captured the essence of our wedding perfectly.' },
       { name: 'Sarah & James', text: 'The cinematic film they created for us is an absolute masterpiece.' },
@@ -80,7 +94,44 @@ export default function AdminChange() {
       { name: 'Simran & Aditya', text: 'The attention to detail was flawless. Highly recommended!' }
     ],
 
-    // 8. PORTFOLIO & CATEGORIES
+    // ----------------------------------------------------
+    // 8. OUR STORY PAGE (NEW COMPLETE SETTINGS)
+    // ----------------------------------------------------
+    storyHeroEyebrow: 'THE LEGACY SINCE 2005',
+    storyHeroHeading: 'Moments pass.\nStories stay forever.',
+    storyHeroParagraph: 'At Photo In Motion Studio, our story is etched in patience, passion, and two decades of relentless craftsmanship. From our beginnings in Kendrapara to documenting state leaders, fashion icons, and royal weddings, we preserve the heartbeat behind every frame.',
+    
+    storyStats: [
+      { number: '2005', label: 'Est. in Kendrapara', sub: '20+ Years Heritage' },
+      { number: 'VIPs', label: 'MLAs & Deputy CMs', sub: 'Trusted at Highest Level' },
+      { number: 'Digital', label: 'Models & YouTube', sub: 'Modern Shorts & Viral Media' },
+      { number: '1000+', label: 'Stories Captured', sub: 'Timeless Legacies' }
+    ],
+
+    storyFounderImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
+    storyFounderName: 'Munu',
+    storyFounderRole: 'Visionary Filmmaker & Founder, Photo In Motion',
+    storyFounderOrigin: 'Kendrapara, Odisha · Since 2005',
+    storyOriginHeading: "From One Person's Vision to a Cinematic Powerhouse",
+    storyOriginP1: "In 2005, in the historic town of Kendrapara, Photo In Motion began with just one person — Munu. With a single camera and an unwavering obsession with natural lighting and unposed emotional depth, every frame was treated as sacred art.",
+    storyOriginP2: "What started as local wedding memories quickly evolved into a trusted production brand. As word spread, our lens captured high-profile state leaders — including MLAs and Deputy Chief Ministers — commanding the highest discretion, speed, and cinematic poise.",
+    
+    storyMilestones: [
+      { year: '2005', tag: 'THE HUMBLE GENESIS', title: 'One Man, One Camera in Kendrapara', desc: 'Founded by Munu as a solo visionary in Kendrapara. Driven by an uncompromising passion for raw human emotion and the craft of visual storytelling.' },
+      { year: '2012', tag: 'HIGH-PROFILE TRUST', title: 'State Dignitaries & VIP Events', desc: 'Entrusted with documenting high-security, prestigious events for Members of Legislative Assembly (MLAs) and Deputy Chief Ministers (Deputy CMs).' },
+      { year: '2018', tag: 'MEDIA EVOLUTION', title: 'Fashion, Shorts & Digital Productions', desc: 'Expanded into commercial fashion portfolios, high-engagement short-form cinema, and viral YouTube film productions with modern 4K optics.' },
+      { year: 'Present', tag: 'CINEMATIC BENCHMARK', title: 'Photo In Motion Studio', desc: 'Over two decades of celebrated heritage. A premiere destination across India for luxury wedding films, VIP events, and cinematic portraits.' }
+    ],
+
+    storyArenas: [
+      { title: 'VIP & Dignitary Coverage', desc: 'Extensive hands-on experience filming MLAs, Deputy Chief Ministers, and corporate dignitaries with utmost discretion and cinematic speed.' },
+      { title: 'Fashion & Model Portfolios', desc: 'High-end magazine style portraiture, editorial lighting setups, and agency-grade model portfolios crafted to turn heads.' },
+      { title: 'Shorts & YouTube Productions', desc: 'Modern vertical short cinema, Reels, and 4K YouTube storytelling tailored with rhythmic pacing and cinematic sound design.' }
+    ],
+
+    // ----------------------------------------------------
+    // 9. PORTFOLIO & CATEGORIES
+    // ----------------------------------------------------
     portfolioItems: [],
     categories: ['Wedding', 'Birthday', 'Corporate'],
     eventTypes: ['Wedding', 'Baby Shower', 'Post Wedding', 'Car Delivery', 'Others']
@@ -90,7 +141,7 @@ export default function AdminChange() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState('reels'); // 'hero' | 'featured' | 'strip' | 'orbit' | 'reels' | 'viewfinder' | 'testimonials' | 'portfolio' | 'events'
+  const [activeTab, setActiveTab] = useState('storyPage'); // Default to story page tab
 
   const [selectedCategory, setSelectedCategory] = useState('Wedding');
   const [editingClient, setEditingClient] = useState(null);
@@ -117,6 +168,9 @@ export default function AdminChange() {
             showreels: data.showreels || defaultContent.showreels,
             viewfinderShots: data.viewfinderShots || defaultContent.viewfinderShots,
             testimonials: data.testimonials || defaultContent.testimonials,
+            storyStats: data.storyStats || defaultContent.storyStats,
+            storyMilestones: data.storyMilestones || defaultContent.storyMilestones,
+            storyArenas: data.storyArenas || defaultContent.storyArenas,
             portfolioItems: data.portfolioItems || [],
             categories: data.categories || defaultContent.categories,
             eventTypes: data.eventTypes || defaultContent.eventTypes
@@ -137,7 +191,7 @@ export default function AdminChange() {
       });
 
       if (res.ok) {
-        alert('All website content, animations & videos updated successfully!');
+        alert('All changes saved successfully!');
       } else {
         const err = await res.json();
         alert(`Failed to save: ${err.message || 'Unknown error'}`);
@@ -148,7 +202,6 @@ export default function AdminChange() {
     setSaving(false);
   };
 
-  // Upload image or video to Cloudinary
   const uploadToCloudinary = async (file, resourceType = 'image') => {
     setUploading(true);
     const formData = new FormData();
@@ -169,7 +222,6 @@ export default function AdminChange() {
     }
   };
 
-  // Generic array item update helper
   const updateArrayItem = (arrayKey, index, field, value) => {
     setContent(prev => {
       const updated = [...prev[arrayKey]];
@@ -178,13 +230,12 @@ export default function AdminChange() {
     });
   };
 
-  // Generic array image upload handler
-  const handleItemMediaUpload = async (e, arrayKey, index, field, resourceType = 'image') => {
+  const handleSingleImageUpload = async (e, stateKey) => {
     const file = e.target.files[0];
     if (!file) return;
-    const url = await uploadToCloudinary(file, resourceType);
+    const url = await uploadToCloudinary(file);
     if (url) {
-      updateArrayItem(arrayKey, index, field, url);
+      setContent(prev => ({ ...prev, [stateKey]: url }));
     }
   };
 
@@ -209,7 +260,7 @@ export default function AdminChange() {
         </button>
 
         <h3 style={{ margin: 0, fontFamily: 'var(--heading-font, serif)', fontSize: '18px', color: '#fff' }}>
-          Site Customizer & Animation Studio
+          Site Customizer & Story Manager
         </h3>
 
         <button 
@@ -224,22 +275,23 @@ export default function AdminChange() {
           }}
         >
           {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-          {saving ? 'Saving Everything...' : 'Save All Changes'}
+          {saving ? 'Saving...' : 'Save All Changes'}
         </button>
       </div>
 
-      {/* 2. SUB-NAVIGATION TABS */}
+      {/* 2. NAVIGATION TABS */}
       <div style={{ paddingTop: '80px', background: '#111', borderBottom: '1px solid rgba(255,255,255,0.06)', position: 'sticky', top: '65px', zIndex: 90 }}>
         <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', padding: '12px 4%', scrollbarWidth: 'none' }}>
           {[
+            { id: 'storyPage', label: '📖 Our Story Page (Complete)', icon: BookOpen },
             { id: 'reels', label: 'Living Showreels (Videos)', icon: Video },
             { id: 'orbit', label: '360° Orbit (Moments)', icon: Aperture },
             { id: 'viewfinder', label: "Director's Viewfinder", icon: Camera },
             { id: 'strip', label: 'Cinematic Film Strip', icon: Film },
             { id: 'featured', label: 'Featured 3 Stories', icon: ImageIcon },
-            { id: 'hero', label: 'Hero & Intro Story', icon: Sparkles },
+            { id: 'hero', label: 'Homepage Content', icon: Sparkles },
             { id: 'testimonials', label: 'Testimonials (6)', icon: MessageSquare },
-            { id: 'portfolio', label: 'Portfolio Manager', icon: Layers }
+            { id: 'portfolio', label: 'Portfolio Events', icon: Layers }
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -269,6 +321,128 @@ export default function AdminChange() {
       <div style={{ padding: '40px 4%', maxWidth: '1200px', margin: '0 auto' }}>
 
         {/* ======================================================== */}
+        {/* NEW TAB: OUR STORY PAGE MANAGER                          */}
+        {/* ======================================================== */}
+        {activeTab === 'storyPage' && (
+          <div>
+            <SectionHeader 
+              tag="PAGE EDITOR" 
+              title="Our Story & Founder's Journey" 
+              sub="Customise every heading, narrative paragraph, founder portrait, timeline milestones, and stats."
+            />
+
+            {/* A. STORY HERO & STATS */}
+            <div style={boxCardStyle}>
+              <h3 style={sectionHeadingStyle}><Sparkles size={18} color="var(--gold, #c6a46b)" /> 1. Story Hero Header & Stats</h3>
+              
+              <label style={labelStyle}>Eyebrow Badge</label>
+              <input value={content.storyHeroEyebrow} onChange={(e) => setContent(p => ({ ...p, storyHeroEyebrow: e.target.value }))} style={inputStyle} />
+
+              <label style={labelStyle}>Hero Heading</label>
+              <textarea value={content.storyHeroHeading} onChange={(e) => setContent(p => ({ ...p, storyHeroHeading: e.target.value }))} style={{ ...inputStyle, height: '70px' }} />
+
+              <label style={labelStyle}>Hero Paragraph Description</label>
+              <textarea value={content.storyHeroParagraph} onChange={(e) => setContent(p => ({ ...p, storyHeroParagraph: e.target.value }))} style={{ ...inputStyle, height: '90px' }} />
+
+              <h4 style={{ color: 'var(--gold, #c6a46b)', fontSize: '14px', margin: '20px 0 10px' }}>4 Experience Stats Cards</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                {content.storyStats.map((stat, idx) => (
+                  <div key={idx} style={{ background: '#181818', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <label style={miniLabelStyle}>Stat #{idx + 1} Number / Value</label>
+                    <input value={stat.number} onChange={(e) => updateArrayItem('storyStats', idx, 'number', e.target.value)} style={inputStyle} />
+
+                    <label style={miniLabelStyle}>Label</label>
+                    <input value={stat.label} onChange={(e) => updateArrayItem('storyStats', idx, 'label', e.target.value)} style={inputStyle} />
+
+                    <label style={miniLabelStyle}>Sub-label</label>
+                    <input value={stat.sub} onChange={(e) => updateArrayItem('storyStats', idx, 'sub', e.target.value)} style={inputStyle} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* B. THE FOUNDER'S JOURNEY (MUNU & KENDRAPARA) */}
+            <div style={boxCardStyle}>
+              <h3 style={sectionHeadingStyle}><Camera size={18} color="var(--gold, #c6a46b)" /> 2. Founder & Kendrapara Origin</h3>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '25px', marginBottom: '20px' }}>
+                <div>
+                  <label style={labelStyle}>Founder Showcase Image</label>
+                  <div style={{ position: 'relative', width: '100%', height: '240px', borderRadius: '12px', overflow: 'hidden', background: '#000', marginBottom: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <img src={content.storyFounderImg} alt="Founder" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <label style={{ ...uploadButtonStyle, width: '100%' }}>
+                    {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={14} />} Upload Founder Photo
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleSingleImageUpload(e, 'storyFounderImg')} />
+                  </label>
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Founder Name</label>
+                  <input value={content.storyFounderName} onChange={(e) => setContent(p => ({ ...p, storyFounderName: e.target.value }))} style={inputStyle} />
+
+                  <label style={labelStyle}>Founder Role / Title</label>
+                  <input value={content.storyFounderRole} onChange={(e) => setContent(p => ({ ...p, storyFounderRole: e.target.value }))} style={inputStyle} />
+
+                  <label style={labelStyle}>Origin Location Tag</label>
+                  <input value={content.storyFounderOrigin} onChange={(e) => setContent(p => ({ ...p, storyFounderOrigin: e.target.value }))} style={inputStyle} />
+
+                  <label style={labelStyle}>Section Heading</label>
+                  <input value={content.storyOriginHeading} onChange={(e) => setContent(p => ({ ...p, storyOriginHeading: e.target.value }))} style={inputStyle} />
+                </div>
+              </div>
+
+              <label style={labelStyle}>Story Narrative (Paragraph 1)</label>
+              <textarea value={content.storyOriginP1} onChange={(e) => setContent(p => ({ ...p, storyOriginP1: e.target.value }))} style={{ ...inputStyle, height: '90px' }} />
+
+              <label style={labelStyle}>Story Narrative (Paragraph 2 - State VIPs, MLAs)</label>
+              <textarea value={content.storyOriginP2} onChange={(e) => setContent(p => ({ ...p, storyOriginP2: e.target.value }))} style={{ ...inputStyle, height: '90px' }} />
+            </div>
+
+            {/* C. 20-YEAR TIMELINE MILESTONES (ALL 4) */}
+            <div style={boxCardStyle}>
+              <h3 style={sectionHeadingStyle}><Clock size={18} color="var(--gold, #c6a46b)" /> 3. Creative Milestones Timeline (4 Eras)</h3>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+                {content.storyMilestones.map((item, idx) => (
+                  <div key={idx} style={{ background: '#181818', padding: '16px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <label style={miniLabelStyle}>Year / Period</label>
+                    <input value={item.year} onChange={(e) => updateArrayItem('storyMilestones', idx, 'year', e.target.value)} style={inputStyle} />
+
+                    <label style={miniLabelStyle}>Tag Badge</label>
+                    <input value={item.tag} onChange={(e) => updateArrayItem('storyMilestones', idx, 'tag', e.target.value)} style={inputStyle} />
+
+                    <label style={miniLabelStyle}>Milestone Title</label>
+                    <input value={item.title} onChange={(e) => updateArrayItem('storyMilestones', idx, 'title', e.target.value)} style={inputStyle} />
+
+                    <label style={miniLabelStyle}>Description</label>
+                    <textarea value={item.desc} onChange={(e) => updateArrayItem('storyMilestones', idx, 'desc', e.target.value)} style={{ ...inputStyle, height: '90px' }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* D. VERSATILITY ARENAS (VIPs, FASHION, YOUTUBE) */}
+            <div style={boxCardStyle}>
+              <h3 style={sectionHeadingStyle}><ShieldCheck size={18} color="var(--gold, #c6a46b)" /> 4. Versatility & Expertise Arenas (3 Cards)</h3>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+                {content.storyArenas.map((arena, idx) => (
+                  <div key={idx} style={{ background: '#181818', padding: '16px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <label style={miniLabelStyle}>Arena #{idx + 1} Title</label>
+                    <input value={arena.title} onChange={(e) => updateArrayItem('storyArenas', idx, 'title', e.target.value)} style={inputStyle} />
+
+                    <label style={miniLabelStyle}>Arena Description</label>
+                    <textarea value={arena.desc} onChange={(e) => updateArrayItem('storyArenas', idx, 'desc', e.target.value)} style={{ ...inputStyle, height: '90px' }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* ======================================================== */}
         {/* TAB: LIVING SHOWREELS (VIDEOS & POSTERS)                  */}
         {/* ======================================================== */}
         {activeTab === 'reels' && (
@@ -291,7 +465,6 @@ export default function AdminChange() {
                     </span>
                   </div>
 
-                  {/* Poster Preview */}
                   <div style={{ position: 'relative', width: '100%', height: '180px', borderRadius: '10px', overflow: 'hidden', background: '#000', marginBottom: '14px', border: '1px solid rgba(255,255,255,0.1)' }}>
                     <img src={reel.poster} alt={reel.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <span style={{ position: 'absolute', bottom: '8px', left: '8px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(0,0,0,0.7)', fontSize: '10px', color: '#fff', textTransform: 'uppercase' }}>
@@ -299,71 +472,48 @@ export default function AdminChange() {
                     </span>
                   </div>
 
-                  {/* Upload / Poster Buttons */}
                   <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
                     <label style={uploadButtonStyle}>
                       <Upload size={14} /> Upload Poster
-                      <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleItemMediaUpload(e, 'showreels', idx, 'poster', 'image')} />
+                      <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const url = await uploadToCloudinary(file, 'image');
+                        if (url) updateArrayItem('showreels', idx, 'poster', url);
+                      }} />
                     </label>
 
                     <label style={{ ...uploadButtonStyle, background: '#222', color: '#fff', border: '1px solid #444' }}>
                       <Video size={14} /> Upload MP4 Video
-                      <input type="file" accept="video/mp4,video/webm" style={{ display: 'none' }} onChange={(e) => handleItemMediaUpload(e, 'showreels', idx, 'videoUrl', 'video')} />
+                      <input type="file" accept="video/mp4,video/webm" style={{ display: 'none' }} onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const url = await uploadToCloudinary(file, 'video');
+                        if (url) updateArrayItem('showreels', idx, 'videoUrl', url);
+                      }} />
                     </label>
                   </div>
 
-                  {/* Video Direct URL Input */}
                   <label style={miniLabelStyle}>Direct Video MP4 URL</label>
-                  <input 
-                    value={reel.videoUrl} 
-                    onChange={(e) => updateArrayItem('showreels', idx, 'videoUrl', e.target.value)} 
-                    placeholder="https://...mp4" 
-                    style={inputStyle} 
-                  />
+                  <input value={reel.videoUrl} onChange={(e) => updateArrayItem('showreels', idx, 'videoUrl', e.target.value)} placeholder="https://...mp4" style={inputStyle} />
 
-                  {/* Title */}
                   <label style={miniLabelStyle}>Reel Title</label>
-                  <input 
-                    value={reel.title} 
-                    onChange={(e) => updateArrayItem('showreels', idx, 'title', e.target.value)} 
-                    style={inputStyle} 
-                  />
+                  <input value={reel.title} onChange={(e) => updateArrayItem('showreels', idx, 'title', e.target.value)} style={inputStyle} />
 
-                  {/* Category, Location, Duration */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                     <div>
                       <label style={miniLabelStyle}>Category</label>
-                      <input 
-                        value={reel.category} 
-                        onChange={(e) => updateArrayItem('showreels', idx, 'category', e.target.value)} 
-                        style={inputStyle} 
-                      />
+                      <input value={reel.category} onChange={(e) => updateArrayItem('showreels', idx, 'category', e.target.value)} style={inputStyle} />
                     </div>
                     <div>
                       <label style={miniLabelStyle}>Location</label>
-                      <input 
-                        value={reel.location} 
-                        onChange={(e) => updateArrayItem('showreels', idx, 'location', e.target.value)} 
-                        style={inputStyle} 
-                      />
+                      <input value={reel.location} onChange={(e) => updateArrayItem('showreels', idx, 'location', e.target.value)} style={inputStyle} />
                     </div>
                     <div>
                       <label style={miniLabelStyle}>Duration</label>
-                      <input 
-                        value={reel.duration} 
-                        onChange={(e) => updateArrayItem('showreels', idx, 'duration', e.target.value)} 
-                        style={inputStyle} 
-                      />
+                      <input value={reel.duration} onChange={(e) => updateArrayItem('showreels', idx, 'duration', e.target.value)} style={inputStyle} />
                     </div>
                   </div>
-
-                  {/* Synopsis */}
-                  <label style={miniLabelStyle}>Synopsis</label>
-                  <textarea 
-                    value={reel.synopsis || ''} 
-                    onChange={(e) => updateArrayItem('showreels', idx, 'synopsis', e.target.value)} 
-                    style={{ ...inputStyle, height: '60px' }} 
-                  />
                 </div>
               ))}
             </div>
@@ -371,7 +521,7 @@ export default function AdminChange() {
         )}
 
         {/* ======================================================== */}
-        {/* TAB: 360° ORBIT APERTURE (CinematicReveal)                */}
+        {/* TAB: 360° ORBIT APERTURE                                 */}
         {/* ======================================================== */}
         {activeTab === 'orbit' && (
           <div>
@@ -393,57 +543,31 @@ export default function AdminChange() {
                     </span>
                   </div>
 
-                  {/* Image Preview */}
                   <div style={{ position: 'relative', width: '100%', height: '170px', borderRadius: '10px', overflow: 'hidden', background: '#000', marginBottom: '14px' }}>
                     <img src={moment.url} alt={moment.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
 
-                  {/* Upload Image (Updates both master url and thumbnail) */}
                   <label style={{ ...uploadButtonStyle, width: '100%', marginBottom: '14px' }}>
                     <Upload size={14} /> Upload Frame Image
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      style={{ display: 'none' }} 
-                      onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        const url = await uploadToCloudinary(file);
-                        if (url) {
-                          updateArrayItem('orbitMoments', idx, 'url', url);
-                          updateArrayItem('orbitMoments', idx, 'thumb', url);
-                        }
-                      }} 
-                    />
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const url = await uploadToCloudinary(file);
+                      if (url) {
+                        updateArrayItem('orbitMoments', idx, 'url', url);
+                        updateArrayItem('orbitMoments', idx, 'thumb', url);
+                      }
+                    }} />
                   </label>
 
                   <label style={miniLabelStyle}>Tag / Header</label>
-                  <input 
-                    value={moment.tag} 
-                    onChange={(e) => updateArrayItem('orbitMoments', idx, 'tag', e.target.value)} 
-                    style={inputStyle} 
-                  />
+                  <input value={moment.tag} onChange={(e) => updateArrayItem('orbitMoments', idx, 'tag', e.target.value)} style={inputStyle} />
 
                   <label style={miniLabelStyle}>Story Title</label>
-                  <input 
-                    value={moment.title} 
-                    onChange={(e) => updateArrayItem('orbitMoments', idx, 'title', e.target.value)} 
-                    style={inputStyle} 
-                  />
+                  <input value={moment.title} onChange={(e) => updateArrayItem('orbitMoments', idx, 'title', e.target.value)} style={inputStyle} />
 
                   <label style={miniLabelStyle}>Technical Lens / Focal Spec</label>
-                  <input 
-                    value={moment.focal} 
-                    onChange={(e) => updateArrayItem('orbitMoments', idx, 'focal', e.target.value)} 
-                    style={inputStyle} 
-                  />
-
-                  <label style={miniLabelStyle}>Story Description</label>
-                  <textarea 
-                    value={moment.desc} 
-                    onChange={(e) => updateArrayItem('orbitMoments', idx, 'desc', e.target.value)} 
-                    style={{ ...inputStyle, height: '60px' }} 
-                  />
+                  <input value={moment.focal} onChange={(e) => updateArrayItem('orbitMoments', idx, 'focal', e.target.value)} style={inputStyle} />
                 </div>
               ))}
             </div>
@@ -451,7 +575,7 @@ export default function AdminChange() {
         )}
 
         {/* ======================================================== */}
-        {/* TAB: DIRECTOR'S VIEWFINDER (EventPlanner)                */}
+        {/* TAB: DIRECTOR'S VIEWFINDER                               */}
         {/* ======================================================== */}
         {activeTab === 'viewfinder' && (
           <div>
@@ -473,7 +597,6 @@ export default function AdminChange() {
                     </span>
                   </div>
 
-                  {/* Dual Image Previews (Graded vs Raw) */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
                     <div>
                       <span style={{ fontSize: '10px', color: 'var(--gold, #c6a46b)', display: 'block', marginBottom: '4px' }}>Graded 35mm</span>
@@ -482,7 +605,12 @@ export default function AdminChange() {
                       </div>
                       <label style={{ ...uploadButtonStyle, width: '100%', marginTop: '6px', fontSize: '11px', padding: '6px' }}>
                         <Upload size={12} /> Change Graded
-                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleItemMediaUpload(e, 'viewfinderShots', idx, 'imgGraded')} />
+                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          const url = await uploadToCloudinary(file);
+                          if (url) updateArrayItem('viewfinderShots', idx, 'imgGraded', url);
+                        }} />
                       </label>
                     </div>
 
@@ -493,39 +621,19 @@ export default function AdminChange() {
                       </div>
                       <label style={{ ...uploadButtonStyle, width: '100%', marginTop: '6px', fontSize: '11px', padding: '6px', background: '#222', color: '#fff', border: '1px solid #444' }}>
                         <Upload size={12} /> Change RAW
-                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleItemMediaUpload(e, 'viewfinderShots', idx, 'imgRaw')} />
+                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          const url = await uploadToCloudinary(file);
+                          if (url) updateArrayItem('viewfinderShots', idx, 'imgRaw', url);
+                        }} />
                       </label>
                     </div>
                   </div>
 
-                  {/* Lens, Category, Focal Name */}
                   <label style={miniLabelStyle}>Focal & Shot Name</label>
-                  <input 
-                    value={shot.focalName} 
-                    onChange={(e) => updateArrayItem('viewfinderShots', idx, 'focalName', e.target.value)} 
-                    style={inputStyle} 
-                  />
+                  <input value={shot.focalName} onChange={(e) => updateArrayItem('viewfinderShots', idx, 'focalName', e.target.value)} style={inputStyle} />
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    <div>
-                      <label style={miniLabelStyle}>Lens Spec</label>
-                      <input 
-                        value={shot.lens} 
-                        onChange={(e) => updateArrayItem('viewfinderShots', idx, 'lens', e.target.value)} 
-                        style={inputStyle} 
-                      />
-                    </div>
-                    <div>
-                      <label style={miniLabelStyle}>Category</label>
-                      <input 
-                        value={shot.category} 
-                        onChange={(e) => updateArrayItem('viewfinderShots', idx, 'category', e.target.value)} 
-                        style={inputStyle} 
-                      />
-                    </div>
-                  </div>
-
-                  {/* Camera Telemetry */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
                     <div>
                       <label style={miniLabelStyle}>Shutter</label>
@@ -544,13 +652,6 @@ export default function AdminChange() {
                       <input value={shot.kelvin} onChange={(e) => updateArrayItem('viewfinderShots', idx, 'kelvin', e.target.value)} style={inputStyle} />
                     </div>
                   </div>
-
-                  <label style={miniLabelStyle}>Description</label>
-                  <textarea 
-                    value={shot.desc} 
-                    onChange={(e) => updateArrayItem('viewfinderShots', idx, 'desc', e.target.value)} 
-                    style={{ ...inputStyle, height: '55px' }} 
-                  />
                 </div>
               ))}
             </div>
@@ -558,7 +659,7 @@ export default function AdminChange() {
         )}
 
         {/* ======================================================== */}
-        {/* TAB: CINEMATIC FILM STRIP (CinematicStrip)               */}
+        {/* TAB: CINEMATIC FILM STRIP                                */}
         {/* ======================================================== */}
         {activeTab === 'strip' && (
           <div>
@@ -568,8 +669,7 @@ export default function AdminChange() {
               sub="Manage the scrolling 35mm film cells across the top row (glides left) and bottom row (glides right)."
             />
 
-            {/* Top Row Cards */}
-            <h4 style={{ color: 'var(--gold, #c6a46b)', fontSize: '16px', margin: '20px 0 14px' }}>Top Row (Gliding Left - 5 Photos)</h4>
+            <h4 style={{ color: 'var(--gold, #c6a46b)', fontSize: '16px', margin: '20px 0 14px' }}>Top Row (Gliding Left)</h4>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '35px' }}>
               {content.stripTopWorks.map((work, idx) => (
                 <div key={work.id || idx} style={boxCardStyle}>
@@ -578,7 +678,12 @@ export default function AdminChange() {
                   </div>
                   <label style={{ ...uploadButtonStyle, width: '100%', marginBottom: '10px' }}>
                     <Upload size={13} /> Change Photo
-                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleItemMediaUpload(e, 'stripTopWorks', idx, 'img')} />
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const url = await uploadToCloudinary(file);
+                      if (url) updateArrayItem('stripTopWorks', idx, 'img', url);
+                    }} />
                   </label>
                   <input value={work.title} onChange={(e) => updateArrayItem('stripTopWorks', idx, 'title', e.target.value)} placeholder="Title" style={{ ...inputStyle, marginBottom: '6px' }} />
                   <input value={work.category} onChange={(e) => updateArrayItem('stripTopWorks', idx, 'category', e.target.value)} placeholder="Category" style={inputStyle} />
@@ -586,8 +691,7 @@ export default function AdminChange() {
               ))}
             </div>
 
-            {/* Bottom Row Cards */}
-            <h4 style={{ color: 'var(--gold, #c6a46b)', fontSize: '16px', margin: '20px 0 14px' }}>Bottom Row (Gliding Right - 5 Photos)</h4>
+            <h4 style={{ color: 'var(--gold, #c6a46b)', fontSize: '16px', margin: '20px 0 14px' }}>Bottom Row (Gliding Right)</h4>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
               {content.stripBottomWorks.map((work, idx) => (
                 <div key={work.id || idx} style={boxCardStyle}>
@@ -596,7 +700,12 @@ export default function AdminChange() {
                   </div>
                   <label style={{ ...uploadButtonStyle, width: '100%', marginBottom: '10px' }}>
                     <Upload size={13} /> Change Photo
-                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleItemMediaUpload(e, 'stripBottomWorks', idx, 'img')} />
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const url = await uploadToCloudinary(file);
+                      if (url) updateArrayItem('stripBottomWorks', idx, 'img', url);
+                    }} />
                   </label>
                   <input value={work.title} onChange={(e) => updateArrayItem('stripBottomWorks', idx, 'title', e.target.value)} placeholder="Title" style={{ ...inputStyle, marginBottom: '6px' }} />
                   <input value={work.category} onChange={(e) => updateArrayItem('stripBottomWorks', idx, 'category', e.target.value)} placeholder="Category" style={inputStyle} />
@@ -625,7 +734,12 @@ export default function AdminChange() {
                   </div>
                   <label style={{ ...uploadButtonStyle, width: '100%', marginBottom: '14px' }}>
                     <Upload size={14} /> Upload Card Photo
-                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleItemMediaUpload(e, 'featuredWorks', idx, 'img')} />
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const url = await uploadToCloudinary(file);
+                      if (url) updateArrayItem('featuredWorks', idx, 'img', url);
+                    }} />
                   </label>
                   <label style={miniLabelStyle}>Card Title</label>
                   <input value={item.title} onChange={(e) => updateArrayItem('featuredWorks', idx, 'title', e.target.value)} style={inputStyle} />
@@ -638,13 +752,13 @@ export default function AdminChange() {
         )}
 
         {/* ======================================================== */}
-        {/* TAB: HERO & INTRO STORY                                  */}
+        {/* TAB: HOMEPAGE CONTENT                                    */}
         {/* ======================================================== */}
         {activeTab === 'hero' && (
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
             <SectionHeader 
               tag="HEADER & INTRODUCTION" 
-              title="Hero Titles & Story Copy" 
+              title="Homepage Titles & Intro Story" 
               sub="Edit the opening typography and philosophy statement of Photo In Motion."
             />
 
@@ -665,7 +779,7 @@ export default function AdminChange() {
         )}
 
         {/* ======================================================== */}
-        {/* TAB: TESTIMONIALS (6 CLIENTS)                            */}
+        {/* TAB: TESTIMONIALS (6 ITEMS)                              */}
         {/* ======================================================== */}
         {activeTab === 'testimonials' && (
           <div>
@@ -692,7 +806,7 @@ export default function AdminChange() {
         )}
 
         {/* ======================================================== */}
-        {/* TAB: PORTFOLIO & EVENT TYPES (EXISTING MANAGER)          */}
+        {/* TAB: PORTFOLIO & CATEGORIES                              */}
         {/* ======================================================== */}
         {activeTab === 'portfolio' && (
           <div>
@@ -702,7 +816,6 @@ export default function AdminChange() {
               sub="Add, edit, and organize client wedding & celebration photo albums."
             />
 
-            {/* Category Filter Tabs */}
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '35px', flexWrap: 'wrap' }}>
               {content.categories.map(cat => (
                 <button
@@ -796,7 +909,6 @@ export default function AdminChange() {
                   </label>
                 </div>
 
-                {/* Wedding Sub-categories or General Gallery */}
                 {selectedCategory === 'Wedding' ? (
                   WEDDING_SUB_CATEGORIES.map(subCat => (
                     <div key={subCat} style={{ background: '#101010', padding: '16px', borderRadius: '8px', marginBottom: '14px' }}>
@@ -881,7 +993,7 @@ export default function AdminChange() {
   );
 }
 
-// Reusable Section Header Component
+// Helpers & Styles
 function SectionHeader({ tag, title, sub }) {
   return (
     <div style={{ textAlign: 'center', marginBottom: '35px' }}>
@@ -898,14 +1010,24 @@ function SectionHeader({ tag, title, sub }) {
   );
 }
 
-// Styles
 const boxCardStyle = {
   background: '#131313',
   border: '1px solid rgba(255, 255, 255, 0.07)',
   borderRadius: '14px',
-  padding: '20px',
+  padding: '24px',
+  marginBottom: '24px',
   display: 'flex',
   flexDirection: 'column'
+};
+
+const sectionHeadingStyle = {
+  fontFamily: 'var(--heading-font, serif)',
+  fontSize: '18px',
+  color: '#fff',
+  margin: '0 0 16px 0',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px'
 };
 
 const labelStyle = { 
@@ -924,7 +1046,7 @@ const miniLabelStyle = {
   fontSize: '10.5px',
   letterSpacing: '0.5px',
   marginBottom: '4px',
-  marginTop: '10px',
+  marginTop: '8px',
   textTransform: 'uppercase',
   fontWeight: 600
 };
