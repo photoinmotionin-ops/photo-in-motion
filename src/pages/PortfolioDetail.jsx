@@ -12,11 +12,31 @@ export default function PortfolioDetail() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // 1. INSTANT CACHE LOAD
+  useEffect(() => {
+    const cachedData = localStorage.getItem('portfolio_cache');
+    if (cachedData) {
+      const parsed = JSON.parse(cachedData);
+      const foundClient = parsed.portfolioItems?.find(i => String(i.id) === String(id));
+      if (foundClient) {
+        setClient(foundClient);
+        setLoading(false); // Hide loader instantly
+      }
+    }
+  }, [id]);
+
+  // 2. FETCH FRESH DATA
   useEffect(() => {
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(data => {
         if (data.portfolioItems) {
+          // Update cache with fresh data
+          localStorage.setItem('portfolio_cache', JSON.stringify({
+            portfolioItems: data.portfolioItems,
+            categories: data.categories || ['Wedding', 'Birthday', 'Corporate']
+          }));
+          
           const foundClient = data.portfolioItems.find(i => String(i.id) === String(id));
           setClient(foundClient);
         }
@@ -25,7 +45,7 @@ export default function PortfolioDetail() {
       .catch(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading...</div>;
+  if (loading && !client) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading...</div>;
   if (!client) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Event not found</div>;
 
   const activeImages = client.subCategories?.[activeTab] || [];

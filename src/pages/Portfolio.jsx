@@ -6,18 +6,24 @@ import { ArrowUpRight, Camera } from 'lucide-react';
 export default function Portfolio() {
   const [portfolioItems, setPortfolioItems] = useState([]);
   const [categories, setCategories] = useState(['Wedding', 'Birthday', 'Corporate']);
-  const [loading, setLoading] = useState(true);
+  // Initialize loading as false if we have cache, otherwise true
+  const [loading, setLoading] = useState(true); 
   const [activeCategory, setActiveCategory] = useState('All');
   const [currentPage, setCurrentPage] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
+  // 1. INSTANT CACHE LOAD
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const cachedData = localStorage.getItem('portfolio_cache');
+    if (cachedData) {
+      const parsed = JSON.parse(cachedData);
+      setPortfolioItems(parsed.portfolioItems || []);
+      setCategories(parsed.categories || ['Wedding', 'Birthday', 'Corporate']);
+      setLoading(false); // Instantly hide loader
+    }
   }, []);
 
+  // 2. FETCH FRESH DATA IN BACKGROUND
   useEffect(() => {
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
@@ -28,9 +34,23 @@ export default function Portfolio() {
         if (data.categories && data.categories.length > 0) {
           setCategories(data.categories);
         }
+        
+        // Save to cache for next time
+        localStorage.setItem('portfolio_cache', JSON.stringify({
+          portfolioItems: data.portfolioItems || [],
+          categories: data.categories || ['Wedding', 'Birthday', 'Corporate']
+        }));
+
         setLoading(false);
       })
       .catch(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   useEffect(() => {
@@ -57,7 +77,8 @@ export default function Portfolio() {
     return () => clearInterval(interval);
   }, [totalPages, activeCategory]);
 
-  if (loading) {
+  // Show loading ONLY if we have no cache and data is still fetching
+  if (loading && portfolioItems.length === 0) {
     return (
       <div style={{ color: 'white', padding: '100px', textAlign: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
         <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.5, repeat: Infinity }}>
@@ -79,7 +100,6 @@ export default function Portfolio() {
           </h2>
         </div>
 
-        {/* DYNAMIC CATEGORY FILTERS */}
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '40px', flexWrap: 'wrap' }}>
           <button 
             onClick={() => setActiveCategory('All')}
@@ -109,58 +129,31 @@ export default function Portfolio() {
           ))}
         </div>
 
-        {/* MAIN GRID OR EMPTY STATE */}
         <div style={{ position: 'relative', minHeight: isMobile ? '600px' : '750px', maxWidth: '1400px', margin: '0 auto' }}>
           
           {filteredItems.length === 0 ? (
-            
-            /* THE COMING SOON EMPTY STATE */
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                minHeight: '400px',
-                textAlign: 'center',
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px dashed var(--gold)',
-                borderRadius: '16px',
-                padding: '40px'
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                height: '100%', minHeight: '400px', textAlign: 'center', background: 'rgba(255,255,255,0.02)',
+                border: '1px dashed var(--gold)', borderRadius: '16px', padding: '40px'
               }}
             >
               <motion.div
                 animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '50%',
-                  background: 'rgba(198, 164, 107, 0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--gold)',
-                  marginBottom: '20px'
-                }}
+                style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(198, 164, 107, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gold)', marginBottom: '20px' }}
               >
                 <Camera size={40} strokeWidth={1.5} />
               </motion.div>
-              
-              <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', margin: '0 0 10px' }}>
-                Coming Soon
-              </h3>
+              <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', margin: '0 0 10px' }}>Coming Soon</h3>
               <p style={{ color: 'var(--muted)', fontSize: '15px', maxWidth: '400px', lineHeight: '1.8' }}>
                 We are currently curating our finest {activeCategory !== 'All' ? activeCategory : ''} moments for this collection. Please check back soon!
               </p>
             </motion.div>
-
           ) : (
-            
-            /* THE ACTUAL PORTFOLIO GRID */
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentPage}
@@ -169,27 +162,15 @@ export default function Portfolio() {
                 exit={{ opacity: 0, x: -100 }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
                 style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', 
-                  gap: '20px',
-                  width: '100%',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0
+                  display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', 
+                  gap: '20px', width: '100%', position: 'absolute', top: 0, left: 0
                 }}
               >
                 {currentItems.map((item) => (
                   <Link to={`/portfolio/${item.id}`} key={item.id} style={{ textDecoration: 'none' }}>
                     <motion.div 
                       whileHover="hover"
-                      style={{ 
-                        borderRadius: '12px', 
-                        overflow: 'hidden', 
-                        position: 'relative', 
-                        cursor: 'pointer',
-                        aspectRatio: '4/3',
-                        background: '#111'
-                      }}
+                      style={{ borderRadius: '12px', overflow: 'hidden', position: 'relative', cursor: 'pointer', aspectRatio: '4/3', background: '#111' }}
                     >
                       <motion.img 
                         src={item.mainImage} 
@@ -200,20 +181,9 @@ export default function Portfolio() {
                       />
                       
                       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent 60%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '25px' }}>
-                        
-                        <motion.div 
-                          variants={{ hover: { opacity: 1 } }}
-                          initial={{ opacity: 0 }}
-                          style={{ position: 'absolute', inset: '10px', border: '1px solid var(--gold)', borderRadius: '8px', pointerEvents: 'none' }}
-                        />
-
-                        <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 5px' }}>
-                          {item.category}
-                        </p>
-                        <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '26px', margin: '0 0 10px' }}>
-                          {item.title}
-                        </h3>
-                        
+                        <motion.div variants={{ hover: { opacity: 1 } }} initial={{ opacity: 0 }} style={{ position: 'absolute', inset: '10px', border: '1px solid var(--gold)', borderRadius: '8px', pointerEvents: 'none' }} />
+                        <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 5px' }}>{item.category}</p>
+                        <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '26px', margin: '0 0 10px' }}>{item.title}</h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--gold)', marginTop: '10px', fontSize: '12px', fontWeight: 600 }}>
                           Explore Story <ArrowUpRight size={14} />
                         </div>
@@ -223,27 +193,16 @@ export default function Portfolio() {
                 ))}
               </motion.div>
             </AnimatePresence>
-
           )}
         </div>
 
-        {/* Pagination Dots (Only show if items exist) */}
         {filteredItems.length > 0 && totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '40px', position: 'relative', zIndex: 10 }}>
             {Array.from({ length: totalPages }).map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentPage(idx)}
-                style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  background: currentPage === idx ? 'var(--gold)' : 'rgba(255,255,255,0.2)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                  padding: 0
-                }}
+                style={{ width: '8px', height: '8px', borderRadius: '50%', background: currentPage === idx ? 'var(--gold)' : 'rgba(255,255,255,0.2)', border: 'none', cursor: 'pointer', transition: 'all 0.3s', padding: 0 }}
               />
             ))}
           </div>
