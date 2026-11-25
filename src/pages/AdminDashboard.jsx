@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Mail, Phone, Calendar, MapPin, DollarSign, Clock, Edit, Trash2, MessageCircle, AlertTriangle, X } from 'lucide-react';
+import { LogOut, Mail, Phone, Calendar, MapPin, DollarSign, Clock, Edit, Trash2, MessageCircle, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Helper to format date nicely
@@ -21,8 +21,12 @@ export default function AdminDashboard() {
   const [enquiries, setEnquiries] = useState([]);
   const [filteredEnquiries, setFilteredEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterDate, setFilterDate] = useState('All'); // 'All', 'Today', 'Yesterday'
-  const [deleteId, setDeleteId] = useState(null); // For Modal
+  
+  // Filtering States
+  const [filterType, setFilterType] = useState('All'); // 'All', 'Today', 'Yesterday', 'Custom'
+  const [customDate, setCustomDate] = useState('');
+  
+  const [deleteId, setDeleteId] = useState(null); 
   
   const navigate = useNavigate();
   const adminName = localStorage.getItem('adminName');
@@ -55,25 +59,22 @@ export default function AdminDashboard() {
 
   // Handle Filtering Logic
   useEffect(() => {
-    if (filterDate === 'All') {
+    if (filterType === 'All') {
       setFilteredEnquiries(enquiries);
-    } else {
-      const filtered = enquiries.filter(enq => {
-        const createdDate = new Date(enq.createdAt);
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-
-        if (filterDate === 'Today') return createdDate.toDateString() === today.toDateString();
-        if (filterDate === 'Yesterday') return createdDate.toDateString() === yesterday.toDateString();
-        
-        // For specific dates
-        if (filterDate === createdDate.toISOString().split('T')[0]) return true;
-        return false;
-      });
-      setFilteredEnquiries(filtered);
+    } else if (filterType === 'Today') {
+      const today = new Date();
+      setFilteredEnquiries(enquiries.filter(enq => new Date(enq.createdAt).toDateString() === today.toDateString()));
+    } else if (filterType === 'Yesterday') {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      setFilteredEnquiries(enquiries.filter(enq => new Date(enq.createdAt).toDateString() === yesterday.toDateString()));
+    } else if (filterType === 'Custom' && customDate) {
+      setFilteredEnquiries(enquiries.filter(enq => {
+        const enqDate = new Date(enq.createdAt).toISOString().split('T')[0];
+        return enqDate === customDate;
+      }));
     }
-  }, [filterDate, enquiries]);
+  }, [filterType, customDate, enquiries]);
 
   const handleLogout = () => {
     localStorage.removeItem('isAdmin');
@@ -82,14 +83,11 @@ export default function AdminDashboard() {
   };
 
   const confirmDelete = () => {
-    // Here you would call your API to delete from MongoDB
-    // For now, we just remove it from local state to show the UI working
+    // Here you would normally call your API to delete from MongoDB
     const updated = enquiries.filter(e => e._id !== deleteId);
     setEnquiries(updated);
     setFilteredEnquiries(updated);
     localStorage.setItem('enquiriesCache', JSON.stringify(updated));
-    
-    // alert(`Enquiry deleted! API call needed to remove from DB.`);
     setDeleteId(null);
   };
 
@@ -141,23 +139,29 @@ export default function AdminDashboard() {
       </div>
 
       {/* FILTER & COUNT */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', flexWrap: 'wrap', gap: '20px' }}>
         <h2 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '24px', margin: 0 }}>Total Enquiries: {filteredEnquiries.length}</h2>
         
-        {/* DATE FILTER DROPDOWN */}
-        <div className="custom-select-wrapper" style={{ width: '250px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <select 
-            value={filterDate} 
-            onChange={(e) => setFilterDate(e.target.value)}
-            className="custom-select"
-            style={{ width: '100%', padding: '12px', background: '#171717', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--white)', fontSize: '14px', outline: 'none', cursor: 'pointer', appearance: 'none' }}
+            value={filterType} 
+            onChange={(e) => setFilterType(e.target.value)}
+            style={{ padding: '12px', background: '#171717', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--white)', outline: 'none', cursor: 'pointer' }}
           >
             <option value="All">All Dates</option>
             <option value="Today">Today</option>
             <option value="Yesterday">Yesterday</option>
-            {/* Option to pick a specific date */}
-            <option value={new Date().toISOString().split('T')[0]}>Specific Date (Today)</option>
+            <option value="Custom">Custom Date</option>
           </select>
+
+          {filterType === 'Custom' && (
+            <input 
+              type="date" 
+              value={customDate}
+              onChange={(e) => setCustomDate(e.target.value)}
+              style={{ padding: '12px', background: '#171717', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--white)', outline: 'none', colorScheme: 'dark' }}
+            />
+          )}
         </div>
       </div>
 
@@ -169,8 +173,6 @@ export default function AdminDashboard() {
             key={enq._id}
             style={{ background: '#171717', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', position: 'relative', display: 'flex', flexDirection: 'column' }}
           >
-            
-            {/* HEADER: Created Date & Icon */}
             <div style={{ position: 'absolute', top: '20px', right: '20px', textAlign: 'right' }}>
               <span style={{ display: 'block', color: 'var(--gold)', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Created: {formatDate(enq.createdAt)}
@@ -202,7 +204,6 @@ export default function AdminDashboard() {
                 <Trash2 size={16} />
               </button>
             </div>
-
           </motion.div>
         ))}
       </div>

@@ -1,33 +1,19 @@
 import { MongoClient } from 'mongodb';
 import nodemailer from 'nodemailer';
 
-// ==========================================
-// CONFIGURATION (Allow large image uploads)
-// ==========================================
 export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
+  api: { bodyParser: { sizeLimit: '10mb' } },
 };
 
-// ==========================================
-// REPLACE THESE WITH YOUR ACTUAL GMAIL DETAILS
-// ==========================================
 const MY_EMAIL = 'photoinmotion.in@gmail.com'; 
 const MY_APP_PASSWORD = 'foizvbxjkidfmoet'; 
-// ==========================================
 
 const uri = process.env.MONGODB_URI;
 const DB_NAME = 'photoinmotion';
 
 let cachedClient = null;
-
 async function connectToDatabase() {
-  if (cachedClient) {
-    return cachedClient;
-  }
+  if (cachedClient) return cachedClient;
   const client = new MongoClient(uri);
   await client.connect();
   cachedClient = client;
@@ -42,41 +28,58 @@ export default async function handler(req, res) {
     const enquiriesCol = db.collection('enquiries');
     const usersCol = db.collection('users');
 
-    // ==========================================
-    // 1. ENQUIRY FORM SUBMISSION (WITH EMAILS)
-    // ==========================================
     if (req.method === 'POST' && req.body.action === 'submit_enquiry') {
       const { name, email, phone, eventType, eventDate, location, budget, requirements, otherDescription } = req.body;
       
-      // 1a. Save to Database
       await enquiriesCol.insertOne({
         name, email, phone, eventType, eventDate, location, budget, requirements, otherDescription,
         status: 'unread', createdAt: new Date()
       });
 
-      // 1b. Setup Email Transporter
       const transporter = nodemailer.createTransport({
         service: 'gmail',
-        auth: {
-          user: MY_EMAIL,
-          pass: MY_APP_PASSWORD
-        }
+        auth: { user: MY_EMAIL, pass: MY_APP_PASSWORD }
       });
 
-      // 1c. Send Email to Admin
+      // 1. ADMIN EMAIL (Professional HTML Format)
       const adminMailOptions = {
-        from: MY_EMAIL,
+        from: `"Photo In Motion" <${MY_EMAIL}>`,
         to: MY_EMAIL,
-        subject: `New Enquiry: ${name} - ${eventType}`,
-        text: `You have received a new booking enquiry!\n\nClient Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nEvent Type: ${eventType}\nEvent Date: ${eventDate}\nLocation: ${location}\nBudget: ${budget}\nOther Details: ${otherDescription || requirements || 'None'}`
+        replyTo: email, 
+        subject: `New Booking Enquiry: ${name} - ${eventType}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #111; color: #fff; padding: 20px; border-radius: 10px;">
+            <h2 style="color: #c6a46b; border-bottom: 1px solid #333; padding-bottom: 10px;">New Client Enquiry</h2>
+            <p style="font-size: 16px;"><strong>Name:</strong> ${name}</p>
+            <p style="font-size: 16px;"><strong>Phone:</strong> ${phone}</p>
+            <p style="font-size: 16px;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #c6a46b;">${email}</a></p>
+            <p style="font-size: 16px;"><strong>Event Type:</strong> ${eventType}</p>
+            <p style="font-size: 16px;"><strong>Event Date:</strong> ${eventDate}</p>
+            <p style="font-size: 16px;"><strong>Location:</strong> ${location}</p>
+            <p style="font-size: 16px;"><strong>Budget:</strong> ${budget}</p>
+            <div style="background: #1a1a1a; padding: 15px; border-left: 4px solid #c6a46b; margin-top: 20px;">
+              <p style="margin: 0; font-style: italic; color: #aaa;">"${otherDescription || requirements || 'No additional details.'}"</p>
+            </div>
+          </div>
+        `
       };
 
-      // 1d. Send Confirmation Email to User
+      // 2. USER EMAIL (Beautiful Confirmation)
       const userMailOptions = {
-        from: MY_EMAIL,
+        from: `"Photo In Motion" <${MY_EMAIL}>`,
         to: email,
         subject: `Thank you for your enquiry - Photo In Motion`,
-        text: `Hello ${name},\n\nThank you for reaching out to Photo In Motion! We have received your enquiry for your ${eventType} on ${eventDate}.\n\nWe will review your details and get back to you shortly.\n\nBest regards,\nPhoto In Motion Team`
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0a0a0a; color: #fff; padding: 40px; border-radius: 10px; text-align: center; border: 1px solid #333;">
+            <h1 style="color: #c6a46b; font-size: 28px; margin-bottom: 10px;">Photo In Motion</h1>
+            <h2 style="color: #fff; font-size: 22px;">Hello ${name},</h2>
+            <p style="color: #aaa; font-size: 16px; line-height: 1.6;">Thank you for reaching out to us! We have successfully received your enquiry for your <strong>${eventType}</strong> on <strong>${eventDate}</strong>.</p>
+            <p style="color: #aaa; font-size: 16px; line-height: 1.6;">Our team is reviewing your details and will get back to you shortly to discuss the next steps.</p>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333;">
+              <p style="color: #666; font-size: 12px;">© ${new Date().getFullYear()} Photo In Motion. All rights reserved.</p>
+            </div>
+          </div>
+        `
       };
 
       try {
@@ -84,15 +87,12 @@ export default async function handler(req, res) {
         await transporter.sendMail(userMailOptions);
       } catch (emailError) {
         console.error("Email failed to send:", emailError);
-        // We don't block the success response if email fails, but we log the error
       }
 
       return res.status(201).json({ message: 'Enquiry saved successfully' });
     }
 
-    // ==========================================
-    // 2. ADMIN LOGIN
-    // ==========================================
+    // Keep the rest of your API code exactly the same...
     if (req.method === 'POST' && req.body.action === 'login') {
       const { username, password } = req.body;
       const user = await usersCol.findOne({ username });
@@ -102,30 +102,22 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'Login successful', username: user.username });
     }
 
-    // ==========================================
-    // 3. REQUEST OTP (Fetches email dynamically)
-    // ==========================================
     if (req.method === 'POST' && req.body.action === 'request_otp') {
       const { username } = req.body;
-      
       const user = await usersCol.findOne({ username });
       if (!user) return res.status(404).json({ message: 'User not found' });
 
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-      
       await usersCol.updateOne({ username }, { $set: { otp, otpExpires } });
 
       const transporter = nodemailer.createTransport({
         service: 'gmail',
-        auth: {
-          user: MY_EMAIL,
-          pass: MY_APP_PASSWORD
-        }
+        auth: { user: MY_EMAIL, pass: MY_APP_PASSWORD }
       });
 
       const mailOptions = {
-        from: MY_EMAIL,
+        from: `"Photo In Motion" <${MY_EMAIL}>`,
         to: user.email, 
         subject: 'Photo In Motion - Password Reset OTP',
         text: `Hello ${user.username},\n\nYour OTP for password reset is: ${otp}\n\nThis code expires in 10 minutes.`
@@ -135,14 +127,10 @@ export default async function handler(req, res) {
         await transporter.sendMail(mailOptions);
         return res.status(200).json({ message: 'OTP sent to your registered email' });
       } catch (emailError) {
-        console.error("Email Error:", emailError);
         return res.status(500).json({ message: 'Failed to send OTP email. Check Gmail credentials.' });
       }
     }
 
-    // ==========================================
-    // 4. RESET PASSWORD WITH OTP
-    // ==========================================
     if (req.method === 'POST' && req.body.action === 'reset_password') {
       const { username, otp, newPassword } = req.body;
       const user = await usersCol.findOne({ username });
@@ -158,9 +146,6 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'Password reset successfully' });
     }
 
-    // ==========================================
-    // 5. SAVE SITE CONTENT
-    // ==========================================
     if (req.method === 'POST' && req.body.action === 'save_content') {
       const { content } = req.body;
       await db.collection('site_content').updateOne(
@@ -171,17 +156,11 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'Content saved successfully' });
     }
 
-    // ==========================================
-    // 6. FETCH ENQUIRIES FOR DASHBOARD
-    // ==========================================
     if (req.method === 'GET' && req.query.action === 'get_enquiries') {
       const enquiries = await enquiriesCol.find({}).sort({ createdAt: -1 }).toArray();
       return res.status(200).json(enquiries);
     }
 
-    // ==========================================
-    // 7. FETCH SITE CONTENT
-    // ==========================================
     if (req.method === 'GET' && req.query.action === 'get_content') {
       const content = await db.collection('site_content').findOne({ _id: 'main_site' });
       return res.status(200).json(content || {});
