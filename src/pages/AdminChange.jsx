@@ -28,7 +28,7 @@ export default function AdminChange() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  
+
   const [selectedCategory, setSelectedCategory] = useState(MAIN_CATEGORIES[0]);
   const [editingClient, setEditingClient] = useState(null);
 
@@ -39,7 +39,7 @@ export default function AdminChange() {
       navigate('/admin/login');
       return;
     }
-    
+
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(data => {
@@ -59,7 +59,7 @@ export default function AdminChange() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'save_content', content })
       });
-      
+
       if (res.ok) {
         alert('Website content updated successfully!');
       } else {
@@ -109,7 +109,7 @@ export default function AdminChange() {
   const handleSaveClient = () => {
     setContent(prev => ({
       ...prev,
-      portfolioItems: prev.portfolioItems.map(item => 
+      portfolioItems: prev.portfolioItems.map(item =>
         item.id === editingClient.id ? editingClient : item
       )
     }));
@@ -126,22 +126,22 @@ export default function AdminChange() {
   };
 
   // UPDATED UPLOAD FUNCTION WITH SIZE LIMIT AND COMPRESSION
+  // UPDATED UPLOAD FUNCTION (Removed Transformation Parameter)
   const uploadToCloudinary = async (file) => {
     setUploading(true);
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    // This transformation forces the image to compress and resize if it's too large
-    formData.append('transformation', 'q_auto:good,f_auto,w_1200');
+    // REMOVED: formData.append('transformation', 'q_auto:good,f_auto,w_1200');
 
     try {
       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
         method: 'POST',
         body: formData
       });
-      
+
       const data = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(data.error?.message || 'Failed to upload image');
       }
@@ -205,7 +205,7 @@ export default function AdminChange() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '100px' }}>
-      
+
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)', zIndex: 100, padding: '20px 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <button onClick={() => navigate('/admin/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>
           <ArrowLeft size={20} /> Back to Dashboard
@@ -216,12 +216,12 @@ export default function AdminChange() {
       </div>
 
       <div style={{ paddingTop: '120px' }}>
-        
+
         {/* HOME CONTENT EDITOR */}
         <section style={{ padding: '50px 10%', background: 'var(--bg)' }}>
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
             <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', marginBottom: '30px' }}>Edit Homepage Content</h2>
-            
+
             <label style={labelStyle}>Hero Title</label>
             <textarea value={content.heroTitle} onChange={(e) => handleChange('heroTitle', e.target.value)} style={{ ...inputStyle, height: '80px' }} />
 
@@ -236,7 +236,7 @@ export default function AdminChange() {
 
             <label style={labelStyle}>Testimonial 1</label>
             <textarea value={content.testimonial1} onChange={(e) => handleChange('testimonial1', e.target.value)} style={{ ...inputStyle, height: '60px' }} />
-            
+
             <label style={labelStyle}>Testimonial 2</label>
             <textarea value={content.testimonial2} onChange={(e) => handleChange('testimonial2', e.target.value)} style={{ ...inputStyle, height: '60px' }} />
 
@@ -254,7 +254,7 @@ export default function AdminChange() {
 
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '50px' }}>
             {MAIN_CATEGORIES.map(cat => (
-              <button 
+              <button
                 key={cat}
                 onClick={() => { setSelectedCategory(cat); setEditingClient(null); }}
                 style={{ padding: '15px 30px', borderRadius: '30px', border: 'none', background: selectedCategory === cat ? 'var(--gold)' : '#222', color: selectedCategory === cat ? '#000' : '#fff', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
@@ -279,8 +279,8 @@ export default function AdminChange() {
                   </div>
                 </div>
               ))}
-              
-              <button 
+
+              <button
                 onClick={handleCreateClient}
                 style={{ background: 'rgba(255,255,255,0.05)', border: '2px dashed rgba(255,255,255,0.2)', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', cursor: 'pointer', color: 'var(--gold)' }}
               >
