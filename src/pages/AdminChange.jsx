@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Save, ArrowLeft, Upload, Loader2, Plus, Trash2, Edit2, 
-  Image as ImageIcon, Film, Video, Aperture, Camera, MessageSquare, 
+import {
+  Save, ArrowLeft, Upload, Loader2, Plus, Trash2, Edit2,
+  Image as ImageIcon, Film, Video, Aperture, Camera, MessageSquare,
   Sparkles, Layers, BookOpen, Clock, ShieldCheck
 } from 'lucide-react';
 
@@ -19,7 +19,7 @@ export default function AdminChange() {
     heroSub: "We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.",
     storyTitle: 'Moments pass.\nStories stay forever.',
     storyText: 'At Photo In Motion, we believe every celebration has a story worth telling. Through thoughtful photography and cinematic filmmaking, we preserve the feelings behind every frame.',
-    
+
     // ----------------------------------------------------
     // 2. HOME: FEATURED WORKS (3 CARDS)
     // ----------------------------------------------------
@@ -100,7 +100,7 @@ export default function AdminChange() {
     storyHeroEyebrow: 'THE LEGACY SINCE 2005',
     storyHeroHeading: 'Moments pass.\nStories stay forever.',
     storyHeroParagraph: 'At Photo In Motion Studio, our story is etched in patience, passion, and two decades of relentless craftsmanship. From our beginnings in Kendrapara to documenting state leaders, fashion icons, and royal weddings, we preserve the heartbeat behind every frame.',
-    
+
     storyStats: [
       { number: '2005', label: 'Est. in Kendrapara', sub: '20+ Years Heritage' },
       { number: 'VIPs', label: 'MLAs & Deputy CMs', sub: 'Trusted at Highest Level' },
@@ -115,7 +115,7 @@ export default function AdminChange() {
     storyOriginHeading: "From One Person's Vision to a Cinematic Powerhouse",
     storyOriginP1: "In 2005, in the historic town of Kendrapara, Photo In Motion began with just one person — Munu. With a single camera and an unwavering obsession with natural lighting and unposed emotional depth, every frame was treated as sacred art.",
     storyOriginP2: "What started as local wedding memories quickly evolved into a trusted production brand. As word spread, our lens captured high-profile state leaders — including MLAs and Deputy Chief Ministers — commanding the highest discretion, speed, and cinematic poise.",
-    
+
     storyMilestones: [
       { year: '2005', tag: 'THE HUMBLE GENESIS', title: 'One Man, One Camera in Kendrapara', desc: 'Founded by Munu as a solo visionary in Kendrapara. Driven by an uncompromising passion for raw human emotion and the craft of visual storytelling.' },
       { year: '2012', tag: 'HIGH-PROFILE TRUST', title: 'State Dignitaries & VIP Events', desc: 'Entrusted with documenting high-security, prestigious events for Members of Legislative Assembly (MLAs) and Deputy Chief Ministers (Deputy CMs).' },
@@ -134,7 +134,34 @@ export default function AdminChange() {
     // ----------------------------------------------------
     portfolioItems: [],
     categories: ['Wedding', 'Birthday', 'Corporate'],
-    eventTypes: ['Wedding', 'Baby Shower', 'Post Wedding', 'Car Delivery', 'Others']
+    eventTypes: ['Wedding', 'Baby Shower', 'Post Wedding', 'Car Delivery', 'Others'],
+
+    // Inside defaultContent:
+    eventTypes: ['Wedding', 'Baby Shower', 'Post Wedding', 'Car Delivery', 'Others'],
+    budgetRanges: ['Under ₹50,000', '₹50,000 - ₹1,00,000', '₹1,00,000 - ₹3,00,000', 'Above ₹3,00,000'],
+    enquiryServices: ['Photography', 'Cinematography', 'Drone / Aerial Coverage', 'Luxury Album Printing'],
+    enquirySuccessTitle: 'Enquiry Received',
+    enquirySuccessDesc: 'Thank you! We will review your details and get back to you within 24 hours.',
+
+    invitationEyebrow: 'YOU ARE INVITED',
+    invitationHeading: "Let's Create Magic Together",
+    invitationCardTitle: 'Open Your Invitation',
+    invitationCardSub: 'Click to start your booking enquiry.',
+    invitationBtnText: 'Start Your Enquiry',
+
+    processEyebrow: 'THE SEAMLESS PROCESS',
+    processHeading: 'How We Work',
+    processSteps: [
+      { title: '1. Enquire', desc: 'Tell us about your event and vision.' },
+      { title: '2. Consult', desc: 'We plan the perfect timeline together.' },
+      { title: '3. Capture', desc: 'We film your day, seamlessly.' }
+    ],
+
+    contactCtaEyebrow: "LET'S CREATE SOMETHING TIMELESS",
+    contactCtaHeading: "Your story deserves to be remembered.",
+    contactCtaDesc: "Have a celebration coming up? Let's talk about how we can turn your moments into lasting memories.",
+    contactCtaBtn: 'Start A Conversation',
+
   };
 
   const [content, setContent] = useState(defaultContent);
@@ -243,7 +270,7 @@ export default function AdminChange() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#fff', paddingBottom: '120px' }}>
-      
+
       {/* 1. TOP HEADER */}
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0,
@@ -252,8 +279,8 @@ export default function AdminChange() {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         borderBottom: '1px solid rgba(255,255,255,0.08)'
       }}>
-        <button 
-          onClick={() => navigate('/admin/dashboard')} 
+        <button
+          onClick={() => navigate('/admin/dashboard')}
           style={{ background: 'none', border: 'none', color: 'var(--gold, #c6a46b)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 700 }}
         >
           <ArrowLeft size={18} /> Dashboard
@@ -263,9 +290,9 @@ export default function AdminChange() {
           Site Customizer & Story Manager
         </h3>
 
-        <button 
-          onClick={handleSave} 
-          disabled={saving || uploading} 
+        <button
+          onClick={handleSave}
+          disabled={saving || uploading}
           style={{
             display: 'flex', alignItems: 'center', gap: '8px',
             padding: '10px 22px', borderRadius: '30px',
@@ -325,16 +352,16 @@ export default function AdminChange() {
         {/* ======================================================== */}
         {activeTab === 'storyPage' && (
           <div>
-            <SectionHeader 
-              tag="PAGE EDITOR" 
-              title="Our Story & Founder's Journey" 
+            <SectionHeader
+              tag="PAGE EDITOR"
+              title="Our Story & Founder's Journey"
               sub="Customise every heading, narrative paragraph, founder portrait, timeline milestones, and stats."
             />
 
             {/* A. STORY HERO & STATS */}
             <div style={boxCardStyle}>
               <h3 style={sectionHeadingStyle}><Sparkles size={18} color="var(--gold, #c6a46b)" /> 1. Story Hero Header & Stats</h3>
-              
+
               <label style={labelStyle}>Eyebrow Badge</label>
               <input value={content.storyHeroEyebrow} onChange={(e) => setContent(p => ({ ...p, storyHeroEyebrow: e.target.value }))} style={inputStyle} />
 
@@ -364,7 +391,7 @@ export default function AdminChange() {
             {/* B. THE FOUNDER'S JOURNEY (MUNU & KENDRAPARA) */}
             <div style={boxCardStyle}>
               <h3 style={sectionHeadingStyle}><Camera size={18} color="var(--gold, #c6a46b)" /> 2. Founder & Kendrapara Origin</h3>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '25px', marginBottom: '20px' }}>
                 <div>
                   <label style={labelStyle}>Founder Showcase Image</label>
@@ -402,7 +429,7 @@ export default function AdminChange() {
             {/* C. 20-YEAR TIMELINE MILESTONES (ALL 4) */}
             <div style={boxCardStyle}>
               <h3 style={sectionHeadingStyle}><Clock size={18} color="var(--gold, #c6a46b)" /> 3. Creative Milestones Timeline (4 Eras)</h3>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
                 {content.storyMilestones.map((item, idx) => (
                   <div key={idx} style={{ background: '#181818', padding: '16px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -425,7 +452,7 @@ export default function AdminChange() {
             {/* D. VERSATILITY ARENAS (VIPs, FASHION, YOUTUBE) */}
             <div style={boxCardStyle}>
               <h3 style={sectionHeadingStyle}><ShieldCheck size={18} color="var(--gold, #c6a46b)" /> 4. Versatility & Expertise Arenas (3 Cards)</h3>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
                 {content.storyArenas.map((arena, idx) => (
                   <div key={idx} style={{ background: '#181818', padding: '16px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -447,9 +474,9 @@ export default function AdminChange() {
         {/* ======================================================== */}
         {activeTab === 'reels' && (
           <div>
-            <SectionHeader 
-              tag="VIDEO PLAYER ANIMATION" 
-              title="Living Portfolio Showreel Videos" 
+            <SectionHeader
+              tag="VIDEO PLAYER ANIMATION"
+              title="Living Portfolio Showreel Videos"
               sub="Manage the 5 video clips, poster thumbnails, location badges, and duration timers for the interactive player."
             />
 
@@ -525,9 +552,9 @@ export default function AdminChange() {
         {/* ======================================================== */}
         {activeTab === 'orbit' && (
           <div>
-            <SectionHeader 
-              tag="GSAP 360° ORBIT" 
-              title="Constellation of Timeless Moments" 
+            <SectionHeader
+              tag="GSAP 360° ORBIT"
+              title="Constellation of Timeless Moments"
               sub="Manage the 6 revolving satellite nodes and the master center aperture iris photos."
             />
 
@@ -579,9 +606,9 @@ export default function AdminChange() {
         {/* ======================================================== */}
         {activeTab === 'viewfinder' && (
           <div>
-            <SectionHeader 
-              tag="REAL-TIME CAMERA ENGINE" 
-              title="Through The Director's Viewfinder" 
+            <SectionHeader
+              tag="REAL-TIME CAMERA ENGINE"
+              title="Through The Director's Viewfinder"
               sub="Manage the 6 shots, their 35mm Graded vs RAW sensor photos, focal names, shutter speeds, and f-stop apertures."
             />
 
@@ -663,9 +690,9 @@ export default function AdminChange() {
         {/* ======================================================== */}
         {activeTab === 'strip' && (
           <div>
-            <SectionHeader 
-              tag="DUAL-TRACK RIBBON" 
-              title="Cinematic Parallax Film Strip" 
+            <SectionHeader
+              tag="DUAL-TRACK RIBBON"
+              title="Cinematic Parallax Film Strip"
               sub="Manage the scrolling 35mm film cells across the top row (glides left) and bottom row (glides right)."
             />
 
@@ -720,9 +747,9 @@ export default function AdminChange() {
         {/* ======================================================== */}
         {activeTab === 'featured' && (
           <div>
-            <SectionHeader 
-              tag="SELECTED STORIES" 
-              title="Featured Works Grid (3 Cards)" 
+            <SectionHeader
+              tag="SELECTED STORIES"
+              title="Featured Works Grid (3 Cards)"
               sub="The 3 primary showcase cards placed on the homepage."
             />
 
@@ -756,9 +783,9 @@ export default function AdminChange() {
         {/* ======================================================== */}
         {activeTab === 'hero' && (
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <SectionHeader 
-              tag="HEADER & INTRODUCTION" 
-              title="Homepage Titles & Intro Story" 
+            <SectionHeader
+              tag="HEADER & INTRODUCTION"
+              title="Homepage Titles & Intro Story"
               sub="Edit the opening typography and philosophy statement of Photo In Motion."
             />
 
@@ -783,9 +810,9 @@ export default function AdminChange() {
         {/* ======================================================== */}
         {activeTab === 'testimonials' && (
           <div>
-            <SectionHeader 
-              tag="CLIENT LOVE" 
-              title="Client Testimonials (All 6)" 
+            <SectionHeader
+              tag="CLIENT LOVE"
+              title="Client Testimonials (All 6)"
               sub="Desktop rotates them 3-at-a-time every 4s; mobile slides through them 1-by-1."
             />
 
@@ -810,9 +837,9 @@ export default function AdminChange() {
         {/* ======================================================== */}
         {activeTab === 'portfolio' && (
           <div>
-            <SectionHeader 
-              tag="PORTFOLIO DATABASE" 
-              title="Client Portfolios & Categories" 
+            <SectionHeader
+              tag="PORTFOLIO DATABASE"
+              title="Client Portfolios & Categories"
               sub="Add, edit, and organize client wedding & celebration photo albums."
             />
 
@@ -971,7 +998,7 @@ export default function AdminChange() {
                   </div>
                 )}
 
-                <button 
+                <button
                   onClick={() => {
                     setContent(prev => ({
                       ...prev,
@@ -1030,14 +1057,14 @@ const sectionHeadingStyle = {
   gap: '8px'
 };
 
-const labelStyle = { 
-  display: 'block', 
-  color: 'var(--gold, #c6a46b)', 
-  marginBottom: '6px', 
-  fontSize: '12.5px', 
-  fontWeight: 600, 
-  letterSpacing: '0.8px', 
-  marginTop: '14px' 
+const labelStyle = {
+  display: 'block',
+  color: 'var(--gold, #c6a46b)',
+  marginBottom: '6px',
+  fontSize: '12.5px',
+  fontWeight: 600,
+  letterSpacing: '0.8px',
+  marginTop: '14px'
 };
 
 const miniLabelStyle = {
@@ -1051,15 +1078,15 @@ const miniLabelStyle = {
   fontWeight: 600
 };
 
-const inputStyle = { 
-  width: '100%', 
-  padding: '10px 12px', 
-  background: '#090909', 
-  border: '1px solid rgba(255, 255, 255, 0.1)', 
-  borderRadius: '6px', 
-  color: '#fff', 
-  fontSize: '13px', 
-  fontFamily: 'inherit', 
+const inputStyle = {
+  width: '100%',
+  padding: '10px 12px',
+  background: '#090909',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  borderRadius: '6px',
+  color: '#fff',
+  fontSize: '13px',
+  fontFamily: 'inherit',
   outline: 'none',
   boxSizing: 'border-box'
 };

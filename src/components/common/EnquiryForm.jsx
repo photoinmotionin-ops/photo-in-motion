@@ -2,13 +2,21 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react';
 
+const defaultEventTypes = ['Wedding', 'Baby Shower', 'Post Wedding', 'Car Delivery', 'Others'];
+const defaultBudgetRanges = ['Under ₹50,000', '₹50,000 - ₹1,00,000', '₹1,00,000 - ₹3,00,000', 'Above ₹3,00,000'];
+const defaultServices = ['Photography', 'Cinematography', 'Drone / Aerial Coverage', 'Luxury Album Printing'];
+
 export default function EnquiryForm({ isOpen, onClose }) {
   const [step, setStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const defaultEventTypes = ['Wedding', 'Baby Shower', 'Post Wedding', 'Car Delivery', 'Others'];
+  // Dynamic Admin Configs
   const [eventTypes, setEventTypes] = useState(defaultEventTypes);
+  const [budgetRanges, setBudgetRanges] = useState(defaultBudgetRanges);
+  const [availableServices, setAvailableServices] = useState(defaultServices);
+  const [successTitle, setSuccessTitle] = useState('Enquiry Received');
+  const [successDesc, setSuccessDesc] = useState('Thank you! We will review your details and get back to you within 24 hours.');
 
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '',
@@ -21,14 +29,27 @@ export default function EnquiryForm({ isOpen, onClose }) {
       fetch('/api/enquiry?action=get_content')
         .then(res => res.json())
         .then(data => {
-          if (data.eventTypes && data.eventTypes.length > 0) {
-            // SORTING LOGIC: Ensure "Others" is always the last item
-            const sortedTypes = [...data.eventTypes].sort((a, b) => {
-              if (a === 'Others') return 1;  // 'Others' goes down
-              if (b === 'Others') return -1; // 'Others' goes down
-              return 0; // Keep original order for the rest
-            });
-            setEventTypes(sortedTypes);
+          if (data) {
+            // Event types with 'Others' sorted last
+            if (data.eventTypes && data.eventTypes.length > 0) {
+              const sortedTypes = [...data.eventTypes].sort((a, b) => {
+                if (a === 'Others') return 1;
+                if (b === 'Others') return -1;
+                return 0;
+              });
+              setEventTypes(sortedTypes);
+            }
+            // Dynamic Budget Ranges
+            if (data.budgetRanges && data.budgetRanges.length > 0) {
+              setBudgetRanges(data.budgetRanges);
+            }
+            // Dynamic Services
+            if (data.enquiryServices && data.enquiryServices.length > 0) {
+              setAvailableServices(data.enquiryServices);
+            }
+            // Success messages
+            if (data.enquirySuccessTitle) setSuccessTitle(data.enquirySuccessTitle);
+            if (data.enquirySuccessDesc) setSuccessDesc(data.enquirySuccessDesc);
           }
         })
         .catch(() => {});
@@ -67,7 +88,7 @@ export default function EnquiryForm({ isOpen, onClose }) {
             setStep(1); 
             setFormData({ name: '', email: '', phone: '', eventType: '', eventDate: '', location: '', services: [], budget: '', otherDescription: '' });
           }, 500);
-        }, 4000);
+        }, 3500);
       } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.message || 'Something went wrong.'}`);
@@ -100,35 +121,37 @@ export default function EnquiryForm({ isOpen, onClose }) {
 
               {isSubmitted ? (
                 <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '40px 0' }}>
-                  <CheckCircle2 size={60} color="var(--gold)" style={{ margin: '0 auto 20px' }} />
-                  <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '36px', color: 'var(--white)', margin: '0 0 10px' }}>Enquiry Received</h3>
-                  <p style={{ color: 'var(--muted)' }}>Thank you! We will review your details and get back to you within 24 hours.</p>
+                  <CheckCircle2 size={60} color="var(--gold, #c6a46b)" style={{ margin: '0 auto 20px' }} />
+                  <h3 style={{ fontFamily: 'var(--heading-font, serif)', fontSize: '36px', color: 'var(--white, #fff)', margin: '0 0 10px' }}>{successTitle}</h3>
+                  <p style={{ color: 'var(--muted, #aaa)', fontSize: '14px', lineHeight: 1.6 }}>{successDesc}</p>
                 </motion.div>
               ) : (
                 <>
                   <div style={{ marginBottom: '30px' }}>
                     <p className="eyebrow" style={{ marginBottom: '10px' }}>BOOKING ENQUIRY</p>
-                    <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', margin: 0 }}>Let's Capture Your Story</h3>
+                    <h3 style={{ fontFamily: 'var(--heading-font, serif)', fontSize: '32px', color: 'var(--white, #fff)', margin: 0 }}>Let's Capture Your Story</h3>
                     <div style={{ display: 'flex', gap: '5px', marginTop: '20px' }}>
-                      {[1, 2, 3].map(i => <div key={i} style={{ height: '4px', flex: 1, background: step >= i ? 'var(--gold)' : 'rgba(255,255,255,0.1)', borderRadius: '2px', transition: 'all 0.3s' }} />)}
+                      {[1, 2, 3].map(i => <div key={i} style={{ height: '4px', flex: 1, background: step >= i ? 'var(--gold, #c6a46b)' : 'rgba(255,255,255,0.1)', borderRadius: '2px', transition: 'all 0.3s' }} />)}
                     </div>
                   </div>
 
                   <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    
+                    {/* STEP 1: PERSONAL DETAILS */}
                     {step === 1 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                        <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>1. YOUR DETAILS</h4>
+                        <h4 style={{ color: 'var(--gold, #c6a46b)', marginBottom: '15px', fontSize: '13px', letterSpacing: '1px' }}>1. YOUR DETAILS</h4>
                         <input type="text" name="name" placeholder="Full Name *" value={formData.name} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
                         <input type="email" name="email" placeholder="Email Address *" value={formData.email} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
                         <input type="tel" name="phone" placeholder="Phone Number *" value={formData.phone} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
                       </motion.div>
                     )}
 
+                    {/* STEP 2: EVENT DETAILS */}
                     {step === 2 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                        <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>2. EVENT DETAILS</h4>
+                        <h4 style={{ color: 'var(--gold, #c6a46b)', marginBottom: '15px', fontSize: '13px', letterSpacing: '1px' }}>2. EVENT DETAILS</h4>
                         
-                        {/* CUSTOM DROPDOWN */}
                         <div className="custom-select-wrapper" style={{ marginBottom: '15px' }}>
                           <select 
                             name="eventType" 
@@ -150,7 +173,6 @@ export default function EnquiryForm({ isOpen, onClose }) {
                           </motion.div>
                         )}
 
-                        {/* CUSTOM DATE PICKER */}
                         <div style={{ marginBottom: '15px' }}>
                           <input 
                             type="date" 
@@ -168,15 +190,29 @@ export default function EnquiryForm({ isOpen, onClose }) {
                       </motion.div>
                     )}
 
+                    {/* STEP 3: SERVICES & BUDGET */}
                     {step === 3 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                        <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>3. BUDGET</h4>
-                        <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
-                          <label style={checkboxStyle}><input type="checkbox" name="services" value="photography" onChange={handleChange} disabled={isSubmitting} /> Photography</label>
-                          <label style={checkboxStyle}><input type="checkbox" name="services" value="cinematography" onChange={handleChange} disabled={isSubmitting} /> Cinematography</label>
+                        <h4 style={{ color: 'var(--gold, #c6a46b)', marginBottom: '12px', fontSize: '13px', letterSpacing: '1px' }}>3. SERVICES & BUDGET</h4>
+                        
+                        {/* Dynamic Services Checkboxes */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', marginBottom: '18px' }}>
+                          {availableServices.map((service) => (
+                            <label key={service} style={checkboxStyle}>
+                              <input 
+                                type="checkbox" 
+                                name="services" 
+                                value={service} 
+                                checked={formData.services.includes(service)}
+                                onChange={handleChange} 
+                                disabled={isSubmitting} 
+                              /> 
+                              <span>{service}</span>
+                            </label>
+                          ))}
                         </div>
                         
-                        {/* CUSTOM BUDGET DROPDOWN */}
+                        {/* Dynamic Budget Dropdown */}
                         <div className="custom-select-wrapper">
                           <select 
                             name="budget" 
@@ -188,18 +224,18 @@ export default function EnquiryForm({ isOpen, onClose }) {
                             className="custom-select"
                           >
                             <option value="" disabled>Select Budget Range *</option>
-                            <option value="under-50k">Under ₹50,000</option>
-                            <option value="50k-1l">₹50,000 - ₹1,00,000</option>
-                            <option value="1l-3l">₹1,00,000 - ₹3,00,000</option>
-                            <option value="above-3l">Above ₹3,00,000</option>
+                            {budgetRanges.map((range) => (
+                              <option key={range} value={range}>{range}</option>
+                            ))}
                           </select>
                         </div>
                       </motion.div>
                     )}
 
+                    {/* Navigation Buttons */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px', alignItems: 'center' }}>
                       {step > 1 ? (
-                        <button type="button" onClick={() => setStep(step - 1)} disabled={isSubmitting} style={{ background: 'transparent', border: 'none', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '5px', cursor: isSubmitting ? 'not-allowed' : 'pointer' }}>
+                        <button type="button" onClick={() => setStep(step - 1)} disabled={isSubmitting} style={{ background: 'transparent', border: 'none', color: 'var(--muted, #aaa)', display: 'flex', alignItems: 'center', gap: '5px', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontSize: '14px' }}>
                           <ArrowLeft size={16} /> Back
                         </button>
                       ) : <div />}
@@ -225,51 +261,9 @@ export default function EnquiryForm({ isOpen, onClose }) {
   );
 }
 
-const styleSheet = document.createElement("style");
-styleSheet.textContent = `
-  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-  /* CUSTOM DROPDOWN THEME */
-  .custom-select-wrapper {
-    position: relative;
-  }
-  
-  .custom-select {
-    appearance: none; /* Remove default arrow */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c6a46b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 15px center;
-    background-size: 15px;
-    padding-right: 40px !important;
-    cursor: pointer;
-  }
-
-  /* Style the options inside the dropdown */
-  .custom-select option {
-    background-color: #171717;
-    color: #fff;
-    padding: 15px;
-  }
-
-  /* CUSTOM DATE PICKER THEME */
-  .custom-date-picker::-webkit-calendar-picker-indicator {
-    filter: invert(0.8) sepia(1) saturate(5) hue-rotate(10deg);
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.3s;
-  }
-  
-  .custom-date-picker::-webkit-calendar-picker-indicator:hover {
-    opacity: 1;
-  }
-`;
-document.head.appendChild(styleSheet);
-
 const getInputStyle = (isSubmitting) => ({
-  width: '100%', padding: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--white)', fontSize: '14px', marginBottom: '15px', outline: 'none', fontFamily: 'var(--body-font)',
-  opacity: isSubmitting ? 0.5 : 1
+  width: '100%', padding: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--white, #fff)', fontSize: '14px', marginBottom: '15px', outline: 'none', fontFamily: 'inherit',
+  boxSizing: 'border-box', opacity: isSubmitting ? 0.5 : 1
 });
 
-const checkboxStyle = { display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text)', fontSize: '14px', cursor: 'pointer' };
+const checkboxStyle = { display: 'flex', alignItems: 'center', gap: '8px', color: '#ccc', fontSize: '13px', cursor: 'pointer' };
