@@ -1,371 +1,238 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Upload, Loader2, Plus, Trash2, Edit2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, ArrowRight, ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react';
 
-const CLOUDINARY_CLOUD_NAME = 'kwqsty9w';
-const CLOUDINARY_UPLOAD_PRESET = 'portfolio_upload';
+export default function EnquiryForm({ isOpen, onClose }) {
+  const [step, setStep] = useState(1);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const defaultEventTypes = ['Wedding', 'Baby Shower', 'Post Wedding', 'Car Delivery', 'Others'];
+  const [eventTypes, setEventTypes] = useState(defaultEventTypes);
 
-const WEDDING_SUB_CATEGORIES = ['Engagement', 'Pre-Wedding', 'Mehendi & Haldi', 'Marriage', 'Reception'];
+  const [formData, setFormData] = useState({
+    name: '', email: '', phone: '',
+    eventType: '', eventDate: '', location: '',
+    services: [], budget: '', otherDescription: ''
+  });
 
-export default function AdminChange() {
-  const defaultContent = {
-    heroTitle: 'Every Frame.\nA Timeless Story.',
-    heroSub: "We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.",
-    storyTitle: 'Moments pass.\nStories stay forever.',
-    storyText: 'At Photo In Motion, we believe every celebration has a story worth telling. Through thoughtful photography and cinematic filmmaking, we preserve the feelings behind every frame.',
-    testimonial1: 'They captured the essence of our wedding perfectly.',
-    testimonial2: 'The cinematic film they created for us is an absolute masterpiece.',
-    testimonial3: 'Professional, unobtrusive, and incredibly talented.',
-    img1: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85',
-    img2: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
-    img3: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
-    showreelImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80',
-    portfolioItems: [],
-    categories: ['Wedding', 'Birthday', 'Corporate'] // NEW: Dynamic categories array
+  // Fetch dynamic event types
+  useEffect(() => {
+    if (isOpen) {
+      fetch('/api/enquiry?action=get_content')
+        .then(res => res.json())
+        .then(data => {
+          if (data.eventTypes && data.eventTypes.length > 0) {
+            setEventTypes(data.eventTypes);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen]);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (type === 'checkbox') {
+      setFormData(prev => ({
+        ...prev,
+        services: checked 
+          ? [...prev.services, value] 
+          : prev.services.filter(s => s !== value)
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
-  const [content, setContent] = useState(defaultContent);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  
-  const [selectedCategory, setSelectedCategory] = useState('Wedding');
-  const [editingClient, setEditingClient] = useState(null);
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (localStorage.getItem('isAdmin') !== 'true') {
-      navigate('/admin/login');
-      return;
-    }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
     
-    fetch('/api/enquiry?action=get_content')
-      .then(res => res.json())
-      .then(data => {
-        if (Object.keys(data).length > 0) {
-          const safeCategories = data.categories && data.categories.length > 0 ? data.categories : ['Wedding', 'Birthday', 'Corporate'];
-          setContent({ ...defaultContent, ...data, portfolioItems: data.portfolioItems || [], categories: safeCategories });
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [navigate]);
-
-  const handleSave = async () => {
-    setSaving(true);
     try {
-      const res = await fetch('/api/enquiry', {
+      const response = await fetch('/api/enquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'save_content', content })
+        body: JSON.stringify({ 
+          action: 'submit_enquiry', 
+          ...formData 
+        })
       });
-      
-      if (res.ok) {
-        alert('Website content updated successfully!');
+
+      if (response.ok) {
+        setIsSubmitted(true);
+        setTimeout(() => {
+          onClose();
+          setTimeout(() => { 
+            setIsSubmitted(false); 
+            setStep(1); 
+            setFormData({ name: '', email: '', phone: '', eventType: '', eventDate: '', location: '', services: [], budget: '', otherDescription: '' });
+          }, 500);
+        }, 4000);
       } else {
-        const errData = await res.json();
-        alert(`Failed to save: ${errData.message || 'Unknown error'}`);
+        const errorData = await response.json();
+        alert(`Error: ${errorData.message || 'Something went wrong.'}`);
       }
-    } catch (err) {
-      alert('Network error. The images might be too large to save.');
-    }
-    setSaving(false);
-  };
-
-  const handleChange = (key, value) => {
-    setContent(prev => ({ ...prev, [key]: value }));
-  };
-
-  // --- CATEGORY MANAGEMENT ---
-  const handleAddCategory = () => {
-    const newCat = prompt("Enter new category name (e.g., Car Inauguration):");
-    if (newCat && !content.categories.includes(newCat)) {
-      setContent(prev => ({
-        ...prev,
-        categories: [...prev.categories, newCat]
-      }));
-      setSelectedCategory(newCat); // Instantly switch to the new category
-    }
-  };
-
-  // --- MULTI-CLIENT PORTFOLIO LOGIC ---
-
-  const handleCreateClient = () => {
-    const newClient = {
-      id: Date.now().toString(),
-      category: selectedCategory,
-      title: 'New Client Event',
-      description: 'Description...',
-      mainImage: '',
-      link: '/contact',
-      subCategories: selectedCategory === 'Wedding' ? {
-        'Engagement': [], 'Pre-Wedding': [], 'Mehendi & Haldi': [], 'Marriage': [], 'Reception': []
-      } : {}
-    };
-    setContent(prev => ({
-      ...prev,
-      portfolioItems: [...prev.portfolioItems, newClient]
-    }));
-    setEditingClient(newClient);
-  };
-
-  const handleUpdateClient = (key, value) => {
-    setEditingClient(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleSaveClient = () => {
-    setContent(prev => ({
-      ...prev,
-      portfolioItems: prev.portfolioItems.map(item => 
-        item.id === editingClient.id ? editingClient : item
-      )
-    }));
-    setEditingClient(null);
-  };
-
-  const handleDeleteClient = (id) => {
-    if (window.confirm("Are you sure you want to delete this client's portfolio?")) {
-      setContent(prev => ({
-        ...prev,
-        portfolioItems: prev.portfolioItems.filter(item => item.id !== id)
-      }));
-    }
-  };
-
-  const uploadToCloudinary = async (file) => {
-    setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-    try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-        method: 'POST',
-        body: formData
-      });
-      
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.message || 'Failed to upload image');
-      return data.secure_url;
     } catch (error) {
-      alert(error.message);
-      return null;
+      console.error(error);
+      alert("Error submitting form. Please check your connection.");
     } finally {
-      setUploading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const handleMainImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const url = await uploadToCloudinary(file);
-    if (url) handleUpdateClient('mainImage', url);
-  };
-
-  const handleGalleryUpload = async (e, subCategory) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const url = await uploadToCloudinary(file);
-    if (url) {
-      if (selectedCategory === 'Wedding') {
-        setEditingClient(prev => ({
-          ...prev,
-          subCategories: {
-            ...prev.subCategories,
-            [subCategory]: [...(prev.subCategories?.[subCategory] || []), url]
-          }
-        }));
-      } else {
-        setEditingClient(prev => ({
-          ...prev,
-          subCategories: {
-            ...prev.subCategories,
-            'General': [...(prev.subCategories?.General || []), url]
-          }
-        }));
-      }
+  const isStepValid = () => {
+    if (step === 1) {
+      return formData.name && formData.email && formData.phone;
     }
+    if (step === 2) {
+      if (formData.eventType === 'Others' && !formData.otherDescription) return false;
+      return formData.eventType && formData.eventDate && formData.location;
+    }
+    return true;
   };
-
-  const removeGalleryImage = (subCategory, indexToRemove) => {
-    setEditingClient(prev => ({
-      ...prev,
-      subCategories: {
-        ...prev.subCategories,
-        [subCategory]: prev.subCategories[subCategory].filter((_, i) => i !== indexToRemove)
-      }
-    }));
-  };
-
-  const filteredClients = content.portfolioItems.filter(item => item.category === selectedCategory);
-
-  if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Loading...</div>;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '100px' }}>
-      
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)', zIndex: 100, padding: '20px 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        <button onClick={() => navigate('/admin/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>
-          <ArrowLeft size={20} /> Back to Dashboard
-        </button>
-        <button onClick={handleSave} disabled={saving || uploading} className="primary-btn" style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: saving || uploading ? 0.5 : 1 }}>
-          {saving ? 'Saving...' : <><Save size={18} /> Save All Changes</>}
-        </button>
-      </div>
-
-      <div style={{ paddingTop: '120px' }}>
-        
-        <section style={{ padding: '50px 10%', background: 'var(--bg)' }}>
-          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', marginBottom: '30px' }}>Edit Homepage Content</h2>
-            
-            <label style={labelStyle}>Hero Title</label>
-            <textarea value={content.heroTitle} onChange={(e) => handleChange('heroTitle', e.target.value)} style={{ ...inputStyle, height: '80px' }} />
-
-            <label style={labelStyle}>Hero Description</label>
-            <textarea value={content.heroSub} onChange={(e) => handleChange('heroSub', e.target.value)} style={{ ...inputStyle, height: '80px' }} />
-
-            <label style={labelStyle}>Story Section Title</label>
-            <textarea value={content.storyTitle} onChange={(e) => handleChange('storyTitle', e.target.value)} style={{ ...inputStyle, height: '80px' }} />
-
-            <label style={labelStyle}>Story Section Description</label>
-            <textarea value={content.storyText} onChange={(e) => handleChange('storyText', e.target.value)} style={{ ...inputStyle, height: '100px' }} />
-
-            <label style={labelStyle}>Testimonial 1</label>
-            <textarea value={content.testimonial1} onChange={(e) => handleChange('testimonial1', e.target.value)} style={{ ...inputStyle, height: '60px' }} />
-            
-            <label style={labelStyle}>Testimonial 2</label>
-            <textarea value={content.testimonial2} onChange={(e) => handleChange('testimonial2', e.target.value)} style={{ ...inputStyle, height: '60px' }} />
-
-            <label style={labelStyle}>Testimonial 3</label>
-            <textarea value={content.testimonial3} onChange={(e) => handleChange('testimonial3', e.target.value)} style={{ ...inputStyle, height: '60px' }} />
-          </div>
-        </section>
-
-        <section style={{ padding: '100px 10%', background: 'var(--bg-light)' }}>
-          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-            <p className="eyebrow">MANAGE EVENTS</p>
-            <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0 }}>Portfolio <span>Manager</span></h2>
-          </div>
-
-          {/* DYNAMIC CATEGORY TABS WITH + BUTTON */}
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '50px', flexWrap: 'wrap' }}>
-            {content.categories.map(cat => (
-              <button 
-                key={cat}
-                onClick={() => { setSelectedCategory(cat); setEditingClient(null); }}
-                style={{ padding: '15px 30px', borderRadius: '30px', border: 'none', background: selectedCategory === cat ? 'var(--gold)' : '#222', color: selectedCategory === cat ? '#000' : '#fff', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
-              >
-                {cat}
-              </button>
-            ))}
-            
-            {/* The Add Category Button */}
-            <button 
-              onClick={handleAddCategory}
-              style={{ padding: '15px 25px', borderRadius: '30px', border: '2px dashed var(--gold)', background: 'transparent', color: 'var(--gold)', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '5px' }}
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 1000 }}
+          />
+          <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001, pointerEvents: 'none', padding: '20px' }}>
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              style={{ pointerEvents: 'auto', background: '#111', padding: '40px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', width: '100%', maxWidth: '600px', position: 'relative', boxShadow: '0 30px 60px rgba(0,0,0,0.6)', overflow: 'hidden' }}
             >
-              <Plus size={18} /> Add Category
-            </button>
-          </div>
-
-          {!editingClient && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-              {filteredClients.map(client => (
-                <div key={client.id} style={{ background: '#111', borderRadius: '12px', overflow: 'hidden', border: '1px solid #333' }}>
-                  <img src={client.mainImage || 'https://via.placeholder.com/300'} alt={client.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
-                  <div style={{ padding: '20px' }}>
-                    <h4 style={{ color: 'var(--white)', margin: '0 0 10px' }}>{client.title}</h4>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      <button onClick={() => setEditingClient(client)} style={{ flex: 1, padding: '10px', background: 'var(--gold)', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}><Edit2 size={16} /> Edit Client</button>
-                      <button onClick={() => handleDeleteClient(client.id)} style={{ padding: '10px', background: 'rgba(255,0,0,0.2)', color: 'red', border: '1px solid red', borderRadius: '4px', cursor: 'pointer' }}><Trash2 size={16} /></button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              
-              <button 
-                onClick={handleCreateClient}
-                style={{ background: 'rgba(255,255,255,0.05)', border: '2px dashed rgba(255,255,255,0.2)', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', cursor: 'pointer', color: 'var(--gold)' }}
-              >
-                <Plus size={40} style={{ marginBottom: '10px' }} />
-                <span>Add New {selectedCategory} Client</span>
+              <button onClick={onClose} style={{ position: 'absolute', top: '20px', right: '20px', background: 'transparent', border: 'none', color: '#aaa39a', cursor: 'pointer', zIndex: 10 }} disabled={isSubmitting}>
+                <X size={24} />
               </button>
-            </div>
-          )}
 
-          {editingClient && (
-            <div style={{ maxWidth: '800px', margin: '0 auto', background: '#111', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-              <button onClick={() => setEditingClient(null)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', marginBottom: '20px' }}>← Back to List</button>
-              <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '32px', marginBottom: '30px' }}>Editing Client: {editingClient.title}</h3>
-
-              <label style={labelStyle}>Event Title</label>
-              <input value={editingClient.title} onChange={(e) => handleUpdateClient('title', e.target.value)} style={inputStyle} />
-
-              <label style={labelStyle}>Description</label>
-              <textarea value={editingClient.description} onChange={(e) => handleUpdateClient('description', e.target.value)} style={{ ...inputStyle, height: '100px' }} />
-
-              <label style={labelStyle}>Main Poster (Portfolio Grid)</label>
-              <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '30px' }}>
-                {editingClient.mainImage && <img src={editingClient.mainImage} alt="Main" style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px' }} />}
-                <label style={{ padding: '15px 25px', background: 'var(--gold)', color: '#000', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
-                  {uploading ? 'Uploading...' : 'Upload Cover Image'}
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleMainImageUpload} />
-                </label>
-              </div>
-
-              {selectedCategory === 'Wedding' ? (
-                <>
-                  <label style={labelStyle}>Gallery Images by Sub-Category</label>
-                  {WEDDING_SUB_CATEGORIES.map(subCat => (
-                    <div key={subCat} style={{ marginBottom: '20px', background: '#1a1a1a', padding: '20px', borderRadius: '8px' }}>
-                      <h4 style={{ color: 'var(--gold)', marginBottom: '15px' }}>{subCat}</h4>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                        {(editingClient.subCategories?.[subCat] || []).map((img, idx) => (
-                          <div key={idx} style={{ position: 'relative', width: '100px', height: '100px' }}>
-                            <img src={img} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
-                            <button onClick={() => removeGalleryImage(subCat, idx)} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: '#fff', border: 'none', borderRadius: '50%', padding: '4px 8px', cursor: 'pointer', fontSize: '10px' }}>X</button>
-                          </div>
-                        ))}
-                        <label style={{ width: '100px', height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '2px dashed var(--gold)', borderRadius: '8px', cursor: 'pointer', color: 'var(--gold)' }}>
-                          <Plus size={24} />
-                          <span style={{ fontSize: '10px', marginTop: '5px' }}>Add Photo</span>
-                          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleGalleryUpload(e, subCat)} />
-                        </label>
-                      </div>
-                    </div>
-                  ))}
-                </>
+              {isSubmitted ? (
+                <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '40px 0' }}>
+                  <CheckCircle2 size={60} color="var(--gold)" style={{ margin: '0 auto 20px' }} />
+                  <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '36px', color: 'var(--white)', margin: '0 0 10px' }}>Enquiry Received</h3>
+                  <p style={{ color: 'var(--muted)' }}>Thank you! We will review your details and get back to you within 24 hours.</p>
+                </motion.div>
               ) : (
                 <>
-                  <label style={labelStyle}>Gallery Images</label>
-                  <div style={{ background: '#1a1a1a', padding: '20px', borderRadius: '8px' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                      {(editingClient.subCategories?.['General'] || []).map((img, idx) => (
-                        <div key={idx} style={{ position: 'relative', width: '100px', height: '100px' }}>
-                          <img src={img} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
-                          <button onClick={() => removeGalleryImage('General', idx)} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: '#fff', border: 'none', borderRadius: '50%', padding: '4px 8px', cursor: 'pointer', fontSize: '10px' }}>X</button>
-                        </div>
+                  <div style={{ marginBottom: '30px' }}>
+                    <p className="eyebrow" style={{ marginBottom: '10px' }}>BOOKING ENQUIRY</p>
+                    <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', margin: 0 }}>Let's Capture Your Story</h3>
+                    <div style={{ display: 'flex', gap: '5px', marginTop: '20px' }}>
+                      {[1, 2, 3].map(i => (
+                        <div key={i} style={{ height: '4px', flex: 1, background: step >= i ? 'var(--gold)' : 'rgba(255,255,255,0.1)', borderRadius: '2px', transition: 'all 0.3s' }} />
                       ))}
-                      <label style={{ width: '100px', height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '2px dashed var(--gold)', borderRadius: '8px', cursor: 'pointer', color: 'var(--gold)' }}>
-                        <Plus size={24} />
-                        <span style={{ fontSize: '10px', marginTop: '5px' }}>Add Photo</span>
-                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleGalleryUpload(e, 'General')} />
-                      </label>
                     </div>
                   </div>
+
+                  <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    
+                    {/* STEP 1: MANDATORY DETAILS */}
+                    {step === 1 && (
+                      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                        <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>1. YOUR DETAILS</h4>
+                        <input type="text" name="name" placeholder="Full Name *" value={formData.name} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
+                        <input type="email" name="email" placeholder="Email Address *" value={formData.email} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
+                        <input type="tel" name="phone" placeholder="Phone Number *" value={formData.phone} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
+                      </motion.div>
+                    )}
+
+                    {/* STEP 2: EVENT DETAILS */}
+                    {step === 2 && (
+                      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                        <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>2. EVENT DETAILS</h4>
+                        
+                        <select name="eventType" value={formData.eventType} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting}>
+                          <option value="">Select Event Type *</option>
+                          {eventTypes.map(type => (
+                            <option key={type} value={type}>{type}</option>
+                          ))}
+                        </select>
+
+                        {/* Conditional Description Field for "Others" */}
+                        {formData.eventType === 'Others' && (
+                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                            <textarea 
+                              name="otherDescription" 
+                              placeholder="Please describe your event type *" 
+                              value={formData.otherDescription} 
+                              onChange={handleChange} 
+                              required 
+                              style={{ ...getInputStyle(isSubmitting), height: '80px' }} 
+                              disabled={isSubmitting} 
+                            />
+                          </motion.div>
+                        )}
+
+                        <input type="date" name="eventDate" value={formData.eventDate} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
+                        <input type="text" name="location" placeholder="Event Location / City *" value={formData.location} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
+                      </motion.div>
+                    )}
+
+                    {/* STEP 3: BUDGET (Removed Requirements) */}
+                    {step === 3 && (
+                      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                        <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>3. BUDGET</h4>
+                        <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
+                          <label style={checkboxStyle}><input type="checkbox" name="services" value="photography" onChange={handleChange} disabled={isSubmitting} /> Photography</label>
+                          <label style={checkboxStyle}><input type="checkbox" name="services" value="cinematography" onChange={handleChange} disabled={isSubmitting} /> Cinematography</label>
+                        </div>
+                        <select name="budget" value={formData.budget} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting}>
+                          <option value="">Select Budget Range *</option>
+                          <option value="under-50k">Under ₹50,000</option>
+                          <option value="50k-1l">₹50,000 - ₹1,00,000</option>
+                          <option value="1l-3l">₹1,00,000 - ₹3,00,000</option>
+                          <option value="above-3l">Above ₹3,00,000</option>
+                        </select>
+                      </motion.div>
+                    )}
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px', alignItems: 'center' }}>
+                      {step > 1 ? (
+                        <button type="button" onClick={() => setStep(step - 1)} disabled={isSubmitting} style={{ background: 'transparent', border: 'none', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '5px', cursor: isSubmitting ? 'not-allowed' : 'pointer' }}>
+                          <ArrowLeft size={16} /> Back
+                        </button>
+                      ) : <div />}
+                      
+                      {step < 3 ? (
+                        <button type="button" onClick={() => setStep(step + 1)} disabled={!isStepValid() || isSubmitting} className="primary-btn" style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px', opacity: !isStepValid() || isSubmitting ? 0.5 : 1 }}>
+                          Next Step <ArrowRight size={16} />
+                        </button>
+                      ) : (
+                        <button type="submit" disabled={isSubmitting} className="primary-btn" style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px', opacity: isSubmitting ? 0.7 : 1 }}>
+                          {isSubmitting ? (
+                            <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Submitting...</>
+                          ) : 'Submit Enquiry'}
+                        </button>
+                      )}
+                    </div>
+                  </form>
                 </>
               )}
-
-              <button onClick={handleSaveClient} className="primary-btn" style={{ width: '100%', marginTop: '20px', padding: '15px' }}>Save This Client</button>
-            </div>
-          )}
-        </section>
-      </div>
-    </div>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 
-const labelStyle = { display: 'block', color: 'var(--gold)', marginBottom: '10px', fontSize: '14px', letterSpacing: '1px', marginTop: '20px' };
-const inputStyle = { width: '100%', padding: '15px', background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', fontSize: '15px', fontFamily: 'var(--body-font)', outline: 'none' };
+const styleSheet = document.createElement("style");
+styleSheet.textContent = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(styleSheet);
+
+const getInputStyle = (isSubmitting) => ({
+  width: '100%', padding: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--white)', fontSize: '14px', marginBottom: '15px', outline: 'none', fontFamily: 'var(--body-font)',
+  opacity: isSubmitting ? 0.5 : 1
+});
+
+const checkboxStyle = {
+  display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text)', fontSize: '14px', cursor: 'pointer'
+};

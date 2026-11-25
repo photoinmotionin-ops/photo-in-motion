@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react';
 
@@ -7,11 +7,29 @@ export default function EnquiryForm({ isOpen, onClose }) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // Default Event Types (Will be overridden by database data if available)
+  const defaultEventTypes = ['Wedding', 'Baby Shower', 'Post Wedding', 'Car Delivery', 'Others'];
+  const [eventTypes, setEventTypes] = useState(defaultEventTypes);
+
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '',
     eventType: '', eventDate: '', location: '',
-    services: [], budget: '', requirements: ''
+    services: [], budget: '', otherDescription: '' // Changed requirements to otherDescription
   });
+
+  // Fetch custom event types from the database
+  useEffect(() => {
+    if (isOpen) {
+      fetch('/api/enquiry?action=get_content')
+        .then(res => res.json())
+        .then(data => {
+          if (data.eventTypes && data.eventTypes.length > 0) {
+            setEventTypes(data.eventTypes);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -32,12 +50,15 @@ export default function EnquiryForm({ isOpen, onClose }) {
     setIsSubmitting(true);
     
     try {
+      // Include otherDescription in the submission if 'Others' is selected
+      const dataToSubmit = { ...formData };
+      
       const response = await fetch('/api/enquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           action: 'submit_enquiry', 
-          ...formData 
+          ...dataToSubmit 
         })
       });
 
@@ -48,7 +69,7 @@ export default function EnquiryForm({ isOpen, onClose }) {
           setTimeout(() => { 
             setIsSubmitted(false); 
             setStep(1); 
-            setFormData({ name: '', email: '', phone: '', eventType: '', eventDate: '', location: '', services: [], budget: '', requirements: '' });
+            setFormData({ name: '', email: '', phone: '', eventType: '', eventDate: '', location: '', services: [], budget: '', otherDescription: '' });
           }, 500);
         }, 4000);
       } else {
@@ -61,6 +82,20 @@ export default function EnquiryForm({ isOpen, onClose }) {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const isStepValid = () => {
+    if (step === 1) {
+      return formData.name && formData.email && formData.phone;
+    }
+    if (step === 2) {
+      // If 'Others' is selected, otherDescription is mandatory
+      if (formData.eventType === 'Others' && !formData.otherDescription) {
+        return false;
+      }
+      return formData.eventType && formData.eventDate && formData.location;
+    }
+    return true;
   };
 
   return (
@@ -101,46 +136,63 @@ export default function EnquiryForm({ isOpen, onClose }) {
 
                   <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     
+                    {/* STEP 1: MANDATORY DETAILS */}
                     {step === 1 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>1. YOUR DETAILS</h4>
-                        <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
-                        <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
-                        <input type="tel" name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
+                        <input type="text" name="name" placeholder="Full Name *" value={formData.name} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
+                        <input type="email" name="email" placeholder="Email Address *" value={formData.email} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
+                        <input type="tel" name="phone" placeholder="Phone Number *" value={formData.phone} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
                       </motion.div>
                     )}
 
+                    {/* STEP 2: EVENT DETAILS */}
                     {step === 2 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>2. EVENT DETAILS</h4>
+                        
                         <select name="eventType" value={formData.eventType} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting}>
-                          <option value="">Select Event Type</option>
-                          <option value="wedding">Wedding</option>
-                          <option value="pre-wedding">Pre-Wedding Shoot</option>
-                          <option value="engagement">Engagement</option>
-                          <option value="birthday">Birthday / Celebration</option>
-                          <option value="corporate">Corporate Event</option>
+                          <option value="">Select Event Type *</option>
+                          {eventTypes.map(type => (
+                            <option key={type} value={type}>{type}</option>
+                          ))}
                         </select>
+
+                        {/* Conditional Description Field for "Others" */}
+                        {formData.eventType === 'Others' && (
+                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                            <textarea 
+                              name="otherDescription" 
+                              placeholder="Please describe your event type *" 
+                              value={formData.otherDescription} 
+                              onChange={handleChange} 
+                              required 
+                              style={{ ...getInputStyle(isSubmitting), height: '80px' }} 
+                              disabled={isSubmitting} 
+                            />
+                          </motion.div>
+                        )}
+
                         <input type="date" name="eventDate" value={formData.eventDate} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
-                        <input type="text" name="location" placeholder="Event Location / City" value={formData.location} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
+                        <input type="text" name="location" placeholder="Event Location / City *" value={formData.location} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
                       </motion.div>
                     )}
 
+                    {/* STEP 3: BUDGET (Removed Requirements) */}
                     {step === 3 && (
                       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                        <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>3. REQUIREMENTS</h4>
+                        <h4 style={{ color: 'var(--gold)', marginBottom: '15px', fontSize: '14px', letterSpacing: '1px' }}>3. BUDGET</h4>
                         <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
                           <label style={checkboxStyle}><input type="checkbox" name="services" value="photography" onChange={handleChange} disabled={isSubmitting} /> Photography</label>
                           <label style={checkboxStyle}><input type="checkbox" name="services" value="cinematography" onChange={handleChange} disabled={isSubmitting} /> Cinematography</label>
                         </div>
                         <select name="budget" value={formData.budget} onChange={handleChange} required style={getInputStyle(isSubmitting)} disabled={isSubmitting}>
-                          <option value="">Select Budget Range</option>
+                          <option value="">Select Budget Range *</option>
                           <option value="under-50k">Under ₹50,000</option>
                           <option value="50k-1l">₹50,000 - ₹1,00,000</option>
                           <option value="1l-3l">₹1,00,000 - ₹3,00,000</option>
                           <option value="above-3l">Above ₹3,00,000</option>
                         </select>
-                        <textarea name="requirements" placeholder="Any specific requirements?" value={formData.requirements} onChange={handleChange} rows="3" style={getInputStyle(isSubmitting)} disabled={isSubmitting} />
                       </motion.div>
                     )}
 
@@ -152,18 +204,14 @@ export default function EnquiryForm({ isOpen, onClose }) {
                       ) : <div />}
                       
                       {step < 3 ? (
-                        <button type="button" onClick={() => setStep(step + 1)} className="primary-btn" style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <button type="button" onClick={() => setStep(step + 1)} disabled={!isStepValid() || isSubmitting} className="primary-btn" style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px', opacity: !isStepValid() || isSubmitting ? 0.5 : 1 }}>
                           Next Step <ArrowRight size={16} />
                         </button>
                       ) : (
-                        <button type="submit" className="primary-btn" disabled={isSubmitting} style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px', opacity: isSubmitting ? 0.7 : 1 }}>
+                        <button type="submit" disabled={isSubmitting} className="primary-btn" style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px', opacity: isSubmitting ? 0.7 : 1 }}>
                           {isSubmitting ? (
-                            <>
-                              <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Submitting...
-                            </>
-                          ) : (
-                            'Submit Enquiry'
-                          )}
+                            <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Submitting...</>
+                          ) : 'Submit Enquiry'}
                         </button>
                       )}
                     </div>
