@@ -9,28 +9,36 @@ import CinematicReveal from '../components/animations/CinematicReveal';
 import CinematicStrip from '../components/animations/CinematicStrip'; 
 import EventPlanner from '../components/animations/EventPlanner';
 
-const maskReveal = { hidden: { y: "100%", rotate: 2 }, visible: { y: 0, rotate: 0, transition: { duration: 0.8, ease: [0.33, 1, 0.68, 1] } } };
-const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } } };
-const staggerContainer = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.1 } } };
+const maskReveal = { 
+  hidden: { y: "100%", rotate: 2 }, 
+  visible: { y: 0, rotate: 0, transition: { duration: 0.8, ease: [0.33, 1, 0.68, 1] } } 
+};
+const fadeUp = { 
+  hidden: { opacity: 0, y: 40 }, 
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } } 
+};
+const staggerContainer = { 
+  hidden: { opacity: 0 }, 
+  visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.1 } } 
+};
 
-const featuredWorks = [
-  { number: '01', category: 'WEDDINGS', title: 'Forever Begins', key: 'img1' },
-  { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', key: 'img2' },
-  { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', key: 'img3' },
+// --- DEFAULT FALLBACK DATA (Used if admin has not set them yet) ---
+const defaultFeaturedWorks = [
+  { number: '01', category: 'WEDDINGS', title: 'Forever Begins', img: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85' },
+  { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', img: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85' },
+  { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85' },
 ];
 
-// EXPANDED TO 6 TESTIMONIALS FOR DESKTOP GROUPING
-const testimonials = [
-  { name: 'Ananya & Rahul', rating: 5, key: 'testimonial1' },
-  { name: 'Sarah & James', rating: 5, key: 'testimonial2' },
-  { name: 'Priya & Arjun', rating: 5, key: 'testimonial3' },
-  { name: 'Neha & Vikram', rating: 5, key: 'testimonial4' },
-  { name: 'Riya & Karan', rating: 5, key: 'testimonial5' },
-  { name: 'Simran & Aditya', rating: 5, key: 'testimonial6' },
+const defaultTestimonials = [
+  { name: 'Ananya & Rahul', rating: 5, text: 'They captured the essence of our wedding perfectly.' },
+  { name: 'Sarah & James', rating: 5, text: 'The cinematic film they created for us is an absolute masterpiece.' },
+  { name: 'Priya & Arjun', rating: 5, text: 'Professional, unobtrusive, and incredibly talented.' },
+  { name: 'Neha & Vikram', rating: 5, text: "Every frame was a work of art. We couldn't be happier." },
+  { name: 'Riya & Karan', rating: 5, text: 'They turned our special day into a cinematic experience.' },
+  { name: 'Simran & Aditya', rating: 5, text: 'The attention to detail was flawless. Highly recommended!' },
 ];
 
-// 10s–15s Short video clips 
-const shortReels = [
+const defaultShortReels = [
   {
     id: 'reel-1',
     number: '01',
@@ -89,19 +97,17 @@ export default function Home() {
     heroSub: "We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.",
     storyTitle: 'Moments pass.\nStories stay forever.',
     storyText: 'At Photo In Motion, we believe every celebration has a story worth telling. Through thoughtful photography and cinematic filmmaking, we preserve the feelings behind every frame.',
-    testimonial1: 'They captured the essence of our wedding perfectly.',
-    testimonial2: 'The cinematic film they created for us is an absolute masterpiece.',
-    testimonial3: 'Professional, unobtrusive, and incredibly talented.',
-    testimonial4: 'Every frame was a work of art. We couldn\'t be happier.',
-    testimonial5: 'They turned our special day into a cinematic experience.',
-    testimonial6: 'The attention to detail was flawless. Highly recommended!',
-    img1: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85',
-    img2: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85',
-    img3: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
+    featuredWorks: defaultFeaturedWorks,
+    stripTopWorks: null,
+    stripBottomWorks: null,
+    orbitMoments: null,
+    showreels: defaultShortReels,
+    viewfinderShots: null,
+    testimonials: defaultTestimonials,
     showreelImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80'
   });
 
-  // Showreel Player States
+  // Showreel Video Player States
   const [activeReelIndex, setActiveReelIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -109,52 +115,84 @@ export default function Home() {
   const [currentTime, setCurrentTime] = useState('0:00');
   const [isCinemaMode, setIsCinemaMode] = useState(false);
 
-  // Testimonial State
+  // Testimonials Responsive State
   const [isMobile, setIsMobile] = useState(false);
-  const [activeTestimonialGroup, setActiveTestimonialGroup] = useState(0); // For Desktop (0, 1, 2...)
-  const [activeTestimonialSingle, setActiveTestimonialSingle] = useState(0); // For Mobile (0, 1, 2...)
+  const [activeTestimonialGroup, setActiveTestimonialGroup] = useState(0); // Desktop chunks of 3
+  const [activeTestimonialSingle, setActiveTestimonialSingle] = useState(0); // Mobile slider
 
   const videoRef = useRef(null);
   const modalVideoRef = useRef(null);
   const progressBarRef = useRef(null);
 
-  const activeReel = shortReels[activeReelIndex];
+  // Dynamic showreels list with fallback
+  const activeReelsList = (content.showreels && content.showreels.length > 0) ? content.showreels : defaultShortReels;
+  const activeReel = activeReelsList[activeReelIndex] || activeReelsList[0];
 
-  // Check screen size on load and resize
+  // Dynamic featured works with fallback
+  const activeFeaturedWorks = (content.featuredWorks && content.featuredWorks.length > 0) 
+    ? content.featuredWorks 
+    : [
+        { number: '01', category: 'WEDDINGS', title: 'Forever Begins', img: content.img1 || defaultFeaturedWorks[0].img },
+        { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', img: content.img2 || defaultFeaturedWorks[1].img },
+        { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', img: content.img3 || defaultFeaturedWorks[2].img }
+      ];
+
+  // Dynamic testimonials list with fallback
+  const activeTestimonialsList = (content.testimonials && content.testimonials.length > 0) 
+    ? content.testimonials 
+    : [
+        { name: content.testimonial1Name || 'Ananya & Rahul', rating: 5, text: content.testimonial1 || defaultTestimonials[0].text },
+        { name: content.testimonial2Name || 'Sarah & James', rating: 5, text: content.testimonial2 || defaultTestimonials[1].text },
+        { name: content.testimonial3Name || 'Priya & Arjun', rating: 5, text: content.testimonial3 || defaultTestimonials[2].text },
+        { name: content.testimonial4Name || 'Neha & Vikram', rating: 5, text: content.testimonial4 || defaultTestimonials[3].text },
+        { name: content.testimonial5Name || 'Riya & Karan', rating: 5, text: content.testimonial5 || defaultTestimonials[4].text },
+        { name: content.testimonial6Name || 'Simran & Aditya', rating: 5, text: content.testimonial6 || defaultTestimonials[5].text },
+      ];
+
+  // Detect Mobile Screens
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 900);
-    checkMobile(); // Check on mount
+    checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Fetch backend content
+  // Fetch all Admin Data from Backend
   useEffect(() => {
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(data => {
-        if (Object.keys(data).length > 0) {
-          setContent(data);
+        if (data && Object.keys(data).length > 0) {
+          setContent(prev => ({
+            ...prev,
+            ...data,
+            featuredWorks: data.featuredWorks || prev.featuredWorks,
+            stripTopWorks: data.stripTopWorks || null,
+            stripBottomWorks: data.stripBottomWorks || null,
+            orbitMoments: data.orbitMoments || null,
+            showreels: data.showreels || prev.showreels,
+            viewfinderShots: data.viewfinderShots || null,
+            testimonials: data.testimonials || prev.testimonials
+          }));
         }
       })
       .catch(() => {});
   }, []);
 
-  // Auto-cycle Testimonials (Different logic for Desktop vs Mobile)
+  // Auto-cycle Testimonials
   useEffect(() => {
     const interval = setInterval(() => {
       if (isMobile) {
-        setActiveTestimonialSingle((prev) => (prev + 1) % testimonials.length);
+        setActiveTestimonialSingle((prev) => (prev + 1) % activeTestimonialsList.length);
       } else {
-        // Group testimonials in chunks of 3
-        const totalGroups = Math.ceil(testimonials.length / 3);
+        const totalGroups = Math.ceil(activeTestimonialsList.length / 3);
         setActiveTestimonialGroup((prev) => (prev + 1) % totalGroups);
       }
     }, 4000);
     return () => clearInterval(interval);
-  }, [isMobile]);
+  }, [isMobile, activeTestimonialsList.length]);
 
-  // When video index changes, load and auto-play
+  // Handle active video change & autoplay
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
@@ -174,14 +212,14 @@ export default function Home() {
     }
   }, [activeReelIndex]);
 
-  // Keep muted state synced
+  // Sync mute state across main & cinema modal video
   useEffect(() => {
     if (videoRef.current) videoRef.current.muted = isMuted;
     if (modalVideoRef.current) modalVideoRef.current.muted = isMuted;
   }, [isMuted]);
 
   const handleVideoEnded = () => {
-    setActiveReelIndex(prev => (prev + 1) % shortReels.length);
+    setActiveReelIndex(prev => (prev + 1) % activeReelsList.length);
   };
 
   const togglePlay = (e) => {
@@ -225,10 +263,10 @@ export default function Home() {
     setProgress(percentage * 100);
   };
 
-  // Calculate current testimonials to show
+  // Testimonial slicing for desktop
   const startIdx = activeTestimonialGroup * 3;
-  const currentDesktopTestimonials = testimonials.slice(startIdx, startIdx + 3);
-  const currentMobileTestimonial = testimonials[activeTestimonialSingle];
+  const currentDesktopTestimonials = activeTestimonialsList.slice(startIdx, startIdx + 3);
+  const currentMobileTestimonial = activeTestimonialsList[activeTestimonialSingle] || activeTestimonialsList[0];
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -260,10 +298,18 @@ export default function Home() {
         </motion.div>
       </section>
 
-      <CinematicStrip />
-      <CinematicReveal />
+      {/* 2. CINEMATIC FILM STRIP (PASSES ADMIN DATA) */}
+      <CinematicStrip 
+        topWorks={content.stripTopWorks} 
+        bottomWorks={content.stripBottomWorks} 
+      />
 
-      {/* 2. INTRODUCTION */}
+      {/* 3. 360° ORBIT APERTURE MOMENTS (PASSES ADMIN DATA) */}
+      <CinematicReveal 
+        moments={content.orbitMoments} 
+      />
+
+      {/* 4. INTRODUCTION STORY */}
       <motion.section className="intro-section" id="story" style={{ padding: '120px 10%' }} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer}>
         <motion.p className="eyebrow" variants={fadeUp}>MORE THAN JUST PHOTOGRAPHY</motion.p>
         <h2 style={{ fontFamily: 'var(--heading-font)', fontSize: 'clamp(48px, 6vw, 78px)', fontWeight: 400, margin: 0, whiteSpace: 'pre-line' }}>
@@ -274,7 +320,7 @@ export default function Home() {
         </motion.p>
       </motion.section>
 
-      {/* 3. FEATURED WORKS */}
+      {/* 5. FEATURED WORKS (3 CARDS MANAGED BY ADMIN) */}
       <section className="portfolio-section" style={{ padding: '100px 10%', background: 'var(--bg-light)' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer} style={{ textAlign: 'center' }}>
           <motion.p className="eyebrow" variants={fadeUp}>A COLLECTION OF MEMORIES</motion.p>
@@ -285,11 +331,11 @@ export default function Home() {
         </motion.div>
 
         <motion.div className="portfolio-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={staggerContainer}>
-          {featuredWorks.map((item) => (
+          {activeFeaturedWorks.map((item, idx) => (
             <motion.article 
               className="portfolio-card" 
-              key={item.number} 
-              style={{ backgroundImage: `url("${content[item.key]}")` }} 
+              key={item.number || idx} 
+              style={{ backgroundImage: `url("${item.img}")` }} 
               variants={fadeUp} 
               whileHover={{ y: -10, scale: 1.02, boxShadow: "0px 20px 40px rgba(0,0,0,0.4)" }} 
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -308,7 +354,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. SHOWREEL - Interactive Player with Auto-Advance & Selection Ribbon */}
+      {/* 6. LIVING SHOWREEL PLAYER (VIDEOS MANAGED BY ADMIN) */}
       <section className="showreel-section" style={{ padding: '100px 7%', background: 'var(--bg, #101010)', textAlign: 'center' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
           <motion.p className="eyebrow" variants={fadeUp}>THE CINEMATIC EXPERIENCE</motion.p>
@@ -317,7 +363,7 @@ export default function Home() {
             <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}><span>Showreel</span></motion.div></div>
           </h2>
 
-          {/* Main Player Container */}
+          {/* Main Video Player Container */}
           <motion.div 
             variants={fadeUp} 
             style={{ 
@@ -331,7 +377,7 @@ export default function Home() {
               position: 'relative'
             }}
           >
-            {/* Video Viewport */}
+            {/* Viewport */}
             <div 
               onClick={togglePlay}
               style={{
@@ -362,10 +408,10 @@ export default function Home() {
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
 
-              {/* Shading Overlays */}
+              {/* Shading Overlay */}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 50%, transparent 100%)', pointerEvents: 'none' }} />
 
-              {/* Big Center Play Button (hides smoothly when playing) */}
+              {/* Center Play Button */}
               <div 
                 style={{
                   position: 'absolute',
@@ -388,7 +434,7 @@ export default function Home() {
                 <Play size={28} fill="#111" style={{ marginLeft: '4px' }} />
               </div>
 
-              {/* Top Meta Tag & Fullscreen toggle */}
+              {/* Top Category Badge & Fullscreen */}
               <div style={{ position: 'absolute', top: '16px', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
                 <span style={{ padding: '5px 12px', borderRadius: '6px', background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.12)', fontSize: '11px', letterSpacing: '1.5px', color: 'var(--gold, #c6a46b)', fontWeight: 600, textTransform: 'uppercase' }}>
                   {activeReel.category}
@@ -428,7 +474,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Info and Buttons */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', minWidth: 0 }}>
                     <button
@@ -462,13 +507,13 @@ export default function Home() {
                   </div>
 
                   <span style={{ fontSize: '12px', color: 'var(--muted, #aaa)', fontFamily: 'monospace', flexShrink: 0 }}>
-                    {activeReel.number} / 0{shortReels.length}
+                    {activeReel.number} / 0{activeReelsList.length}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Video Playlist Ribbon (Click any card to play it immediately) */}
+            {/* Playlist Ribbon */}
             <div style={{ padding: '16px 20px', background: '#0a0a0a', borderTop: '1px solid rgba(255,255,255,0.08)', textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--gold, #c6a46b)', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -480,11 +525,11 @@ export default function Home() {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none' }}>
-                {shortReels.map((reel, idx) => {
+                {activeReelsList.map((reel, idx) => {
                   const isCurrent = idx === activeReelIndex;
                   return (
                     <button
-                      key={reel.id}
+                      key={reel.id || idx}
                       type="button"
                       onClick={() => setActiveReelIndex(idx)}
                       style={{
@@ -539,7 +584,7 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Fullscreen Cinema Modal */}
+      {/* Cinema Fullscreen Modal */}
       {isCinemaMode && (
         <div 
           onClick={() => setIsCinemaMode(false)}
@@ -577,9 +622,12 @@ export default function Home() {
         </div>
       )}
 
-      <EventPlanner />
+      {/* 7. REAL-TIME VIEWFINDER (PASSES ADMIN DATA) */}
+      <EventPlanner 
+        shots={content.viewfinderShots} 
+      />
 
-      {/* 5. TESTIMONIALS (RESPONSIVE: DESKTOP GROUPS OF 3 / MOBILE SLIDER) */}
+      {/* 8. TESTIMONIALS (DESKTOP GROUPS OF 3 / MOBILE SLIDER) */}
       <section className="testimonials-section" style={{ padding: '100px 10%', background: 'var(--bg-light)', textAlign: 'center', borderTop: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
           <motion.p className="eyebrow" variants={fadeUp}>CLIENT LOVE</motion.p>
@@ -590,7 +638,7 @@ export default function Home() {
         </motion.div>
 
         {isMobile ? (
-          /* MOBILE VIEW: SLIDER (1 at a time) */
+          /* MOBILE VIEW: SLIDER (1 by 1) */
           <div style={{ position: 'relative', maxWidth: '600px', margin: '0 auto', minHeight: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <AnimatePresence mode="wait">
               <motion.div 
@@ -610,10 +658,10 @@ export default function Home() {
                 }}
               >
                 <div style={{ display: 'flex', gap: '5px', color: 'var(--gold)', justifyContent: 'center', marginBottom: '20px' }}>
-                  {[...Array(currentMobileTestimonial.rating)].map((_, i) => <Star key={i} size={18} fill="var(--gold)" />)}
+                  {[...Array(currentMobileTestimonial.rating || 5)].map((_, i) => <Star key={i} size={18} fill="var(--gold)" />)}
                 </div>
                 <p style={{ color: 'var(--text)', fontSize: '15px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '25px' }}>
-                  "{content[currentMobileTestimonial.key]}"
+                  "{currentMobileTestimonial.text}"
                 </p>
                 <h4 style={{ fontFamily: 'var(--heading-font)', fontSize: '22px', color: 'var(--white)', margin: 0 }}>
                   {currentMobileTestimonial.name}
@@ -622,7 +670,7 @@ export default function Home() {
             </AnimatePresence>
           </div>
         ) : (
-          /* DESKTOP VIEW: GRID OF 3 (Changes every 4s) */
+          /* DESKTOP VIEW: GRID OF 3 (Rotates every 4s) */
           <div style={{ position: 'relative', maxWidth: '1200px', margin: '0 auto', minHeight: '300px' }}>
             <AnimatePresence mode="wait">
               <motion.div 
@@ -633,13 +681,13 @@ export default function Home() {
                 transition={{ duration: 0.5, ease: "easeInOut" }}
                 style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '30px', position: 'absolute', width: '100%' }}
               >
-                {currentDesktopTestimonials.map((test) => (
-                  <div key={test.name} style={{ background: 'rgba(255,255,255,0.02)', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)', textAlign: 'left' }}>
+                {currentDesktopTestimonials.map((test, index) => (
+                  <div key={test.name + index} style={{ background: 'rgba(255,255,255,0.02)', padding: '40px', borderRadius: '16px', border: '1px solid var(--border)', textAlign: 'left' }}>
                     <div style={{ display: 'flex', gap: '5px', color: 'var(--gold)', marginBottom: '20px' }}>
-                      {[...Array(test.rating)].map((_, i) => <Star key={i} size={16} fill="var(--gold)" />)}
+                      {[...Array(test.rating || 5)].map((_, i) => <Star key={i} size={16} fill="var(--gold)" />)}
                     </div>
                     <p style={{ color: 'var(--text)', fontSize: '14px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '20px' }}>
-                      "{content[test.key]}"
+                      "{test.text}"
                     </p>
                     <h4 style={{ fontFamily: 'var(--heading-font)', fontSize: '20px', color: 'var(--white)', margin: 0 }}>{test.name}</h4>
                   </div>
@@ -649,9 +697,9 @@ export default function Home() {
           </div>
         )}
         
-        {/* Navigation Dots (Optional, for visual feedback) */}
+        {/* Navigation Indicator Dots */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '30px', zIndex: 10, position: 'relative' }}>
-          {(isMobile ? testimonials : Array.from({ length: Math.ceil(testimonials.length / 3) })).map((_, index) => (
+          {(isMobile ? activeTestimonialsList : Array.from({ length: Math.ceil(activeTestimonialsList.length / 3) })).map((_, index) => (
             <button
               key={index}
               onClick={() => isMobile ? setActiveTestimonialSingle(index) : setActiveTestimonialGroup(index)}
@@ -670,7 +718,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 6. FINAL CTA */}
+      {/* 9. FINAL CTA SECTION */}
       <motion.section className="contact-section" style={{ padding: '120px 10%', background: 'var(--bg)', textAlign: 'center' }} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
         <motion.p className="eyebrow" variants={fadeUp}>LET'S CREATE SOMETHING TIMELESS</motion.p>
         <h2>
