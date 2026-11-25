@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Camera } from 'lucide-react';
 
 export default function Portfolio() {
   const [portfolioItems, setPortfolioItems] = useState([]);
@@ -109,72 +109,126 @@ export default function Portfolio() {
           ))}
         </div>
 
+        {/* MAIN GRID OR EMPTY STATE */}
         <div style={{ position: 'relative', minHeight: isMobile ? '600px' : '750px', maxWidth: '1400px', margin: '0 auto' }}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentPage}
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-              style={{ 
-                display: 'grid', 
-                gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', 
-                gap: '20px',
-                width: '100%',
-                position: 'absolute',
-                top: 0,
-                left: 0
+          
+          {filteredItems.length === 0 ? (
+            
+            /* THE COMING SOON EMPTY STATE */
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+                minHeight: '400px',
+                textAlign: 'center',
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px dashed var(--gold)',
+                borderRadius: '16px',
+                padding: '40px'
               }}
             >
-              {currentItems.map((item) => (
-                <Link to={`/portfolio/${item.id}`} key={item.id} style={{ textDecoration: 'none' }}>
-                  <motion.div 
-                    whileHover="hover"
-                    style={{ 
-                      borderRadius: '12px', 
-                      overflow: 'hidden', 
-                      position: 'relative', 
-                      cursor: 'pointer',
-                      aspectRatio: '4/3',
-                      background: '#111'
-                    }}
-                  >
-                    <motion.img 
-                      src={item.mainImage} 
-                      alt={item.title} 
-                      variants={{ hover: { scale: 1.08 } }}
-                      transition={{ duration: 0.4 }}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: 0.8 }} 
-                    />
-                    
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent 60%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '25px' }}>
-                      
-                      <motion.div 
-                        variants={{ hover: { opacity: 1 } }}
-                        initial={{ opacity: 0 }}
-                        style={{ position: 'absolute', inset: '10px', border: '1px solid var(--gold)', borderRadius: '8px', pointerEvents: 'none' }}
-                      />
-
-                      <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 5px' }}>
-                        {item.category}
-                      </p>
-                      <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '26px', margin: '0 0 10px' }}>
-                        {item.title}
-                      </h3>
-                      
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--gold)', marginTop: '10px', fontSize: '12px', fontWeight: 600 }}>
-                        Explore Story <ArrowUpRight size={14} />
-                      </div>
-                    </div>
-                  </motion.div>
-                </Link>
-              ))}
+              <motion.div
+                animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background: 'rgba(198, 164, 107, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--gold)',
+                  marginBottom: '20px'
+                }}
+              >
+                <Camera size={40} strokeWidth={1.5} />
+              </motion.div>
+              
+              <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '32px', color: 'var(--white)', margin: '0 0 10px' }}>
+                Coming Soon
+              </h3>
+              <p style={{ color: 'var(--muted)', fontSize: '15px', maxWidth: '400px', lineHeight: '1.8' }}>
+                We are currently curating our finest {activeCategory !== 'All' ? activeCategory : ''} moments for this collection. Please check back soon!
+              </p>
             </motion.div>
-          </AnimatePresence>
+
+          ) : (
+            
+            /* THE ACTUAL PORTFOLIO GRID */
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentPage}
+                initial={{ opacity: 0, x: 100 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -100 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+                style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', 
+                  gap: '20px',
+                  width: '100%',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0
+                }}
+              >
+                {currentItems.map((item) => (
+                  <Link to={`/portfolio/${item.id}`} key={item.id} style={{ textDecoration: 'none' }}>
+                    <motion.div 
+                      whileHover="hover"
+                      style={{ 
+                        borderRadius: '12px', 
+                        overflow: 'hidden', 
+                        position: 'relative', 
+                        cursor: 'pointer',
+                        aspectRatio: '4/3',
+                        background: '#111'
+                      }}
+                    >
+                      <motion.img 
+                        src={item.mainImage} 
+                        alt={item.title} 
+                        variants={{ hover: { scale: 1.08 } }}
+                        transition={{ duration: 0.4 }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: 0.8 }} 
+                      />
+                      
+                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent 60%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '25px' }}>
+                        
+                        <motion.div 
+                          variants={{ hover: { opacity: 1 } }}
+                          initial={{ opacity: 0 }}
+                          style={{ position: 'absolute', inset: '10px', border: '1px solid var(--gold)', borderRadius: '8px', pointerEvents: 'none' }}
+                        />
+
+                        <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 5px' }}>
+                          {item.category}
+                        </p>
+                        <h3 style={{ color: 'var(--white)', fontFamily: 'var(--heading-font)', fontSize: '26px', margin: '0 0 10px' }}>
+                          {item.title}
+                        </h3>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--gold)', marginTop: '10px', fontSize: '12px', fontWeight: 600 }}>
+                          Explore Story <ArrowUpRight size={14} />
+                        </div>
+                      </div>
+                    </motion.div>
+                  </Link>
+                ))}
+              </motion.div>
+            </AnimatePresence>
+
+          )}
         </div>
 
-        {totalPages > 1 && (
+        {/* Pagination Dots (Only show if items exist) */}
+        {filteredItems.length > 0 && totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '40px', position: 'relative', zIndex: 10 }}>
             {Array.from({ length: totalPages }).map((_, idx) => (
               <button
