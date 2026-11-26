@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Save, ArrowLeft, Upload, Loader2, Plus, Trash2, Edit2, 
   Image as ImageIcon, Film, Video, Aperture, Camera, MessageSquare, 
   Sparkles, Layers, BookOpen, Clock, ShieldCheck, Mail, CheckCircle2,
-  Sliders, Eye, Palette, X
+  Sliders, Eye, Palette, X, AlertTriangle, AlertCircle, FileWarning, Check
 } from 'lucide-react';
 
 const CLOUDINARY_CLOUD_NAME = 'kwqsty9w';
 const CLOUDINARY_UPLOAD_PRESET = 'portfolio_upload';
 const WEDDING_SUB_CATEGORIES = ['Engagement', 'Pre-Wedding', 'Mehendi & Haldi', 'Marriage', 'Reception'];
+
+// File Size Constraints (in MB)
+const MAX_IMAGE_SIZE_MB = 10; // Max 10MB for photos
+const MAX_VIDEO_SIZE_MB = 80; // Max 80MB for 4K video clips
 
 const defaultContent = {
   // ----------------------------------------------------
@@ -175,6 +179,11 @@ export default function AdminChange() {
   const [uploadFileName, setUploadFileName] = useState('');
   const [uploadAssetType, setUploadAssetType] = useState('Image');
   const [uploadTheme, setUploadTheme] = useState('gold'); // 'gold' | 'cyber' | 'studio'
+  const [showModalLoader, setShowModalLoader] = useState(false); // Can toggle full-screen overlay if desired
+
+  // Toast Notification System
+  const [toasts, setToasts] = useState([]);
+  const toastTimeoutRef = useRef({});
 
   // Primary Tabs: 'home' | 'about' | 'contact' | 'portfolio'
   const [activeTab, setActiveTab] = useState('home');
@@ -186,6 +195,35 @@ export default function AdminChange() {
   const [editingClient, setEditingClient] = useState(null);
 
   const navigate = useNavigate();
+
+  // Helper to add or update a toast
+  const showToast = (toastObj) => {
+    const id = toastObj.id || Date.now().toString();
+    setToasts(prev => {
+      const existingIdx = prev.findIndex(t => t.id === id);
+      if (existingIdx > -1) {
+        const updated = [...prev];
+        updated[existingIdx] = { ...updated[existingIdx], ...toastObj, id };
+        return updated;
+      }
+      return [...prev, { ...toastObj, id }];
+    });
+
+    // Auto-dismiss logic for success or error
+    if (toastObj.type === 'success' || toastObj.type === 'error') {
+      if (toastTimeoutRef.current[id]) clearTimeout(toastTimeoutRef.current[id]);
+      toastTimeoutRef.current[id] = setTimeout(() => {
+        removeToast(id);
+      }, toastObj.duration || 4500);
+    }
+
+    return id;
+  };
+
+  const removeToast = (id) => {
+    if (toastTimeoutRef.current[id]) clearTimeout(toastTimeoutRef.current[id]);
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
 
   useEffect(() => {
     if (localStorage.getItem('isAdmin') !== 'true') {
@@ -233,26 +271,74 @@ export default function AdminChange() {
       });
 
       if (res.ok) {
-        alert('All website content, animations & forms updated successfully!');
+        showToast({
+          type: 'success',
+          title: 'Changes Saved Successfully',
+          message: 'All website content, animations & form configurations updated!',
+          duration: 4000
+        });
       } else {
         const err = await res.json();
-        alert(`Failed to save: ${err.message || 'Unknown error'}`);
+        showToast({
+          type: 'error',
+          title: 'Save Failed',
+          message: err.message || 'Could not persist changes to server.',
+          duration: 5000
+        });
       }
     } catch (err) {
-      alert('Network error while saving changes.');
+      showToast({
+        type: 'error',
+        title: 'Network Error',
+        message: 'Could not connect to the backend server.',
+        duration: 5000
+      });
     }
     setSaving(false);
   };
 
-  // Upload image or video to Cloudinary with Real-Time Progress Bar & Percentage
+  /**
+   * Central Upload Handler with:
+   * 1. Real-time file size check against MB limits (Throws warning toast if exceeded)
+   * 2. Live progress percentage toast with dynamic progress bar
+   * 3. Upload complete success toast with CDN confirmation
+   * 4. Error toast handling
+   */
   const uploadToCloudinary = (file, resourceType = 'image') => {
     return new Promise((resolve) => {
       if (!file) return resolve(null);
 
+      const fileSizeMB = (file.size / (1024 * 1024));
+      const maxAllowedMB = resourceType === 'video' ? MAX_VIDEO_SIZE_MB : MAX_IMAGE_SIZE_MB;
+      const typeLabel = resourceType === 'video' ? '4K Video / Reel' : 'Photo';
+
+      // 1. FILE SIZE VALIDATION TOAST
+      if (fileSizeMB > maxAllowedMB) {
+        showToast({
+          type: 'error',
+          title: `File Size Exceeded (${fileSizeMB.toFixed(1)} MB)`,
+          message: `"${file.name}" exceeds the maximum allowed ${typeLabel} limit of ${maxAllowedMB} MB. Please compress the file before uploading.`,
+          duration: 6000
+        });
+        return resolve(null);
+      }
+
+      const toastId = `upload-${Date.now()}`;
       setUploading(true);
       setUploadProgress(0);
-      setUploadFileName(file.name || 'Cinematic Asset');
-      setUploadAssetType(resourceType === 'video' ? '4K Video / Reel' : 'High-Res Image');
+      setUploadFileName(file.name);
+      setUploadAssetType(typeLabel);
+
+      // 2. INITIAL TOAST: UPLOAD STARTING
+      showToast({
+        id: toastId,
+        type: 'uploading',
+        title: `Uploading ${typeLabel}...`,
+        fileName: file.name,
+        fileSize: `${fileSizeMB.toFixed(2)} MB`,
+        progress: 0,
+        message: 'Preparing asset and streaming to Cloudinary CDN...'
+      });
 
       const xhr = new XMLHttpRequest();
       const formData = new FormData();
@@ -263,6 +349,17 @@ export default function AdminChange() {
         if (event.lengthComputable) {
           const percent = Math.min(99, Math.round((event.loaded / event.total) * 100));
           setUploadProgress(percent);
+
+          // Update the active toast with live percentage
+          showToast({
+            id: toastId,
+            type: 'uploading',
+            title: `Uploading ${typeLabel} (${percent}%)`,
+            fileName: file.name,
+            fileSize: `${fileSizeMB.toFixed(2)} MB`,
+            progress: percent,
+            message: `${percent}% uploaded • ${(event.loaded / (1024 * 1024)).toFixed(1)} of ${fileSizeMB.toFixed(1)} MB`
+          });
         }
       };
 
@@ -271,6 +368,19 @@ export default function AdminChange() {
           try {
             const data = JSON.parse(xhr.responseText);
             setUploadProgress(100);
+
+            // 3. TOAST: UPLOAD COMPLETE SUCCESS
+            showToast({
+              id: toastId,
+              type: 'success',
+              title: 'Upload Complete! (100%)',
+              fileName: file.name,
+              fileSize: `${fileSizeMB.toFixed(2)} MB`,
+              progress: 100,
+              message: `"${file.name}" successfully uploaded and optimized on Cloudinary CDN.`,
+              duration: 4500
+            });
+
             setTimeout(() => {
               setUploading(false);
               setUploadProgress(0);
@@ -278,24 +388,43 @@ export default function AdminChange() {
             }, 300);
           } catch (e) {
             setUploading(false);
-            alert('Failed to parse Cloudinary response');
+            showToast({
+              id: toastId,
+              type: 'error',
+              title: 'Upload Parsing Error',
+              message: 'Failed to parse response payload from Cloudinary.',
+              duration: 5000
+            });
             resolve(null);
           }
         } else {
           setUploading(false);
+          let errDetail = `Status code ${xhr.status}`;
           try {
-            const err = JSON.parse(xhr.responseText);
-            alert(`Upload failed: ${err.error?.message || 'Error occurred'}`);
-          } catch (e) {
-            alert(`Upload failed with status code ${xhr.status}`);
-          }
+            const errData = JSON.parse(xhr.responseText);
+            if (errData.error?.message) errDetail = errData.error.message;
+          } catch (e) {}
+
+          showToast({
+            id: toastId,
+            type: 'error',
+            title: 'Upload Failed',
+            message: `Cloudinary rejected "${file.name}": ${errDetail}`,
+            duration: 6000
+          });
           resolve(null);
         }
       };
 
       xhr.onerror = () => {
         setUploading(false);
-        alert('Network error during asset upload.');
+        showToast({
+          id: toastId,
+          type: 'error',
+          title: 'Network Error During Upload',
+          message: 'Connection was interrupted. Please check your network and retry.',
+          duration: 6000
+        });
         resolve(null);
       };
 
@@ -322,6 +451,7 @@ export default function AdminChange() {
     if (url) {
       setContent(prev => ({ ...prev, [stateKey]: url }));
     }
+    e.target.value = '';
   };
 
   // Array item media upload
@@ -332,6 +462,7 @@ export default function AdminChange() {
     if (url) {
       updateArrayItem(arrayKey, index, field, url);
     }
+    e.target.value = '';
   };
 
   if (loading) return <div style={{ color: '#fff', padding: '100px', textAlign: 'center' }}>Loading Admin Panel...</div>;
@@ -373,15 +504,137 @@ export default function AdminChange() {
     <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#fff', paddingBottom: '120px' }}>
       
       {/* ======================================================== */}
-      {/* 0. CINEMATIC UPLOAD LOADER WITH PERCENTAGE & THEME       */}
+      {/* A. TOAST NOTIFICATIONS CONTAINER (DOGGED BOTTOM-RIGHT)    */}
       {/* ======================================================== */}
-      {uploading && (
+      <div style={{
+        position: 'fixed',
+        bottom: '24px',
+        right: '24px',
+        zIndex: 99999,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        maxWidth: '420px',
+        width: 'calc(100% - 48px)',
+        pointerEvents: 'none'
+      }}>
+        {toasts.map(t => {
+          const isUploading = t.type === 'uploading';
+          const isSuccess = t.type === 'success';
+          const isError = t.type === 'error';
+
+          return (
+            <div
+              key={t.id}
+              style={{
+                pointerEvents: 'auto',
+                background: isError 
+                  ? 'rgba(24, 10, 10, 0.95)' 
+                  : isSuccess 
+                  ? 'rgba(10, 22, 14, 0.95)' 
+                  : 'rgba(18, 16, 12, 0.95)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: isError 
+                  ? '1px solid rgba(239, 68, 68, 0.5)' 
+                  : isSuccess 
+                  ? '1px solid rgba(34, 197, 94, 0.5)' 
+                  : '1px solid rgba(198, 164, 107, 0.45)',
+                boxShadow: isError
+                  ? '0 10px 30px rgba(239, 68, 68, 0.2)'
+                  : isSuccess
+                  ? '0 10px 30px rgba(34, 197, 94, 0.2)'
+                  : '0 10px 30px rgba(198, 164, 107, 0.2)',
+                borderRadius: '14px',
+                padding: '16px',
+                color: '#fff',
+                transition: 'all 0.25s ease',
+                animation: 'slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}
+            >
+              {/* Toast Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {isUploading && <Loader2 size={18} className="animate-spin" color="var(--gold, #c6a46b)" />}
+                  {isSuccess && <CheckCircle2 size={18} color="#22c55e" />}
+                  {isError && <AlertTriangle size={18} color="#ef4444" />}
+                  
+                  <span style={{ 
+                    fontSize: '13.5px', 
+                    fontWeight: 700, 
+                    color: isError ? '#f87171' : isSuccess ? '#4ade80' : 'var(--gold, #c6a46b)',
+                    letterSpacing: '0.3px'
+                  }}>
+                    {t.title}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => removeToast(t.id)}
+                  style={{
+                    background: 'none', border: 'none', color: '#888',
+                    cursor: 'pointer', padding: '2px', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center'
+                  }}
+                  title="Dismiss toast"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+
+              {/* File details */}
+              {t.fileName && (
+                <div style={{ fontSize: '11.5px', color: '#ccc', marginBottom: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <strong style={{ color: '#fff' }}>File:</strong> {t.fileName} {t.fileSize && <span style={{ color: '#888' }}>({t.fileSize})</span>}
+                </div>
+              )}
+
+              {/* Message text */}
+              {t.message && (
+                <div style={{ fontSize: '12px', color: '#aaa', lineHeight: 1.4, marginBottom: isUploading ? '10px' : '0' }}>
+                  {t.message}
+                </div>
+              )}
+
+              {/* Real-time Percentage Bar inside Toast */}
+              {isUploading && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#888', marginBottom: '4px' }}>
+                    <span>Transfer Progress</span>
+                    <span style={{ fontWeight: 800, color: 'var(--gold, #c6a46b)' }}>{t.progress || 0}%</span>
+                  </div>
+                  <div style={{
+                    width: '100%',
+                    height: '6px',
+                    background: 'rgba(255,255,255,0.08)',
+                    borderRadius: '999px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      width: `${t.progress || 0}%`,
+                      height: '100%',
+                      background: 'linear-gradient(90deg, #99773d, #c6a46b, #f3e7c4)',
+                      borderRadius: '999px',
+                      transition: 'width 0.2s ease-out'
+                    }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ======================================================== */}
+      {/* B. OPTIONAL FULL-SCREEN CINEMATIC UPLOAD OVERLAY          */}
+      {/* ======================================================== */}
+      {uploading && showModalLoader && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(0, 0, 0, 0.88)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          zIndex: 9999,
+          zIndex: 99990,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: '20px'
         }}>
@@ -394,35 +647,15 @@ export default function AdminChange() {
             maxWidth: '460px',
             width: '100%',
             textAlign: 'center',
-            position: 'relative',
-            animation: 'fadeIn 0.25s ease'
+            position: 'relative'
           }}>
-            {/* Theme Selector Pills inside Loader */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginBottom: '22px' }}>
-              <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#777', marginRight: '6px', alignSelf: 'center' }}>Theme:</span>
-              {[
-                { id: 'gold', label: 'Gold Studio' },
-                { id: 'cyber', label: 'Cyber Neon' },
-                { id: 'studio', label: 'Platinum' }
-              ].map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => setUploadTheme(t.id)}
-                  style={{
-                    padding: '3px 10px',
-                    borderRadius: '999px',
-                    fontSize: '10.5px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    background: uploadTheme === t.id ? currentTheme.badgeBg : 'rgba(255,255,255,0.04)',
-                    color: uploadTheme === t.id ? currentTheme.badgeText : '#888',
-                    border: uploadTheme === t.id ? `1px solid ${currentTheme.accent}` : '1px solid rgba(255,255,255,0.08)'
-                  }}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
+            <button 
+              onClick={() => setShowModalLoader(false)}
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}
+              title="Minimize to toast"
+            >
+              <X size={18} />
+            </button>
 
             {/* Glowing Aperture Spinner */}
             <div style={{ position: 'relative', width: '84px', height: '84px', margin: '0 auto 20px' }}>
@@ -448,7 +681,6 @@ export default function AdminChange() {
               </div>
             </div>
 
-            {/* Asset Info */}
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: '6px',
               padding: '3px 12px', borderRadius: '999px',
@@ -520,6 +752,14 @@ export default function AdminChange() {
           </button>
           <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
           <span style={{ fontSize: '13px', color: '#888' }}>Photo In Motion Studio</span>
+          
+          {/* File Size Limits Pill Tag */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.04)', padding: '3px 10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <span style={{ fontSize: '10.5px', color: '#888' }}>Max Limits:</span>
+            <span style={{ fontSize: '10.5px', color: 'var(--gold, #c6a46b)', fontWeight: 600 }}>Photos ≤ {MAX_IMAGE_SIZE_MB}MB</span>
+            <span style={{ fontSize: '10.5px', color: '#555' }}>•</span>
+            <span style={{ fontSize: '10.5px', color: '#00f5d4', fontWeight: 600 }}>Videos ≤ {MAX_VIDEO_SIZE_MB}MB</span>
+          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -731,7 +971,7 @@ export default function AdminChange() {
                           />
                         </label>
                         <label style={{ ...uploadButtonStyle, flex: 1, background: '#222', color: '#fff', border: '1px solid #444' }}>
-                          <Video size={13} /> Upload 4K Video
+                          <Video size={13} /> Upload 4K Video (≤ {MAX_VIDEO_SIZE_MB}MB)
                           <input 
                             type="file" 
                             accept="video/*" 
@@ -819,7 +1059,7 @@ export default function AdminChange() {
                       </div>
 
                       <label style={{ ...uploadButtonStyle, width: '100%', marginBottom: '14px' }}>
-                        <Upload size={13} /> Upload High-Res Moment Photo
+                        <Upload size={13} /> Upload High-Res Moment Photo (≤ {MAX_IMAGE_SIZE_MB}MB)
                         <input 
                           type="file" 
                           accept="image/*" 
@@ -833,6 +1073,7 @@ export default function AdminChange() {
                                 updateArrayItem('orbitMoments', idx, 'thumb', url);
                               }
                             });
+                            e.target.value = '';
                           }}
                         />
                       </label>
@@ -1226,7 +1467,7 @@ export default function AdminChange() {
               
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '25px', marginBottom: '20px' }}>
                 <div>
-                  <label style={labelStyle}>Founder Showcase Photo</label>
+                  <label style={labelStyle}>Founder Showcase Photo (≤ {MAX_IMAGE_SIZE_MB}MB)</label>
                   <div style={{ position: 'relative', width: '100%', height: '240px', borderRadius: '12px', overflow: 'hidden', background: '#000', marginBottom: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
                     <img src={content.storyFounderImg} alt="Founder" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
@@ -1674,7 +1915,7 @@ export default function AdminChange() {
                 <label style={labelStyle}>Description</label>
                 <textarea value={editingClient.description} onChange={(e) => setEditingClient(prev => ({ ...prev, description: e.target.value }))} style={{ ...inputStyle, height: '80px' }} />
 
-                <label style={labelStyle}>Cover Poster Image</label>
+                <label style={labelStyle}>Cover Poster Image (≤ {MAX_IMAGE_SIZE_MB}MB)</label>
                 <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '20px' }}>
                   {editingClient.mainImage && <img src={editingClient.mainImage} alt="Cover" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px' }} />}
                   <label style={uploadButtonStyle}>
@@ -1684,6 +1925,7 @@ export default function AdminChange() {
                       if (!file) return;
                       const url = await uploadToCloudinary(file, 'image');
                       if (url) setEditingClient(prev => ({ ...prev, mainImage: url }));
+                      e.target.value = '';
                     }} />
                   </label>
                 </div>
@@ -1714,6 +1956,7 @@ export default function AdminChange() {
                                 subCategories: { ...prev.subCategories, [subCat]: [...(prev.subCategories?.[subCat] || []), url] }
                               }));
                             }
+                            e.target.value = '';
                           }} />
                         </label>
                       </div>
@@ -1744,6 +1987,7 @@ export default function AdminChange() {
                               subCategories: { ...prev.subCategories, General: [...(prev.subCategories?.General || []), url] }
                             }));
                           }
+                          e.target.value = '';
                         }} />
                       </label>
                     </div>
