@@ -5,7 +5,7 @@ import {
   Image as ImageIcon, Film, Video, Aperture, Camera, MessageSquare, 
   Sparkles, Layers, BookOpen, Clock, ShieldCheck, Mail, CheckCircle2,
   Sliders, Eye, Palette, X, AlertTriangle, AlertCircle, FileWarning, Check,
-  Zap, Link2, Youtube, Play, CheckCircle
+  Zap, Link2, Play, CheckCircle
 } from 'lucide-react';
 
 const CLOUDINARY_CLOUD_NAME = 'kwqsty9w';
