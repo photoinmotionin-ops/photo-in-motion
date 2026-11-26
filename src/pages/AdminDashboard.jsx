@@ -82,14 +82,47 @@ export default function AdminDashboard() {
     navigate('/admin/login');
   };
 
-  const confirmDelete = () => {
-    // Here you would normally call your API to delete from MongoDB
-    const updated = enquiries.filter(e => e._id !== deleteId);
+ 
+const confirmDelete = async () => {
+  if (!deleteId) return;
+
+  try {
+    const response = await fetch('/api/enquiry', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        action: 'delete_enquiry',
+        id: deleteId
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to delete enquiry');
+    }
+
+    // Update frontend only after successful MongoDB deletion
+    const updated = enquiries.filter(
+      e => String(e._id) !== String(deleteId)
+    );
+
     setEnquiries(updated);
-    setFilteredEnquiries(updated);
+
+    // Update localStorage cache
     localStorage.setItem('enquiriesCache', JSON.stringify(updated));
+
+    // Close delete confirmation modal
     setDeleteId(null);
-  };
+
+  } catch (error) {
+    console.error('Delete Error:', error);
+    alert(error.message || 'Unable to delete enquiry. Please try again.');
+  }
+};
+
 
   const handleReply = (phone) => {
     window.open(`https://wa.me/${phone}`, '_blank');

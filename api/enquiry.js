@@ -1,4 +1,5 @@
-import { MongoClient } from 'mongodb';
+// import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import nodemailer from 'nodemailer';
 
 export const config = {
@@ -27,6 +28,33 @@ export default async function handler(req, res) {
     const db = client.db(DB_NAME);
     const enquiriesCol = db.collection('enquiries');
     const usersCol = db.collection('users');
+
+
+// DELETE ENQUIRY FROM MONGODB
+if (req.method === 'POST' && req.body.action === 'delete_enquiry') {
+  const { id } = req.body;
+
+  if (!id || !ObjectId.isValid(id)) {
+    return res.status(400).json({
+      message: 'Invalid enquiry ID'
+    });
+  }
+
+  const result = await enquiriesCol.deleteOne({
+    _id: new ObjectId(id)
+  });
+
+  if (result.deletedCount === 0) {
+    return res.status(404).json({
+      message: 'Enquiry not found'
+    });
+  }
+
+  return res.status(200).json({
+    message: 'Enquiry deleted successfully'
+  });
+}
+
 
     if (req.method === 'POST' && req.body.action === 'submit_enquiry') {
       const { name, email, phone, eventType, eventDate, location, budget, requirements, otherDescription } = req.body;
