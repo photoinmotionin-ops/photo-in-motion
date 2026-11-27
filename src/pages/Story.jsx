@@ -287,7 +287,7 @@ export default function Story() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', borderTop: '1px solid var(--border, rgba(255,255,255,0.1))', paddingTop: '20px' }}>
               <div>
-                <h4 style={{ color: 'var(--gold, #c6a46b)', margin: '0 0 5px 0', fontSize: '16px' }}>20+ Years</h4>
+                <h4 style={{ color: 'var(--gold, #c6a46b)', margin: '0 0 5px 0', fontSize: '16px' }}>10+ Years</h4>
                 <p style={{ margin: 0, fontSize: '12px', color: 'var(--muted, #aaa)' }}>Continuous dedication to cinematic elegance.</p>
               </div>
               <div>
