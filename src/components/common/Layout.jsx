@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom';
-import { ArrowUpRight, Menu, X } from 'lucide-react';
-import ContactModal from './ContactModal';
-import EnquiryForm from './EnquiryForm';
-import WhatsAppButton from './WhatsAppButton';
-import FollowUsButton from './FollowUsButton';
+import './../../App.css'
+import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { Link, useLocation } from 'react-router-dom'
+import { ArrowUpRight, Menu, X } from 'lucide-react'
+import ContactModal from './ContactModal'
+import EnquiryForm from './EnquiryForm'
+import WhatsAppButton from './WhatsAppButton'
+import FollowUsButton from './FollowUsButton'
 
 const navigation = [
   { label: 'Home', link: '/' },
@@ -13,48 +14,35 @@ const navigation = [
   { label: 'Portfolio', link: '/portfolio' },
   { label: 'Services', link: '/services' },
   { label: 'Contact', link: '/contact' },
-];
+]
 
 export default function Layout({ children }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [contactModalOpen, setContactModalOpen] = useState(false);
-  const [enquiryOpen, setEnquiryOpen] = useState(false);
-  const [siteConfig, setSiteConfig] = useState(() => {
-    try {
-      const cached = localStorage.getItem('site_content_cache');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        return parsed.content || parsed.data || parsed;
-      }
-    } catch (_) {}
-    return null;
-  });
-
-  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [contactModalOpen, setContactModalOpen] = useState(false)
+  const [enquiryOpen, setEnquiryOpen] = useState(false)
+  const [siteConfig, setSiteConfig] = useState(null)
+  const location = useLocation()
 
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem('site_content_cache')
+      if (cached) setSiteConfig(JSON.parse(cached))
+    } catch (_) {}
+
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(data => {
         if (data) {
-          const config = data.content || data.data || data;
-          setSiteConfig(config);
-          try {
-            localStorage.setItem('site_content_cache', JSON.stringify(config));
-          } catch (_) {}
+          const cfg = data.content || data.data || data
+          setSiteConfig(cfg)
         }
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {})
+  }, [])
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <ContactModal 
-        isOpen={contactModalOpen} 
-        onClose={() => setContactModalOpen(false)} 
-        config={siteConfig}
-      />
-      
+      <ContactModal isOpen={contactModalOpen} onClose={() => setContactModalOpen(false)} config={siteConfig} />
       <EnquiryForm isOpen={enquiryOpen} onClose={() => setEnquiryOpen(false)} />
       
       {/* Floating Action Controls */}
@@ -72,7 +60,7 @@ export default function Layout({ children }) {
                 key={item.label} 
                 to={item.link} 
                 onClick={() => setMenuOpen(false)}
-                style={{ color: location.pathname === item.link ? 'var(--gold, #c6a46b)' : 'inherit' }}
+                style={{ color: location.pathname === item.link ? 'var(--gold)' : 'inherit' }}
               >
                 {item.label}
               </Link>
@@ -80,10 +68,10 @@ export default function Layout({ children }) {
           </div>
 
           <div className="nav-actions">
-            {/* BULLETPROOF LET'S TALK BUTTON: Stays illuminated and never blacks out on hover */}
+            {/* HOVER FIX: Stays illuminated in luxury gold and never blacks out */}
             <motion.button 
-              type="button"
-              onClick={() => setContactModalOpen(true)}
+              onClick={() => setContactModalOpen(true)} 
+              className="nav-cta"
               whileHover={{ 
                 scale: 1.05, 
                 backgroundColor: 'var(--gold, #c6a46b)', 
@@ -91,8 +79,7 @@ export default function Layout({ children }) {
                 boxShadow: '0 0 20px rgba(198, 164, 107, 0.45)'
               }}
               whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              style={{ 
+              style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
@@ -108,9 +95,8 @@ export default function Layout({ children }) {
                 cursor: 'pointer'
               }}
             >
-              Let's Talk <ArrowUpRight size={15} />
+              Let's Talk <ArrowUpRight size={16} />
             </motion.button>
-
             <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)}>
               {menuOpen ? <X size={25} /> : <Menu size={25} />}
             </button>
@@ -136,5 +122,5 @@ export default function Layout({ children }) {
         <span>© {new Date().getFullYear()} Photo In Motion. All rights reserved.</span>
       </footer>
     </div>
-  );
+  )
 }
