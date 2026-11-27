@@ -22,11 +22,20 @@ const staggerContainer = {
   visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.1 } } 
 };
 
-// --- DEFAULT FALLBACK DATA (Used if admin has not set them yet) ---
+// --- DEFAULT FALLBACK DATA ---
 const defaultFeaturedWorks = [
   { number: '01', category: 'WEDDINGS', title: 'Forever Begins', img: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85' },
   { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', img: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85' },
   { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85' },
+];
+
+const defaultOrbitMoments = [
+  { id: 1, tag: "ROYAL WEDDING", title: "Forever Begins at Sacred Dusk", focal: "85mm • f/1.4 • ISO 100", desc: "Vows whispered beneath temple archways as the golden hour blesses every vow.", url: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=300&q=80" },
+  { id: 2, tag: "CINEMATIC HALDI", title: "Golden Petals & Joyous Tears", focal: "50mm • f/1.2 • ISO 200", desc: "Unbridled laughter and flying marigold showers captured in slow-motion warmth.", url: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=300&q=80" },
+  { id: 3, tag: "PRE-WEDDING DAWN", title: "Whispers Across The Mist", focal: "35mm • f/1.8 • ISO 160", desc: "Quiet intimacy framed by serene waters, morning reflections, and timeless poetry.", url: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=300&q=80" },
+  { id: 4, tag: "GRAND CELEBRATION", title: "The Euphoria of Royal Baraat", focal: "24mm • f/2.0 • ISO 400", desc: "High energy, celebratory drums, and kaleidoscopic colors frozen at peak motion.", url: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=300&q=80" },
+  { id: 5, tag: "STARLIT RECEPTION", title: "First Dance Under Chandeliers", focal: "105mm • f/2.8 • ISO 800", desc: "Chandelier glints, velvet suits, and the quiet universe of two lovers dancing alone.", url: "https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=300&q=80" },
+  { id: 6, tag: "SOUL PORTRAIT", title: "Elegance in The Mirror", focal: "85mm • f/1.4 • ISO 100", desc: "The bridal veil catching soft natural window light in profound stillness.", url: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=300&q=80" }
 ];
 
 const defaultTestimonials = [
@@ -99,11 +108,27 @@ const defaultHomeContent = {
   featuredWorks: defaultFeaturedWorks,
   stripTopWorks: null,
   stripBottomWorks: null,
-  orbitMoments: null,
+  orbitMoments: defaultOrbitMoments,
   showreels: defaultShortReels,
   viewfinderShots: null,
   testimonials: defaultTestimonials,
   showreelImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80'
+};
+
+// Helper: Normalize moments to guarantee url, img, image, thumb are always present
+const normalizeOrbitMoments = (list) => {
+  if (!list || !Array.isArray(list) || list.length === 0) return defaultOrbitMoments;
+  return list.map((m, i) => {
+    const src = m.url || m.img || m.image || m.thumb || defaultOrbitMoments[i]?.url;
+    return {
+      ...m,
+      id: m.id || i + 1,
+      url: src,
+      img: src,
+      image: src,
+      thumb: m.thumb || src
+    };
+  });
 };
 
 // Synchronously load cache on initial render to prevent flashing
@@ -111,14 +136,15 @@ const getInitialHomeContent = () => {
   try {
     const cached = localStorage.getItem('site_content_cache');
     if (cached) {
-      const data = JSON.parse(cached);
+      const parsed = JSON.parse(cached);
+      const data = parsed.content || parsed.data || parsed;
       return {
         ...defaultHomeContent,
         ...data,
         featuredWorks: data.featuredWorks || defaultHomeContent.featuredWorks,
         stripTopWorks: data.stripTopWorks || null,
         stripBottomWorks: data.stripBottomWorks || null,
-        orbitMoments: data.orbitMoments || null,
+        orbitMoments: normalizeOrbitMoments(data.orbitMoments),
         showreels: data.showreels || defaultHomeContent.showreels,
         viewfinderShots: data.viewfinderShots || null,
         testimonials: data.testimonials || defaultHomeContent.testimonials
@@ -141,37 +167,25 @@ export default function Home() {
 
   // Testimonials Responsive State
   const [isMobile, setIsMobile] = useState(false);
-  const [activeTestimonialGroup, setActiveTestimonialGroup] = useState(0); // Desktop chunks of 3
-  const [activeTestimonialSingle, setActiveTestimonialSingle] = useState(0); // Mobile slider
+  const [activeTestimonialGroup, setActiveTestimonialGroup] = useState(0);
+  const [activeTestimonialSingle, setActiveTestimonialSingle] = useState(0);
 
   const videoRef = useRef(null);
   const modalVideoRef = useRef(null);
   const progressBarRef = useRef(null);
 
-  // Dynamic showreels list with fallback
   const activeReelsList = (content.showreels && content.showreels.length > 0) ? content.showreels : defaultShortReels;
   const activeReel = activeReelsList[activeReelIndex] || activeReelsList[0];
 
-  // Dynamic featured works with fallback
   const activeFeaturedWorks = (content.featuredWorks && content.featuredWorks.length > 0) 
     ? content.featuredWorks 
-    : [
-        { number: '01', category: 'WEDDINGS', title: 'Forever Begins', img: content.img1 || defaultFeaturedWorks[0].img },
-        { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', img: content.img2 || defaultFeaturedWorks[1].img },
-        { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', img: content.img3 || defaultFeaturedWorks[2].img }
-      ];
+    : defaultFeaturedWorks;
 
-  // Dynamic testimonials list with fallback
+  const activeOrbitMoments = normalizeOrbitMoments(content.orbitMoments);
+
   const activeTestimonialsList = (content.testimonials && content.testimonials.length > 0) 
     ? content.testimonials 
-    : [
-        { name: content.testimonial1Name || 'Ananya & Rahul', rating: 5, text: content.testimonial1 || defaultTestimonials[0].text },
-        { name: content.testimonial2Name || 'Sarah & James', rating: 5, text: content.testimonial2 || defaultTestimonials[1].text },
-        { name: content.testimonial3Name || 'Priya & Arjun', rating: 5, text: content.testimonial3 || defaultTestimonials[2].text },
-        { name: content.testimonial4Name || 'Neha & Vikram', rating: 5, text: content.testimonial4 || defaultTestimonials[3].text },
-        { name: content.testimonial5Name || 'Riya & Karan', rating: 5, text: content.testimonial5 || defaultTestimonials[4].text },
-        { name: content.testimonial6Name || 'Simran & Aditya', rating: 5, text: content.testimonial6 || defaultTestimonials[5].text },
-      ];
+    : defaultTestimonials;
 
   // Detect Mobile Screens
   useEffect(() => {
@@ -185,8 +199,9 @@ export default function Home() {
   useEffect(() => {
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
-      .then(data => {
-        if (data && Object.keys(data).length > 0) {
+      .then(resData => {
+        if (resData && Object.keys(resData).length > 0) {
+          const data = resData.content || resData.data || resData;
           try {
             localStorage.setItem('site_content_cache', JSON.stringify(data));
           } catch (_) {}
@@ -194,11 +209,11 @@ export default function Home() {
             ...prev,
             ...data,
             featuredWorks: data.featuredWorks || prev.featuredWorks,
-            stripTopWorks: data.stripTopWorks || null,
-            stripBottomWorks: data.stripBottomWorks || null,
-            orbitMoments: data.orbitMoments || null,
+            stripTopWorks: data.stripTopWorks || prev.stripTopWorks,
+            stripBottomWorks: data.stripBottomWorks || prev.stripBottomWorks,
+            orbitMoments: normalizeOrbitMoments(data.orbitMoments || prev.orbitMoments),
             showreels: data.showreels || prev.showreels,
-            viewfinderShots: data.viewfinderShots || null,
+            viewfinderShots: data.viewfinderShots || prev.viewfinderShots,
             testimonials: data.testimonials || prev.testimonials
           }));
         }
@@ -219,7 +234,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [isMobile, activeTestimonialsList.length]);
 
-  // Handle active video change & autoplay
+  // Video autoplay
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
@@ -239,7 +254,6 @@ export default function Home() {
     }
   }, [activeReelIndex]);
 
-  // Sync mute state across main & cinema modal video
   useEffect(() => {
     if (videoRef.current) videoRef.current.muted = isMuted;
     if (modalVideoRef.current) modalVideoRef.current.muted = isMuted;
@@ -290,10 +304,12 @@ export default function Home() {
     setProgress(percentage * 100);
   };
 
-  // Testimonial slicing for desktop
   const startIdx = activeTestimonialGroup * 3;
   const currentDesktopTestimonials = activeTestimonialsList.slice(startIdx, startIdx + 3);
   const currentMobileTestimonial = activeTestimonialsList[activeTestimonialSingle] || activeTestimonialsList[0];
+
+  // Dynamic reactive key to guarantee CinematicReveal re-mounts when images are updated
+  const orbitKey = activeOrbitMoments.map(m => m.url).join(';');
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -325,15 +341,17 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* 2. CINEMATIC FILM STRIP (PASSES ADMIN DATA) */}
+      {/* 2. CINEMATIC FILM STRIP */}
       <CinematicStrip 
+        key={`strip-${content.stripTopWorks ? content.stripTopWorks.length : 0}`}
         topWorks={content.stripTopWorks} 
         bottomWorks={content.stripBottomWorks} 
       />
 
-      {/* 3. 360° ORBIT APERTURE MOMENTS (PASSES ADMIN DATA) */}
+      {/* 3. 360° ORBIT APERTURE MOMENTS (FORCED RE-MOUNT KEY ON IMAGE CHANGE) */}
       <CinematicReveal 
-        moments={content.orbitMoments} 
+        key={orbitKey} 
+        moments={activeOrbitMoments} 
       />
 
       {/* 4. INTRODUCTION STORY */}
@@ -347,7 +365,7 @@ export default function Home() {
         </motion.p>
       </motion.section>
 
-      {/* 5. FEATURED WORKS (3 CARDS MANAGED BY ADMIN) */}
+      {/* 5. FEATURED WORKS */}
       <section className="portfolio-section" style={{ padding: '100px 10%', background: 'var(--bg-light)' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer} style={{ textAlign: 'center' }}>
           <motion.p className="eyebrow" variants={fadeUp}>A COLLECTION OF MEMORIES</motion.p>
@@ -381,7 +399,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 6. LIVING SHOWREEL PLAYER (VIDEOS MANAGED BY ADMIN) */}
+      {/* 6. LIVING SHOWREEL PLAYER */}
       <section className="showreel-section" style={{ padding: '100px 7%', background: 'var(--bg, #101010)', textAlign: 'center' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
           <motion.p className="eyebrow" variants={fadeUp}>THE CINEMATIC EXPERIENCE</motion.p>
@@ -390,7 +408,6 @@ export default function Home() {
             <div style={{ overflow: 'hidden' }}><motion.div variants={maskReveal}><span>Showreel</span></motion.div></div>
           </h2>
 
-          {/* Main Video Player Container */}
           <motion.div 
             variants={fadeUp} 
             style={{ 
@@ -404,7 +421,6 @@ export default function Home() {
               position: 'relative'
             }}
           >
-            {/* Viewport */}
             <div 
               onClick={togglePlay}
               style={{
@@ -435,10 +451,8 @@ export default function Home() {
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
 
-              {/* Shading Overlay */}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 50%, transparent 100%)', pointerEvents: 'none' }} />
 
-              {/* Center Play Button */}
               <div 
                 style={{
                   position: 'absolute',
@@ -461,7 +475,6 @@ export default function Home() {
                 <Play size={28} fill="#111" style={{ marginLeft: '4px' }} />
               </div>
 
-              {/* Top Category Badge & Fullscreen */}
               <div style={{ position: 'absolute', top: '16px', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
                 <span style={{ padding: '5px 12px', borderRadius: '6px', background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.12)', fontSize: '11px', letterSpacing: '1.5px', color: 'var(--gold, #c6a46b)', fontWeight: 600, textTransform: 'uppercase' }}>
                   {activeReel.category}
@@ -477,7 +490,6 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Bottom Control Bar */}
               <div 
                 onClick={(e) => e.stopPropagation()}
                 style={{
@@ -490,7 +502,6 @@ export default function Home() {
                   background: 'linear-gradient(to top, rgba(0,0,0,0.95), transparent)'
                 }}
               >
-                {/* Seek Bar */}
                 <div 
                   ref={progressBarRef}
                   onClick={handleSeek}
@@ -540,7 +551,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Playlist Ribbon */}
             <div style={{ padding: '16px 20px', background: '#0a0a0a', borderTop: '1px solid rgba(255,255,255,0.08)', textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--gold, #c6a46b)', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -649,12 +659,13 @@ export default function Home() {
         </div>
       )}
 
-      {/* 7. REAL-TIME VIEWFINDER (PASSES ADMIN DATA) */}
+      {/* 7. REAL-TIME VIEWFINDER */}
       <EventPlanner 
+        key={`viewfinder-${content.viewfinderShots ? content.viewfinderShots.length : 0}`}
         shots={content.viewfinderShots} 
       />
 
-      {/* 8. TESTIMONIALS (DESKTOP GROUPS OF 3 / MOBILE SLIDER) */}
+      {/* 8. TESTIMONIALS */}
       <section className="testimonials-section" style={{ padding: '100px 10%', background: 'var(--bg-light)', textAlign: 'center', borderTop: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
           <motion.p className="eyebrow" variants={fadeUp}>CLIENT LOVE</motion.p>
@@ -665,7 +676,6 @@ export default function Home() {
         </motion.div>
 
         {isMobile ? (
-          /* MOBILE VIEW: SLIDER (1 by 1) */
           <div style={{ position: 'relative', maxWidth: '600px', margin: '0 auto', minHeight: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <AnimatePresence mode="wait">
               <motion.div 
@@ -697,7 +707,6 @@ export default function Home() {
             </AnimatePresence>
           </div>
         ) : (
-          /* DESKTOP VIEW: GRID OF 3 (Rotates every 4s) */
           <div style={{ position: 'relative', maxWidth: '1200px', margin: '0 auto', minHeight: '300px' }}>
             <AnimatePresence mode="wait">
               <motion.div 
@@ -724,7 +733,6 @@ export default function Home() {
           </div>
         )}
         
-        {/* Navigation Indicator Dots */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '30px', zIndex: 10, position: 'relative' }}>
           {(isMobile ? activeTestimonialsList : Array.from({ length: Math.ceil(activeTestimonialsList.length / 3) })).map((_, index) => (
             <button
