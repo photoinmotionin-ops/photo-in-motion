@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Share2, X, ExternalLink } from 'lucide-react';
 
-// Built-in SVGs to guarantee zero missing export build errors in Vite / Vercel
+// Built-in brand SVGs (fixes the Lucide missing export error in Vite / Vercel)
 const InstagramIcon = ({ size = 16, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
@@ -34,27 +34,9 @@ export default function FollowUsButton({ config }) {
   const linkedinUrl = config?.linkedinUrl || 'https://linkedin.com';
 
   const socialLinks = [
-    {
-      name: 'Instagram',
-      url: instagramUrl,
-      icon: InstagramIcon,
-      color: '#E1306C',
-      hoverBg: 'rgba(225, 48, 108, 0.15)'
-    },
-    {
-      name: 'YouTube',
-      url: youtubeUrl,
-      icon: YoutubeIcon,
-      color: '#FF0000',
-      hoverBg: 'rgba(255, 0, 0, 0.15)'
-    },
-    {
-      name: 'LinkedIn',
-      url: linkedinUrl,
-      icon: LinkedinIcon,
-      color: '#0A66C2',
-      hoverBg: 'rgba(10, 102, 194, 0.15)'
-    }
+    { name: 'Instagram', url: instagramUrl, icon: InstagramIcon, color: '#E1306C', hoverBg: 'rgba(225, 48, 108, 0.15)' },
+    { name: 'YouTube', url: youtubeUrl, icon: YoutubeIcon, color: '#FF0000', hoverBg: 'rgba(255, 0, 0, 0.15)' },
+    { name: 'LinkedIn', url: linkedinUrl, icon: LinkedinIcon, color: '#0A66C2', hoverBg: 'rgba(10, 102, 194, 0.15)' }
   ];
 
   return (
@@ -67,19 +49,13 @@ export default function FollowUsButton({ config }) {
             exit={{ opacity: 0, y: 15, scale: 0.9 }}
             transition={{ duration: 0.2 }}
             style={{
-              position: 'absolute',
-              bottom: '70px',
-              right: '0',
+              position: 'absolute', bottom: '70px', right: '0',
               background: 'rgba(16, 16, 16, 0.96)',
               backdropFilter: 'blur(16px)',
               border: '1px solid rgba(198, 164, 107, 0.35)',
-              borderRadius: '16px',
-              padding: '12px',
-              minWidth: '200px',
+              borderRadius: '16px', padding: '12px', minWidth: '200px',
               boxShadow: '0 15px 35px rgba(0,0,0,0.6)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px'
+              display: 'flex', flexDirection: 'column', gap: '8px'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px 6px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
@@ -104,17 +80,10 @@ export default function FollowUsButton({ config }) {
                   target="_blank"
                   rel="noreferrer"
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '9px 12px',
-                    borderRadius: '10px',
-                    textDecoration: 'none',
-                    color: '#fff',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.05)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '9px 12px', borderRadius: '10px', textDecoration: 'none',
+                    color: '#fff', fontSize: '13px', fontWeight: 500,
+                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)',
                     transition: 'all 0.2s ease'
                   }}
                   onMouseEnter={(e) => {
@@ -140,26 +109,18 @@ export default function FollowUsButton({ config }) {
         )}
       </AnimatePresence>
 
-      {/* Floating Trigger Button */}
       <motion.button
         type="button"
         onClick={() => setIsOpen(prev => !prev)}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
         style={{
-          width: '56px',
-          height: '56px',
-          borderRadius: '50%',
+          width: '56px', height: '56px', borderRadius: '50%',
           background: 'linear-gradient(135deg, #1f1b14, #0a0a0a)',
           border: '1.5px solid var(--gold, #c6a46b)',
           color: 'var(--gold, #c6a46b)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          boxShadow: '0 8px 25px rgba(0,0,0,0.5)',
-          padding: 0
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', boxShadow: '0 8px 25px rgba(0,0,0,0.5)', padding: 0
         }}
         title="Follow Us on Social Media"
       >

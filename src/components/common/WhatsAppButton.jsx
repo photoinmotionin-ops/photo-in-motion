@@ -3,8 +3,7 @@ import { motion } from 'framer-motion';
 
 export default function WhatsAppButton({ config }) {
   const phone = (config?.whatsappPhone || '9692485219').replace(/\D/g, '');
-  const rawMsg = config?.whatsappMessage || 'Hi Photo In Motion, I visited your website and would like to know more about your photography services.';
-  const message = encodeURIComponent(rawMsg);
+  const message = encodeURIComponent(config?.whatsappMessage || "Hi Photo In Motion, I visited your website and would like to know more about your photography services.");
   
   return (
     <motion.a
@@ -13,8 +12,7 @@ export default function WhatsAppButton({ config }) {
       rel="noreferrer"
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      whileHover={{ scale: 1.1, rotate: 6 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={{ scale: 1.1, rotate: 8 }}
       style={{
         position: 'fixed',
         bottom: '30px',
@@ -27,12 +25,12 @@ export default function WhatsAppButton({ config }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: '0 10px 25px rgba(37, 211, 102, 0.4)',
+        boxShadow: '0 10px 20px rgba(0,0,0,0.3)',
         zIndex: 9999
       }}
       title="Chat on WhatsApp"
     >
-      <MessageCircle size={28} />
+      <MessageCircle size={30} />
     </motion.a>
   );
 }

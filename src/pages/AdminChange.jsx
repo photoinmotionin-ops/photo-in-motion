@@ -21,14 +21,14 @@ const defaultContent = {
   storyTitle: 'Moments pass.\nStories stay forever.',
   storyText: 'At Photo In Motion, we believe every celebration has a story worth telling. Through thoughtful photography and cinematic filmmaking, we preserve the feelings behind every frame.',
 
-  // 2. HOMEPAGE: FEATURED WORKS
+  // 2. HOMEPAGE: FEATURED WORKS (3 CARDS)
   featuredWorks: [
     { number: '01', category: 'WEDDINGS', title: 'Forever Begins', img: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85' },
     { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', img: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85' },
     { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85' }
   ],
 
-  // 3. HOMEPAGE: CINEMATIC FILM STRIP
+  // 3. HOMEPAGE: CINEMATIC FILM STRIP (CinematicStrip)
   stripTopWorks: [
     { id: 't1', title: 'Forever Begins', category: 'WEDDINGS', img: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=85' },
     { id: 't2', title: 'Golden Sunset Vows', category: 'PRE-WEDDING', img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=85' },
@@ -44,7 +44,7 @@ const defaultContent = {
     { id: 'b5', title: 'Chasing the Horizon', category: 'PRE-WEDDING', img: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=900&q=85' }
   ],
 
-  // 4. HOMEPAGE: 360° ORBIT GALLERY
+  // 4. HOMEPAGE: 360° ORBIT GALLERY (CinematicReveal)
   orbitMoments: [
     { id: 1, tag: "ROYAL WEDDING", title: "Forever Begins at Sacred Dusk", focal: "85mm • f/1.4 • ISO 100", desc: "Vows whispered beneath temple archways as the golden hour blesses every vow.", url: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=300&q=80" },
     { id: 2, tag: "CINEMATIC HALDI", title: "Golden Petals & Joyous Tears", focal: "50mm • f/1.2 • ISO 200", desc: "Unbridled laughter and flying marigold showers captured in slow-motion warmth.", url: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=300&q=80" },
@@ -63,7 +63,7 @@ const defaultContent = {
     { id: 'reel-5', number: '05', title: 'Midnight Waltz & First Dance', category: 'RECEPTIONS', location: 'Taj Falaknuma, Hyderabad', duration: '0:10', videoUrl: 'https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4', poster: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=85', synopsis: 'Sparklers illuminate the twilight as the couple takes their inaugural dance as one.' }
   ],
 
-  // 6. HOMEPAGE: DIRECTOR'S VIEWFINDER
+  // 6. HOMEPAGE: DIRECTOR'S VIEWFINDER (EventPlanner)
   viewfinderShots: [
     { id: 'shot-01', lens: '85mm f/1.4', category: 'BRIDAL PORTRAITURE', focalName: 'The Signature Bokeh', desc: 'Creamy optical depth with tack-sharp focus on the bridal veil and eye highlights.', shutter: '1/500s', aperture: 'f/1.4', iso: 'ISO 100', kelvin: '5600K Daylight', imgGraded: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85', imgRaw: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=25' },
     { id: 'shot-02', lens: '24mm f/2.8', category: 'ROYAL VENUE & MANDAP', focalName: 'Architectural Grandeur', desc: 'Capturing the monumental scale of grand chandeliers, palace pillars, and floral ceilings.', shutter: '1/250s', aperture: 'f/4.0', iso: 'ISO 400', kelvin: '3200K Tungsten', imgGraded: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85', imgRaw: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=25' },
@@ -73,7 +73,7 @@ const defaultContent = {
     { id: 'shot-06', lens: '85mm f/1.4', category: 'EDITORIAL PORTRAIT', focalName: 'Serenity & Grace', desc: 'Studio-quality natural window sidelight highlighting jewelry and embroidery details.', shutter: '1/320s', aperture: 'f/1.6', iso: 'ISO 160', kelvin: '5500K Studio', imgGraded: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=85', imgRaw: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=25' }
   ],
 
-  // 7. HOMEPAGE: TESTIMONIALS
+  // 7. HOMEPAGE: TESTIMONIALS (6 ITEMS)
   testimonials: [
     { name: 'Ananya & Rahul', text: 'They captured the essence of our wedding perfectly.' },
     { name: 'Sarah & James', text: 'The cinematic film they created for us is an absolute masterpiece.' },
@@ -83,7 +83,7 @@ const defaultContent = {
     { name: 'Simran & Aditya', text: 'The attention to detail was flawless. Highly recommended!' }
   ],
 
-  // 8. OUR STORY PAGE
+  // 8. OUR STORY PAGE (COMPLETE STORY & FOUNDER INFO)
   storyHeroEyebrow: 'THE LEGACY SINCE 2005',
   storyHeroHeading: 'Moments pass.\nStories stay forever.',
   storyHeroParagraph: 'At Photo In Motion Studio, our story is etched in patience, passion, and two decades of relentless craftsmanship. From our beginnings in Kendrapara to documenting state leaders, fashion icons, and royal weddings, we preserve the heartbeat behind every frame.',
@@ -135,7 +135,7 @@ const defaultContent = {
   contactCtaDesc: "Have a celebration coming up? Let's talk about how we can turn your moments into lasting memories.",
   contactCtaBtn: 'Start A Conversation',
 
-  // 10. MODALS & FLOATING CONTROLS
+  // 10. FLOATING CONTROLS & SOCIAL REDIRECTS
   contactEmail: 'photoinmotion.in@gmail.com',
   contactPhone: '+91-9692485219',
   whatsappPhone: '9692485219',
@@ -242,7 +242,7 @@ export default function AdminChange() {
           setContent(merged);
           try {
             localStorage.setItem('site_content_cache', JSON.stringify(merged));
-          } catch (e) { }
+          } catch (e) {}
         }
         setLoading(false);
       })
@@ -450,7 +450,7 @@ export default function AdminChange() {
           try {
             const errData = JSON.parse(xhr.responseText);
             if (errData.error?.message) errDetail = errData.error.message;
-          } catch (e) { }
+          } catch (e) {}
 
           showToast({
             id: toastId,
@@ -577,7 +577,7 @@ export default function AdminChange() {
     e.target.value = '';
   };
 
-  // Dedicated upload for Orbit Moments to populate all field variants simultaneously
+  // Helper for Orbit Moments so url, img, image, thumb are always in sync
   const handleOrbitPhotoUpload = async (file, idx) => {
     if (!file) return;
     const url = await uploadToCloudinary(file, 'image');
@@ -628,7 +628,7 @@ export default function AdminChange() {
     }
   };
 
-  // Category deletion handler with confirmation and fallback
+  // Handler for deleting an entire category with confirmation
   const handleDeleteCategory = (catToDelete) => {
     if (content.categories.length <= 1) {
       alert("At least one category must remain.");
@@ -1080,7 +1080,7 @@ export default function AdminChange() {
                   </label>
                 </div>
 
-                <button
+                <button 
                   onClick={() => {
                     setContent(prev => ({
                       ...prev,
