@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Save, ArrowLeft, Upload, Loader2, Plus, Trash2, Edit2, 
-  Image as ImageIcon, Film, Video, Aperture, Camera, MessageSquare, 
+import {
+  Save, ArrowLeft, Upload, Loader2, Plus, Trash2, Edit2,
+  Image as ImageIcon, Film, Video, Aperture, Camera, MessageSquare,
   Sparkles, Layers, BookOpen, Clock, ShieldCheck, Mail, CheckCircle2,
   Sliders, Eye, Palette, X, AlertTriangle, AlertCircle, FileWarning, Check,
   Zap, Link2, Play, CheckCircle
@@ -24,7 +24,7 @@ const defaultContent = {
   heroSub: "We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.",
   storyTitle: 'Moments pass.\nStories stay forever.',
   storyText: 'At Photo In Motion, we believe every celebration has a story worth telling. Through thoughtful photography and cinematic filmmaking, we preserve the feelings behind every frame.',
-  
+
   // ----------------------------------------------------
   // 2. HOMEPAGE: FEATURED WORKS (3 CARDS)
   // ----------------------------------------------------
@@ -105,7 +105,7 @@ const defaultContent = {
   storyHeroEyebrow: 'THE LEGACY SINCE 2005',
   storyHeroHeading: 'Moments pass.\nStories stay forever.',
   storyHeroParagraph: 'At Photo In Motion Studio, our story is etched in patience, passion, and two decades of relentless craftsmanship. From our beginnings in Kendrapara to documenting state leaders, fashion icons, and royal weddings, we preserve the heartbeat behind every frame.',
-  
+
   storyStats: [
     { number: '2005', label: 'Est. in Kendrapara', sub: '20+ Years Heritage' },
     { number: 'VIPs', label: 'MLAs & Deputy CMs', sub: 'Trusted at Highest Level' },
@@ -120,7 +120,7 @@ const defaultContent = {
   storyOriginHeading: "From One Person's Vision to a Cinematic Powerhouse",
   storyOriginP1: "In 2005, in the historic town of Kendrapara, Photo In Motion began with just one person — Munu. With a single camera and an unwavering obsession with natural lighting and unposed emotional depth, every frame was treated as sacred art.",
   storyOriginP2: "What started as local wedding memories quickly evolved into a trusted production brand. As word spread, our lens captured high-profile state leaders — including MLAs and Deputy Chief Ministers — commanding the highest discretion, speed, and cinematic poise.",
-  
+
   storyMilestones: [
     { year: '2005', tag: 'THE HUMBLE GENESIS', title: 'One Man, One Camera in Kendrapara', desc: 'Founded by Munu as a solo visionary in Kendrapara. Driven by an uncompromising passion for raw human emotion and the craft of visual storytelling.' },
     { year: '2012', tag: 'HIGH-PROFILE TRUST', title: 'State Dignitaries & VIP Events', desc: 'Entrusted with documenting high-security, prestigious events for Members of Legislative Assembly (MLAs) and Deputy Chief Ministers (Deputy CMs).' },
@@ -246,7 +246,7 @@ export default function AdminChange() {
       .then(res => res.json())
       .then(data => {
         if (data && Object.keys(data).length > 0) {
-          setContent(prev => ({
+          const merged = {
             ...defaultContent,
             ...data,
             featuredWorks: data.featuredWorks || defaultContent.featuredWorks,
@@ -265,12 +265,18 @@ export default function AdminChange() {
             processSteps: data.processSteps || defaultContent.processSteps,
             portfolioItems: data.portfolioItems || [],
             categories: data.categories || defaultContent.categories
-          }));
+          };
+          setContent(merged);
+          // Keep cache primed
+          try {
+            localStorage.setItem('site_content_cache', JSON.stringify(merged));
+          } catch (e) { }
         }
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [navigate]);
+
 
   const handleSave = async () => {
     setSaving(true);
@@ -282,6 +288,13 @@ export default function AdminChange() {
       });
 
       if (res.ok) {
+        // Update local cache immediately so any refreshed page shows the new assets instantly
+        try {
+          localStorage.setItem('site_content_cache', JSON.stringify(content));
+        } catch (e) {
+          console.warn('Could not cache content to localStorage:', e);
+        }
+
         showToast({
           type: 'success',
           title: 'Changes Saved Successfully',
@@ -307,6 +320,7 @@ export default function AdminChange() {
     }
     setSaving(false);
   };
+
 
   /**
    * Helper: Measure real video duration (in mm:ss) from File object or direct URL
@@ -371,8 +385,8 @@ export default function AdminChange() {
             (blob) => {
               if (!blob) return resolve(file);
               const compressedFile = new File(
-                [blob], 
-                file.name.replace(/\.[^/.]+$/, "") + ".jpg", 
+                [blob],
+                file.name.replace(/\.[^/.]+$/, "") + ".jpg",
                 { type: 'image/jpeg', lastModified: Date.now() }
               );
               resolve(compressedFile);
@@ -474,7 +488,7 @@ export default function AdminChange() {
           try {
             const errData = JSON.parse(xhr.responseText);
             if (errData.error?.message) errDetail = errData.error.message;
-          } catch (e) {}
+          } catch (e) { }
 
           showToast({
             id: toastId,
@@ -691,7 +705,7 @@ export default function AdminChange() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#fff', paddingBottom: '120px' }}>
-      
+
       {/* ======================================================== */}
       {/* A. CUSTOM CONFIRMATION POPUP FOR OVERSIZED FILES         */}
       {/* ======================================================== */}
@@ -820,23 +834,23 @@ export default function AdminChange() {
               key={t.id}
               style={{
                 pointerEvents: 'auto',
-                background: isError 
-                  ? 'rgba(24, 10, 10, 0.95)' 
-                  : isSuccess 
-                  ? 'rgba(10, 22, 14, 0.95)' 
-                  : 'rgba(18, 16, 12, 0.95)',
+                background: isError
+                  ? 'rgba(24, 10, 10, 0.95)'
+                  : isSuccess
+                    ? 'rgba(10, 22, 14, 0.95)'
+                    : 'rgba(18, 16, 12, 0.95)',
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
-                border: isError 
-                  ? '1px solid rgba(239, 68, 68, 0.5)' 
-                  : isSuccess 
-                  ? '1px solid rgba(34, 197, 94, 0.5)' 
-                  : '1px solid rgba(198, 164, 107, 0.45)',
+                border: isError
+                  ? '1px solid rgba(239, 68, 68, 0.5)'
+                  : isSuccess
+                    ? '1px solid rgba(34, 197, 94, 0.5)'
+                    : '1px solid rgba(198, 164, 107, 0.45)',
                 boxShadow: isError
                   ? '0 10px 30px rgba(239, 68, 68, 0.2)'
                   : isSuccess
-                  ? '0 10px 30px rgba(34, 197, 94, 0.2)'
-                  : '0 10px 30px rgba(198, 164, 107, 0.2)',
+                    ? '0 10px 30px rgba(34, 197, 94, 0.2)'
+                    : '0 10px 30px rgba(198, 164, 107, 0.2)',
                 borderRadius: '14px',
                 padding: '16px',
                 color: '#fff',
@@ -849,10 +863,10 @@ export default function AdminChange() {
                   {isUploading && <Loader2 size={18} className="animate-spin" color="var(--gold, #c6a46b)" />}
                   {isSuccess && <CheckCircle2 size={18} color="#22c55e" />}
                   {isError && <AlertTriangle size={18} color="#ef4444" />}
-                  
-                  <span style={{ 
-                    fontSize: '13.5px', 
-                    fontWeight: 700, 
+
+                  <span style={{
+                    fontSize: '13.5px',
+                    fontWeight: 700,
                     color: isError ? '#f87171' : isSuccess ? '#4ade80' : 'var(--gold, #c6a46b)',
                     letterSpacing: '0.3px'
                   }}>
@@ -927,15 +941,15 @@ export default function AdminChange() {
         borderBottom: '1px solid rgba(255,255,255,0.08)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button 
-            onClick={() => navigate('/admin/dashboard')} 
+          <button
+            onClick={() => navigate('/admin/dashboard')}
             style={{ background: 'none', border: 'none', color: 'var(--gold, #c6a46b)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 700 }}
           >
             <ArrowLeft size={18} /> Dashboard
           </button>
           <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
           <span style={{ fontSize: '13px', color: '#888' }}>Photo In Motion Studio</span>
-          
+
           {/* File Limits Pill Tag */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.04)', padding: '3px 10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
             <span style={{ fontSize: '10.5px', color: '#888' }}>Auto-Compress:</span>
@@ -961,9 +975,9 @@ export default function AdminChange() {
             </select>
           </div>
 
-          <button 
-            onClick={handleSave} 
-            disabled={saving || uploading} 
+          <button
+            onClick={handleSave}
+            disabled={saving || uploading}
             style={{
               display: 'flex', alignItems: 'center', gap: '8px',
               padding: '10px 22px', borderRadius: '30px',
@@ -1070,44 +1084,44 @@ export default function AdminChange() {
             {/* SUB-SECTION 1: HERO & INTRO */}
             {homeSubTab === 'hero' && (
               <div>
-                <SectionHeader 
-                  tag="HOMEPAGE HERO & STORY" 
-                  title="Hero Headlines & Cinematic Philosophy" 
+                <SectionHeader
+                  tag="HOMEPAGE HERO & STORY"
+                  title="Hero Headlines & Cinematic Philosophy"
                   sub="Edit the opening typography, cinematic statements, and hero storytelling text."
                 />
 
                 <div style={boxCardStyle}>
                   <h3 style={sectionHeadingStyle}><Sparkles size={18} color="var(--gold, #c6a46b)" /> Main Hero Typography</h3>
-                  
+
                   <label style={labelStyle}>Hero Main Headline (supports \n for line breaks)</label>
-                  <textarea 
-                    value={content.heroTitle} 
-                    onChange={(e) => setContent(p => ({ ...p, heroTitle: e.target.value }))} 
+                  <textarea
+                    value={content.heroTitle}
+                    onChange={(e) => setContent(p => ({ ...p, heroTitle: e.target.value }))}
                     style={{ ...inputStyle, height: '70px', fontSize: '15px', fontWeight: 600 }}
                   />
 
                   <label style={labelStyle}>Hero Subheading / Tagline</label>
-                  <textarea 
-                    value={content.heroSub} 
-                    onChange={(e) => setContent(p => ({ ...p, heroSub: e.target.value }))} 
+                  <textarea
+                    value={content.heroSub}
+                    onChange={(e) => setContent(p => ({ ...p, heroSub: e.target.value }))}
                     style={{ ...inputStyle, height: '80px' }}
                   />
                 </div>
 
                 <div style={boxCardStyle}>
                   <h3 style={sectionHeadingStyle}><BookOpen size={18} color="var(--gold, #c6a46b)" /> Homepage Story Statement</h3>
-                  
+
                   <label style={labelStyle}>Story Headline</label>
-                  <input 
-                    value={content.storyTitle} 
-                    onChange={(e) => setContent(p => ({ ...p, storyTitle: e.target.value }))} 
+                  <input
+                    value={content.storyTitle}
+                    onChange={(e) => setContent(p => ({ ...p, storyTitle: e.target.value }))}
                     style={inputStyle}
                   />
 
                   <label style={labelStyle}>Story Narrative Text</label>
-                  <textarea 
-                    value={content.storyText} 
-                    onChange={(e) => setContent(p => ({ ...p, storyText: e.target.value }))} 
+                  <textarea
+                    value={content.storyText}
+                    onChange={(e) => setContent(p => ({ ...p, storyText: e.target.value }))}
                     style={{ ...inputStyle, height: '100px' }}
                   />
                 </div>
@@ -1117,9 +1131,9 @@ export default function AdminChange() {
             {/* SUB-SECTION 2: 5 LIVING SHOWREELS */}
             {homeSubTab === 'reels' && (
               <div>
-                <SectionHeader 
-                  tag="SHOWREEL PLAYER (ShowreelPlayer.jsx)" 
-                  title="5 Living Portfolio Showreel Videos" 
+                <SectionHeader
+                  tag="SHOWREEL PLAYER (ShowreelPlayer.jsx)"
+                  title="5 Living Portfolio Showreel Videos"
                   sub="Upload direct 4K video clips or paste YouTube links. Durations and thumbnails are calculated automatically."
                 />
 
@@ -1147,41 +1161,41 @@ export default function AdminChange() {
                       <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
                         <label style={{ ...uploadButtonStyle, flex: 1 }}>
                           <Upload size={13} /> Upload Poster Image
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            style={{ display: 'none' }} 
+                          <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
                             onChange={(e) => handleItemMediaUpload(e, 'showreels', idx, 'poster', 'image')}
                           />
                         </label>
                         <label style={{ ...uploadButtonStyle, flex: 1, background: '#222', color: '#fff', border: '1px solid #444' }}>
                           <Video size={13} /> Upload 4K Video
-                          <input 
-                            type="file" 
-                            accept="video/*" 
-                            style={{ display: 'none' }} 
+                          <input
+                            type="file"
+                            accept="video/*"
+                            style={{ display: 'none' }}
                             onChange={(e) => handleItemMediaUpload(e, 'showreels', idx, 'videoUrl', 'video')}
                           />
                         </label>
                       </div>
 
                       <label style={miniLabelStyle}>Reel Title</label>
-                      <input 
-                        value={reel.title} 
-                        onChange={(e) => updateArrayItem('showreels', idx, 'title', e.target.value)} 
+                      <input
+                        value={reel.title}
+                        onChange={(e) => updateArrayItem('showreels', idx, 'title', e.target.value)}
                         style={inputStyle}
                       />
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '8px' }}>
                         <div>
                           <label style={miniLabelStyle}>Category</label>
-                          <input 
-                            value={reel.category} 
-                            onChange={(e) => updateArrayItem('showreels', idx, 'category', e.target.value)} 
+                          <input
+                            value={reel.category}
+                            onChange={(e) => updateArrayItem('showreels', idx, 'category', e.target.value)}
                             style={inputStyle}
                           />
                         </div>
-                        
+
                         {/* Auto-Calculated Duration Display (No more manual typing required!) */}
                         <div>
                           <label style={miniLabelStyle}>Real Video Duration</label>
@@ -1202,9 +1216,9 @@ export default function AdminChange() {
                       </div>
 
                       <label style={miniLabelStyle}>Location Badge</label>
-                      <input 
-                        value={reel.location} 
-                        onChange={(e) => updateArrayItem('showreels', idx, 'location', e.target.value)} 
+                      <input
+                        value={reel.location}
+                        onChange={(e) => updateArrayItem('showreels', idx, 'location', e.target.value)}
                         style={inputStyle}
                       />
 
@@ -1216,10 +1230,10 @@ export default function AdminChange() {
                           </label>
                         </div>
                         <div style={{ position: 'relative' }}>
-                          <input 
-                            value={reel.videoUrl} 
+                          <input
+                            value={reel.videoUrl}
                             placeholder="Leave empty or paste Cloudinary, MP4, or YouTube URL..."
-                            onChange={(e) => handleShowreelUrlChange(e.target.value, idx)} 
+                            onChange={(e) => handleShowreelUrlChange(e.target.value, idx)}
                             style={{ ...inputStyle, fontSize: '11px', paddingRight: '32px' }}
                           />
                           <div style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: '#666' }}>
@@ -1232,9 +1246,9 @@ export default function AdminChange() {
                       </div>
 
                       <label style={miniLabelStyle}>Synopsis / Description</label>
-                      <textarea 
-                        value={reel.synopsis} 
-                        onChange={(e) => updateArrayItem('showreels', idx, 'synopsis', e.target.value)} 
+                      <textarea
+                        value={reel.synopsis}
+                        onChange={(e) => updateArrayItem('showreels', idx, 'synopsis', e.target.value)}
                         style={{ ...inputStyle, height: '60px' }}
                       />
                     </div>
@@ -1246,9 +1260,9 @@ export default function AdminChange() {
             {/* SUB-SECTION 3: 360° ORBIT MOMENTS */}
             {homeSubTab === 'orbit' && (
               <div>
-                <SectionHeader 
-                  tag="ORBIT ENGINE (CinematicReveal.jsx)" 
-                  title="6 Orbit Satellite Aperture Moments" 
+                <SectionHeader
+                  tag="ORBIT ENGINE (CinematicReveal.jsx)"
+                  title="6 Orbit Satellite Aperture Moments"
                   sub="Customise the 6 orbital satellite moments, focal specs, high-res preview imagery, and narrative cards."
                 />
 
@@ -1270,10 +1284,10 @@ export default function AdminChange() {
 
                       <label style={{ ...uploadButtonStyle, width: '100%', marginBottom: '14px' }}>
                         <Upload size={13} /> Upload High-Res Moment Photo
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          style={{ display: 'none' }} 
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: 'none' }}
                           onChange={(e) => {
                             const file = e.target.files[0];
                             if (!file) return;
@@ -1289,30 +1303,30 @@ export default function AdminChange() {
                       </label>
 
                       <label style={miniLabelStyle}>Moment Tag</label>
-                      <input 
-                        value={m.tag} 
-                        onChange={(e) => updateArrayItem('orbitMoments', idx, 'tag', e.target.value)} 
+                      <input
+                        value={m.tag}
+                        onChange={(e) => updateArrayItem('orbitMoments', idx, 'tag', e.target.value)}
                         style={inputStyle}
                       />
 
                       <label style={miniLabelStyle}>Moment Title</label>
-                      <input 
-                        value={m.title} 
-                        onChange={(e) => updateArrayItem('orbitMoments', idx, 'title', e.target.value)} 
+                      <input
+                        value={m.title}
+                        onChange={(e) => updateArrayItem('orbitMoments', idx, 'title', e.target.value)}
                         style={inputStyle}
                       />
 
                       <label style={miniLabelStyle}>Camera Optical Telemetry (e.g. 85mm • f/1.4 • ISO 100)</label>
-                      <input 
-                        value={m.focal} 
-                        onChange={(e) => updateArrayItem('orbitMoments', idx, 'focal', e.target.value)} 
+                      <input
+                        value={m.focal}
+                        onChange={(e) => updateArrayItem('orbitMoments', idx, 'focal', e.target.value)}
                         style={inputStyle}
                       />
 
                       <label style={miniLabelStyle}>Description</label>
-                      <textarea 
-                        value={m.desc} 
-                        onChange={(e) => updateArrayItem('orbitMoments', idx, 'desc', e.target.value)} 
+                      <textarea
+                        value={m.desc}
+                        onChange={(e) => updateArrayItem('orbitMoments', idx, 'desc', e.target.value)}
                         style={{ ...inputStyle, height: '60px' }}
                       />
                     </div>
@@ -1324,9 +1338,9 @@ export default function AdminChange() {
             {/* SUB-SECTION 4: DIRECTOR'S VIEWFINDER */}
             {homeSubTab === 'viewfinder' && (
               <div>
-                <SectionHeader 
-                  tag="CAMERA VIEWFINDER (EventPlanner.jsx)" 
-                  title="6 Director's Viewfinder Sensor Shots" 
+                <SectionHeader
+                  tag="CAMERA VIEWFINDER (EventPlanner.jsx)"
+                  title="6 Director's Viewfinder Sensor Shots"
                   sub="Manage the 6 camera focal profiles with dual Master Graded vs. RAW Sensor images, shutter speeds, and apertures."
                 />
 
@@ -1351,10 +1365,10 @@ export default function AdminChange() {
                           </div>
                           <label style={{ ...uploadButtonStyle, width: '100%', marginTop: '6px', fontSize: '11px', padding: '6px' }}>
                             <Upload size={12} /> Upload Graded
-                            <input 
-                              type="file" 
-                              accept="image/*" 
-                              style={{ display: 'none' }} 
+                            <input
+                              type="file"
+                              accept="image/*"
+                              style={{ display: 'none' }}
                               onChange={(e) => handleItemMediaUpload(e, 'viewfinderShots', idx, 'imgGraded', 'image')}
                             />
                           </label>
@@ -1367,10 +1381,10 @@ export default function AdminChange() {
                           </div>
                           <label style={{ ...uploadButtonStyle, width: '100%', marginTop: '6px', fontSize: '11px', padding: '6px', background: '#222', color: '#fff', border: '1px solid #444' }}>
                             <Upload size={12} /> Upload RAW
-                            <input 
-                              type="file" 
-                              accept="image/*" 
-                              style={{ display: 'none' }} 
+                            <input
+                              type="file"
+                              accept="image/*"
+                              style={{ display: 'none' }}
                               onChange={(e) => handleItemMediaUpload(e, 'viewfinderShots', idx, 'imgRaw', 'image')}
                             />
                           </label>
@@ -1378,26 +1392,26 @@ export default function AdminChange() {
                       </div>
 
                       <label style={miniLabelStyle}>Focal Profile Name</label>
-                      <input 
-                        value={shot.focalName} 
-                        onChange={(e) => updateArrayItem('viewfinderShots', idx, 'focalName', e.target.value)} 
+                      <input
+                        value={shot.focalName}
+                        onChange={(e) => updateArrayItem('viewfinderShots', idx, 'focalName', e.target.value)}
                         style={inputStyle}
                       />
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                         <div>
                           <label style={miniLabelStyle}>Lens (e.g. 85mm f/1.4)</label>
-                          <input 
-                            value={shot.lens} 
-                            onChange={(e) => updateArrayItem('viewfinderShots', idx, 'lens', e.target.value)} 
+                          <input
+                            value={shot.lens}
+                            onChange={(e) => updateArrayItem('viewfinderShots', idx, 'lens', e.target.value)}
                             style={inputStyle}
                           />
                         </div>
                         <div>
                           <label style={miniLabelStyle}>Category</label>
-                          <input 
-                            value={shot.category} 
-                            onChange={(e) => updateArrayItem('viewfinderShots', idx, 'category', e.target.value)} 
+                          <input
+                            value={shot.category}
+                            onChange={(e) => updateArrayItem('viewfinderShots', idx, 'category', e.target.value)}
                             style={inputStyle}
                           />
                         </div>
@@ -1406,42 +1420,42 @@ export default function AdminChange() {
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
                         <div>
                           <label style={miniLabelStyle}>Shutter</label>
-                          <input 
-                            value={shot.shutter} 
-                            onChange={(e) => updateArrayItem('viewfinderShots', idx, 'shutter', e.target.value)} 
+                          <input
+                            value={shot.shutter}
+                            onChange={(e) => updateArrayItem('viewfinderShots', idx, 'shutter', e.target.value)}
                             style={{ ...inputStyle, fontSize: '11px' }}
                           />
                         </div>
                         <div>
                           <label style={miniLabelStyle}>Aperture</label>
-                          <input 
-                            value={shot.aperture} 
-                            onChange={(e) => updateArrayItem('viewfinderShots', idx, 'aperture', e.target.value)} 
+                          <input
+                            value={shot.aperture}
+                            onChange={(e) => updateArrayItem('viewfinderShots', idx, 'aperture', e.target.value)}
                             style={{ ...inputStyle, fontSize: '11px' }}
                           />
                         </div>
                         <div>
                           <label style={miniLabelStyle}>ISO</label>
-                          <input 
-                            value={shot.iso} 
-                            onChange={(e) => updateArrayItem('viewfinderShots', idx, 'iso', e.target.value)} 
+                          <input
+                            value={shot.iso}
+                            onChange={(e) => updateArrayItem('viewfinderShots', idx, 'iso', e.target.value)}
                             style={{ ...inputStyle, fontSize: '11px' }}
                           />
                         </div>
                         <div>
                           <label style={miniLabelStyle}>Kelvin</label>
-                          <input 
-                            value={shot.kelvin} 
-                            onChange={(e) => updateArrayItem('viewfinderShots', idx, 'kelvin', e.target.value)} 
+                          <input
+                            value={shot.kelvin}
+                            onChange={(e) => updateArrayItem('viewfinderShots', idx, 'kelvin', e.target.value)}
                             style={{ ...inputStyle, fontSize: '11px' }}
                           />
                         </div>
                       </div>
 
                       <label style={miniLabelStyle}>Description</label>
-                      <textarea 
-                        value={shot.desc} 
-                        onChange={(e) => updateArrayItem('viewfinderShots', idx, 'desc', e.target.value)} 
+                      <textarea
+                        value={shot.desc}
+                        onChange={(e) => updateArrayItem('viewfinderShots', idx, 'desc', e.target.value)}
                         style={{ ...inputStyle, height: '60px' }}
                       />
                     </div>
@@ -1453,9 +1467,9 @@ export default function AdminChange() {
             {/* SUB-SECTION 5: CINEMATIC FILM STRIP */}
             {homeSubTab === 'strip' && (
               <div>
-                <SectionHeader 
-                  tag="PARALLAX FILM REEL (CinematicStrip.jsx)" 
-                  title="10 Cinematic Film Strip Cells" 
+                <SectionHeader
+                  tag="PARALLAX FILM REEL (CinematicStrip.jsx)"
+                  title="10 Cinematic Film Strip Cells"
                   sub="Customise the continuous 35mm film reel marquee running across the homepage (5 Top Track, 5 Bottom Track)."
                 />
 
@@ -1469,23 +1483,23 @@ export default function AdminChange() {
                       </div>
                       <label style={{ ...uploadButtonStyle, width: '100%', marginBottom: '8px', fontSize: '11px' }}>
                         <Upload size={12} /> Upload Photo
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          style={{ display: 'none' }} 
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: 'none' }}
                           onChange={(e) => handleItemMediaUpload(e, 'stripTopWorks', idx, 'img', 'image')}
                         />
                       </label>
-                      <input 
-                        value={cell.title} 
-                        placeholder="Title" 
-                        onChange={(e) => updateArrayItem('stripTopWorks', idx, 'title', e.target.value)} 
+                      <input
+                        value={cell.title}
+                        placeholder="Title"
+                        onChange={(e) => updateArrayItem('stripTopWorks', idx, 'title', e.target.value)}
                         style={{ ...inputStyle, marginBottom: '6px' }}
                       />
-                      <input 
-                        value={cell.category} 
-                        placeholder="Category" 
-                        onChange={(e) => updateArrayItem('stripTopWorks', idx, 'category', e.target.value)} 
+                      <input
+                        value={cell.category}
+                        placeholder="Category"
+                        onChange={(e) => updateArrayItem('stripTopWorks', idx, 'category', e.target.value)}
                         style={inputStyle}
                       />
                     </div>
@@ -1502,23 +1516,23 @@ export default function AdminChange() {
                       </div>
                       <label style={{ ...uploadButtonStyle, width: '100%', marginBottom: '8px', fontSize: '11px' }}>
                         <Upload size={12} /> Upload Photo
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          style={{ display: 'none' }} 
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: 'none' }}
                           onChange={(e) => handleItemMediaUpload(e, 'stripBottomWorks', idx, 'img', 'image')}
                         />
                       </label>
-                      <input 
-                        value={cell.title} 
-                        placeholder="Title" 
-                        onChange={(e) => updateArrayItem('stripBottomWorks', idx, 'title', e.target.value)} 
+                      <input
+                        value={cell.title}
+                        placeholder="Title"
+                        onChange={(e) => updateArrayItem('stripBottomWorks', idx, 'title', e.target.value)}
                         style={{ ...inputStyle, marginBottom: '6px' }}
                       />
-                      <input 
-                        value={cell.category} 
-                        placeholder="Category" 
-                        onChange={(e) => updateArrayItem('stripBottomWorks', idx, 'category', e.target.value)} 
+                      <input
+                        value={cell.category}
+                        placeholder="Category"
+                        onChange={(e) => updateArrayItem('stripBottomWorks', idx, 'category', e.target.value)}
                         style={inputStyle}
                       />
                     </div>
@@ -1530,9 +1544,9 @@ export default function AdminChange() {
             {/* SUB-SECTION 6: FEATURED 3 STORIES */}
             {homeSubTab === 'featured' && (
               <div>
-                <SectionHeader 
-                  tag="FEATURED STORIES" 
-                  title="Homepage 3 Featured Story Cards" 
+                <SectionHeader
+                  tag="FEATURED STORIES"
+                  title="Homepage 3 Featured Story Cards"
                   sub="Manage the 3 spotlight story cards displayed right below the hero section on the homepage."
                 />
 
@@ -1547,23 +1561,23 @@ export default function AdminChange() {
                       </div>
                       <label style={{ ...uploadButtonStyle, width: '100%', marginBottom: '12px' }}>
                         <Upload size={13} /> Upload Spotlight Photo
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          style={{ display: 'none' }} 
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: 'none' }}
                           onChange={(e) => handleItemMediaUpload(e, 'featuredWorks', idx, 'img', 'image')}
                         />
                       </label>
                       <label style={miniLabelStyle}>Category</label>
-                      <input 
-                        value={item.category} 
-                        onChange={(e) => updateArrayItem('featuredWorks', idx, 'category', e.target.value)} 
+                      <input
+                        value={item.category}
+                        onChange={(e) => updateArrayItem('featuredWorks', idx, 'category', e.target.value)}
                         style={inputStyle}
                       />
                       <label style={miniLabelStyle}>Story Title</label>
-                      <input 
-                        value={item.title} 
-                        onChange={(e) => updateArrayItem('featuredWorks', idx, 'title', e.target.value)} 
+                      <input
+                        value={item.title}
+                        onChange={(e) => updateArrayItem('featuredWorks', idx, 'title', e.target.value)}
                         style={inputStyle}
                       />
                     </div>
@@ -1575,9 +1589,9 @@ export default function AdminChange() {
             {/* SUB-SECTION 7: TESTIMONIALS */}
             {homeSubTab === 'testimonials' && (
               <div>
-                <SectionHeader 
-                  tag="CLIENT LOVE" 
-                  title="Homepage Testimonials (6 Quotes)" 
+                <SectionHeader
+                  tag="CLIENT LOVE"
+                  title="Homepage Testimonials (6 Quotes)"
                   sub="Edit client quotes and names featured on the homepage carousel."
                 />
 
@@ -1588,15 +1602,15 @@ export default function AdminChange() {
                         CLIENT REVIEW #{idx + 1}
                       </span>
                       <label style={miniLabelStyle}>Couple / Client Name</label>
-                      <input 
-                        value={test.name} 
-                        onChange={(e) => updateArrayItem('testimonials', idx, 'name', e.target.value)} 
+                      <input
+                        value={test.name}
+                        onChange={(e) => updateArrayItem('testimonials', idx, 'name', e.target.value)}
                         style={inputStyle}
                       />
                       <label style={miniLabelStyle}>Quote / Testimonial</label>
-                      <textarea 
-                        value={test.text} 
-                        onChange={(e) => updateArrayItem('testimonials', idx, 'text', e.target.value)} 
+                      <textarea
+                        value={test.text}
+                        onChange={(e) => updateArrayItem('testimonials', idx, 'text', e.target.value)}
                         style={{ ...inputStyle, height: '80px' }}
                       />
                     </div>
@@ -1612,9 +1626,9 @@ export default function AdminChange() {
         {/* ==================================================================== */}
         {activeTab === 'about' && (
           <div>
-            <SectionHeader 
-              tag="OUR STORY & LEGACY" 
-              title="About Page / Our Story Manager" 
+            <SectionHeader
+              tag="OUR STORY & LEGACY"
+              title="About Page / Our Story Manager"
               sub="Customise the heritage narrative, experience stat counters, founder Munu's origin story, timeline milestones, and versatility arenas."
             />
 
@@ -1622,24 +1636,24 @@ export default function AdminChange() {
             <div style={boxCardStyle}>
               <h3 style={sectionHeadingStyle}><Sparkles size={18} color="var(--gold, #c6a46b)" /> 1. Hero Header & Experience Stats</h3>
               <label style={labelStyle}>Hero Eyebrow Tag</label>
-              <input 
-                value={content.storyHeroEyebrow} 
-                onChange={(e) => setContent(p => ({ ...p, storyHeroEyebrow: e.target.value }))} 
-                style={inputStyle} 
+              <input
+                value={content.storyHeroEyebrow}
+                onChange={(e) => setContent(p => ({ ...p, storyHeroEyebrow: e.target.value }))}
+                style={inputStyle}
               />
 
               <label style={labelStyle}>Hero Main Heading</label>
-              <textarea 
-                value={content.storyHeroHeading} 
-                onChange={(e) => setContent(p => ({ ...p, storyHeroHeading: e.target.value }))} 
-                style={{ ...inputStyle, height: '70px' }} 
+              <textarea
+                value={content.storyHeroHeading}
+                onChange={(e) => setContent(p => ({ ...p, storyHeroHeading: e.target.value }))}
+                style={{ ...inputStyle, height: '70px' }}
               />
 
               <label style={labelStyle}>Hero Story Paragraph</label>
-              <textarea 
-                value={content.storyHeroParagraph} 
-                onChange={(e) => setContent(p => ({ ...p, storyHeroParagraph: e.target.value }))} 
-                style={{ ...inputStyle, height: '90px' }} 
+              <textarea
+                value={content.storyHeroParagraph}
+                onChange={(e) => setContent(p => ({ ...p, storyHeroParagraph: e.target.value }))}
+                style={{ ...inputStyle, height: '90px' }}
               />
 
               <h4 style={{ color: 'var(--gold, #c6a46b)', fontSize: '14px', margin: '20px 0 10px' }}>4 Experience Stat Badges</h4>
@@ -1647,24 +1661,24 @@ export default function AdminChange() {
                 {content.storyStats.map((stat, idx) => (
                   <div key={idx} style={{ background: '#181818', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
                     <label style={miniLabelStyle}>Stat #{idx + 1} Number</label>
-                    <input 
-                      value={stat.number} 
-                      onChange={(e) => updateArrayItem('storyStats', idx, 'number', e.target.value)} 
-                      style={inputStyle} 
+                    <input
+                      value={stat.number}
+                      onChange={(e) => updateArrayItem('storyStats', idx, 'number', e.target.value)}
+                      style={inputStyle}
                     />
 
                     <label style={miniLabelStyle}>Label</label>
-                    <input 
-                      value={stat.label} 
-                      onChange={(e) => updateArrayItem('storyStats', idx, 'label', e.target.value)} 
-                      style={inputStyle} 
+                    <input
+                      value={stat.label}
+                      onChange={(e) => updateArrayItem('storyStats', idx, 'label', e.target.value)}
+                      style={inputStyle}
                     />
 
                     <label style={miniLabelStyle}>Sub-label</label>
-                    <input 
-                      value={stat.sub} 
-                      onChange={(e) => updateArrayItem('storyStats', idx, 'sub', e.target.value)} 
-                      style={inputStyle} 
+                    <input
+                      value={stat.sub}
+                      onChange={(e) => updateArrayItem('storyStats', idx, 'sub', e.target.value)}
+                      style={inputStyle}
                     />
                   </div>
                 ))}
@@ -1674,7 +1688,7 @@ export default function AdminChange() {
             {/* B. Founder & Kendrapara */}
             <div style={boxCardStyle}>
               <h3 style={sectionHeadingStyle}><Camera size={18} color="var(--gold, #c6a46b)" /> 2. Founder Munu & Kendrapara Origin</h3>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '25px', marginBottom: '20px' }}>
                 <div>
                   <label style={labelStyle}>Founder Showcase Photo</label>
@@ -1683,58 +1697,58 @@ export default function AdminChange() {
                   </div>
                   <label style={{ ...uploadButtonStyle, width: '100%' }}>
                     <Upload size={14} /> Upload Founder Photo
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      style={{ display: 'none' }} 
-                      onChange={(e) => handleSingleImageUpload(e, 'storyFounderImg')} 
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => handleSingleImageUpload(e, 'storyFounderImg')}
                     />
                   </label>
                 </div>
 
                 <div>
                   <label style={labelStyle}>Founder Name</label>
-                  <input 
-                    value={content.storyFounderName} 
-                    onChange={(e) => setContent(p => ({ ...p, storyFounderName: e.target.value }))} 
-                    style={inputStyle} 
+                  <input
+                    value={content.storyFounderName}
+                    onChange={(e) => setContent(p => ({ ...p, storyFounderName: e.target.value }))}
+                    style={inputStyle}
                   />
 
                   <label style={labelStyle}>Founder Role / Title</label>
-                  <input 
-                    value={content.storyFounderRole} 
-                    onChange={(e) => setContent(p => ({ ...p, storyFounderRole: e.target.value }))} 
-                    style={inputStyle} 
+                  <input
+                    value={content.storyFounderRole}
+                    onChange={(e) => setContent(p => ({ ...p, storyFounderRole: e.target.value }))}
+                    style={inputStyle}
                   />
 
                   <label style={labelStyle}>Origin Location Tag</label>
-                  <input 
-                    value={content.storyFounderOrigin} 
-                    onChange={(e) => setContent(p => ({ ...p, storyFounderOrigin: e.target.value }))} 
-                    style={inputStyle} 
+                  <input
+                    value={content.storyFounderOrigin}
+                    onChange={(e) => setContent(p => ({ ...p, storyFounderOrigin: e.target.value }))}
+                    style={inputStyle}
                   />
 
                   <label style={labelStyle}>Section Heading</label>
-                  <input 
-                    value={content.storyOriginHeading} 
-                    onChange={(e) => setContent(p => ({ ...p, storyOriginHeading: e.target.value }))} 
-                    style={inputStyle} 
+                  <input
+                    value={content.storyOriginHeading}
+                    onChange={(e) => setContent(p => ({ ...p, storyOriginHeading: e.target.value }))}
+                    style={inputStyle}
                   />
                 </div>
               </div>
 
               <label style={labelStyle}>Origin Story Paragraph 1 (Genesis)</label>
-              <textarea 
-                value={content.storyOriginP1} 
-                onChange={(e) => setContent(p => ({ ...p, storyOriginP1: e.target.value }))} 
-                style={{ ...inputStyle, height: '80px', marginBottom: '12px' }} 
+              <textarea
+                value={content.storyOriginP1}
+                onChange={(e) => setContent(p => ({ ...p, storyOriginP1: e.target.value }))}
+                style={{ ...inputStyle, height: '80px', marginBottom: '12px' }}
               />
 
               <label style={labelStyle}>Origin Story Paragraph 2 (VIP & Leadership Expansion)</label>
-              <textarea 
-                value={content.storyOriginP2} 
-                onChange={(e) => setContent(p => ({ ...p, storyOriginP2: e.target.value }))} 
-                style={{ ...inputStyle, height: '80px' }} 
+              <textarea
+                value={content.storyOriginP2}
+                onChange={(e) => setContent(p => ({ ...p, storyOriginP2: e.target.value }))}
+                style={{ ...inputStyle, height: '80px' }}
               />
             </div>
 
@@ -1752,31 +1766,31 @@ export default function AdminChange() {
                     </div>
 
                     <label style={miniLabelStyle}>Year / Era (e.g. 2005, Present)</label>
-                    <input 
-                      value={m.year} 
-                      onChange={(e) => updateArrayItem('storyMilestones', idx, 'year', e.target.value)} 
-                      style={inputStyle} 
+                    <input
+                      value={m.year}
+                      onChange={(e) => updateArrayItem('storyMilestones', idx, 'year', e.target.value)}
+                      style={inputStyle}
                     />
 
                     <label style={miniLabelStyle}>Tag</label>
-                    <input 
-                      value={m.tag} 
-                      onChange={(e) => updateArrayItem('storyMilestones', idx, 'tag', e.target.value)} 
-                      style={inputStyle} 
+                    <input
+                      value={m.tag}
+                      onChange={(e) => updateArrayItem('storyMilestones', idx, 'tag', e.target.value)}
+                      style={inputStyle}
                     />
 
                     <label style={miniLabelStyle}>Title</label>
-                    <input 
-                      value={m.title} 
-                      onChange={(e) => updateArrayItem('storyMilestones', idx, 'title', e.target.value)} 
-                      style={inputStyle} 
+                    <input
+                      value={m.title}
+                      onChange={(e) => updateArrayItem('storyMilestones', idx, 'title', e.target.value)}
+                      style={inputStyle}
                     />
 
                     <label style={miniLabelStyle}>Description</label>
-                    <textarea 
-                      value={m.desc} 
-                      onChange={(e) => updateArrayItem('storyMilestones', idx, 'desc', e.target.value)} 
-                      style={{ ...inputStyle, height: '70px' }} 
+                    <textarea
+                      value={m.desc}
+                      onChange={(e) => updateArrayItem('storyMilestones', idx, 'desc', e.target.value)}
+                      style={{ ...inputStyle, height: '70px' }}
                     />
                   </div>
                 ))}
@@ -1786,23 +1800,23 @@ export default function AdminChange() {
             {/* D. 3 Versatility Arenas */}
             <div style={boxCardStyle}>
               <h3 style={sectionHeadingStyle}><ShieldCheck size={18} color="var(--gold, #c6a46b)" /> 4. Versatility Arenas (VIPs, Fashion, Shorts)</h3>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
                 {content.storyArenas.map((arena, idx) => (
                   <div key={idx} style={{ background: '#181818', padding: '16px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
                     <span style={{ fontSize: '11px', color: 'var(--gold, #c6a46b)', fontWeight: 700 }}>ARENA #{idx + 1}</span>
                     <label style={miniLabelStyle}>Arena Title</label>
-                    <input 
-                      value={arena.title} 
-                      onChange={(e) => updateArrayItem('storyArenas', idx, 'title', e.target.value)} 
-                      style={inputStyle} 
+                    <input
+                      value={arena.title}
+                      onChange={(e) => updateArrayItem('storyArenas', idx, 'title', e.target.value)}
+                      style={inputStyle}
                     />
 
                     <label style={miniLabelStyle}>Description</label>
-                    <textarea 
-                      value={arena.desc} 
-                      onChange={(e) => updateArrayItem('storyArenas', idx, 'desc', e.target.value)} 
-                      style={{ ...inputStyle, height: '70px' }} 
+                    <textarea
+                      value={arena.desc}
+                      onChange={(e) => updateArrayItem('storyArenas', idx, 'desc', e.target.value)}
+                      style={{ ...inputStyle, height: '70px' }}
                     />
                   </div>
                 ))}
@@ -1816,81 +1830,81 @@ export default function AdminChange() {
         {/* ==================================================================== */}
         {activeTab === 'contact' && (
           <div>
-            <SectionHeader 
-              tag="CONTACT & ENQUIRY ENGINE" 
-              title="Booking Modal & Contact Page Customizer" 
+            <SectionHeader
+              tag="CONTACT & ENQUIRY ENGINE"
+              title="Booking Modal & Contact Page Customizer"
               sub="Edit invitation cards, dynamic event types with smart fallback, budget brackets, services, and enquiry confirmation copy."
             />
 
             {/* A. 3D Invitation Card & Process Steps */}
             <div style={boxCardStyle}>
               <h3 style={sectionHeadingStyle}><Mail size={18} color="var(--gold, #c6a46b)" /> 1. Invitation Envelope & 3-Step Process</h3>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
                 <div>
                   <label style={labelStyle}>Invitation Eyebrow</label>
-                  <input 
-                    value={content.invitationEyebrow} 
-                    onChange={(e) => setContent(p => ({ ...p, invitationEyebrow: e.target.value }))} 
-                    style={inputStyle} 
+                  <input
+                    value={content.invitationEyebrow}
+                    onChange={(e) => setContent(p => ({ ...p, invitationEyebrow: e.target.value }))}
+                    style={inputStyle}
                   />
 
                   <label style={labelStyle}>Invitation Heading</label>
-                  <input 
-                    value={content.invitationHeading} 
-                    onChange={(e) => setContent(p => ({ ...p, invitationHeading: e.target.value }))} 
-                    style={inputStyle} 
+                  <input
+                    value={content.invitationHeading}
+                    onChange={(e) => setContent(p => ({ ...p, invitationHeading: e.target.value }))}
+                    style={inputStyle}
                   />
 
                   <label style={labelStyle}>Card Title</label>
-                  <input 
-                    value={content.invitationCardTitle} 
-                    onChange={(e) => setContent(p => ({ ...p, invitationCardTitle: e.target.value }))} 
-                    style={inputStyle} 
+                  <input
+                    value={content.invitationCardTitle}
+                    onChange={(e) => setContent(p => ({ ...p, invitationCardTitle: e.target.value }))}
+                    style={inputStyle}
                   />
 
                   <label style={labelStyle}>Card Subtitle</label>
-                  <input 
-                    value={content.invitationCardSub} 
-                    onChange={(e) => setContent(p => ({ ...p, invitationCardSub: e.target.value }))} 
-                    style={inputStyle} 
+                  <input
+                    value={content.invitationCardSub}
+                    onChange={(e) => setContent(p => ({ ...p, invitationCardSub: e.target.value }))}
+                    style={inputStyle}
                   />
 
                   <label style={labelStyle}>Button Label</label>
-                  <input 
-                    value={content.invitationBtnText} 
-                    onChange={(e) => setContent(p => ({ ...p, invitationBtnText: e.target.value }))} 
-                    style={inputStyle} 
+                  <input
+                    value={content.invitationBtnText}
+                    onChange={(e) => setContent(p => ({ ...p, invitationBtnText: e.target.value }))}
+                    style={inputStyle}
                   />
                 </div>
 
                 <div>
                   <label style={labelStyle}>Process Eyebrow</label>
-                  <input 
-                    value={content.processEyebrow} 
-                    onChange={(e) => setContent(p => ({ ...p, processEyebrow: e.target.value }))} 
-                    style={inputStyle} 
+                  <input
+                    value={content.processEyebrow}
+                    onChange={(e) => setContent(p => ({ ...p, processEyebrow: e.target.value }))}
+                    style={inputStyle}
                   />
 
                   <label style={labelStyle}>Process Heading</label>
-                  <input 
-                    value={content.processHeading} 
-                    onChange={(e) => setContent(p => ({ ...p, processHeading: e.target.value }))} 
-                    style={inputStyle} 
+                  <input
+                    value={content.processHeading}
+                    onChange={(e) => setContent(p => ({ ...p, processHeading: e.target.value }))}
+                    style={inputStyle}
                   />
 
                   <h5 style={{ color: 'var(--gold, #c6a46b)', margin: '14px 0 8px 0', fontSize: '12px' }}>3 Process Steps</h5>
                   {content.processSteps.map((step, idx) => (
                     <div key={idx} style={{ background: '#181818', padding: '10px', borderRadius: '6px', marginBottom: '8px' }}>
-                      <input 
-                        value={step.title} 
-                        onChange={(e) => updateArrayItem('processSteps', idx, 'title', e.target.value)} 
-                        style={{ ...inputStyle, marginBottom: '6px' }} 
+                      <input
+                        value={step.title}
+                        onChange={(e) => updateArrayItem('processSteps', idx, 'title', e.target.value)}
+                        style={{ ...inputStyle, marginBottom: '6px' }}
                       />
-                      <input 
-                        value={step.desc} 
-                        onChange={(e) => updateArrayItem('processSteps', idx, 'desc', e.target.value)} 
-                        style={{ ...inputStyle, fontSize: '12px' }} 
+                      <input
+                        value={step.desc}
+                        onChange={(e) => updateArrayItem('processSteps', idx, 'desc', e.target.value)}
+                        style={{ ...inputStyle, fontSize: '12px' }}
                       />
                     </div>
                   ))}
@@ -1910,10 +1924,10 @@ export default function AdminChange() {
                   <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#1c1c1c', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 12px', borderRadius: '30px' }}>
                     <span style={{ fontSize: '13px', color: type === 'Others' ? 'var(--gold, #c6a46b)' : '#fff', fontWeight: 600 }}>{type}</span>
                     {type !== 'Others' && (
-                      <button 
+                      <button
                         onClick={() => {
                           setContent(p => ({ ...p, eventTypes: p.eventTypes.filter((_, i) => i !== idx) }));
-                        }} 
+                        }}
                         style={{ background: 'none', border: 'none', color: '#ff6666', cursor: 'pointer', padding: '0 2px', fontSize: '12px' }}
                       >
                         ✕
@@ -1924,10 +1938,10 @@ export default function AdminChange() {
               </div>
 
               <div style={{ display: 'flex', gap: '10px', maxWidth: '400px' }}>
-                <input 
-                  id="newEventTypeInput" 
-                  placeholder="Add custom event type (e.g. Sangeet, Gala)..." 
-                  style={inputStyle} 
+                <input
+                  id="newEventTypeInput"
+                  placeholder="Add custom event type (e.g. Sangeet, Gala)..."
+                  style={inputStyle}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -1942,7 +1956,7 @@ export default function AdminChange() {
                     }
                   }}
                 />
-                <button 
+                <button
                   onClick={() => {
                     const el = document.getElementById('newEventTypeInput');
                     const val = el ? el.value.trim() : '';
@@ -1964,23 +1978,23 @@ export default function AdminChange() {
             {/* C. Budget Brackets & Service Checklist */}
             <div style={boxCardStyle}>
               <h3 style={sectionHeadingStyle}><Layers size={18} color="var(--gold, #c6a46b)" /> 3. Budget Ranges & Service Checklist</h3>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
                 <div>
                   <label style={labelStyle}>Budget Brackets (1 per line)</label>
-                  <textarea 
-                    value={content.budgetRanges.join('\n')} 
-                    onChange={(e) => setContent(p => ({ ...p, budgetRanges: e.target.value.split('\n').filter(Boolean) }))} 
-                    style={{ ...inputStyle, height: '120px' }} 
+                  <textarea
+                    value={content.budgetRanges.join('\n')}
+                    onChange={(e) => setContent(p => ({ ...p, budgetRanges: e.target.value.split('\n').filter(Boolean) }))}
+                    style={{ ...inputStyle, height: '120px' }}
                   />
                 </div>
 
                 <div>
                   <label style={labelStyle}>Services Checklist (1 per line)</label>
-                  <textarea 
-                    value={content.enquiryServices.join('\n')} 
-                    onChange={(e) => setContent(p => ({ ...p, enquiryServices: e.target.value.split('\n').filter(Boolean) }))} 
-                    style={{ ...inputStyle, height: '120px' }} 
+                  <textarea
+                    value={content.enquiryServices.join('\n')}
+                    onChange={(e) => setContent(p => ({ ...p, enquiryServices: e.target.value.split('\n').filter(Boolean) }))}
+                    style={{ ...inputStyle, height: '120px' }}
                   />
                 </div>
               </div>
@@ -1989,47 +2003,47 @@ export default function AdminChange() {
             {/* D. Confirmation Screen & Bottom CTA */}
             <div style={boxCardStyle}>
               <h3 style={sectionHeadingStyle}><CheckCircle2 size={18} color="var(--gold, #c6a46b)" /> 4. Enquiry Success Screen & Contact Page CTA</h3>
-              
+
               <label style={labelStyle}>Enquiry Submission Success Title</label>
-              <input 
-                value={content.enquirySuccessTitle} 
-                onChange={(e) => setContent(p => ({ ...p, enquirySuccessTitle: e.target.value }))} 
-                style={inputStyle} 
+              <input
+                value={content.enquirySuccessTitle}
+                onChange={(e) => setContent(p => ({ ...p, enquirySuccessTitle: e.target.value }))}
+                style={inputStyle}
               />
 
               <label style={labelStyle}>Enquiry Submission Success Description</label>
-              <textarea 
-                value={content.enquirySuccessDesc} 
-                onChange={(e) => setContent(p => ({ ...p, enquirySuccessDesc: e.target.value }))} 
-                style={{ ...inputStyle, height: '60px' }} 
+              <textarea
+                value={content.enquirySuccessDesc}
+                onChange={(e) => setContent(p => ({ ...p, enquirySuccessDesc: e.target.value }))}
+                style={{ ...inputStyle, height: '60px' }}
               />
 
               <label style={labelStyle}>Contact Page Bottom CTA Eyebrow</label>
-              <input 
-                value={content.contactCtaEyebrow} 
-                onChange={(e) => setContent(p => ({ ...p, contactCtaEyebrow: e.target.value }))} 
-                style={inputStyle} 
+              <input
+                value={content.contactCtaEyebrow}
+                onChange={(e) => setContent(p => ({ ...p, contactCtaEyebrow: e.target.value }))}
+                style={inputStyle}
               />
 
               <label style={labelStyle}>Contact Page Bottom CTA Heading</label>
-              <input 
-                value={content.contactCtaHeading} 
-                onChange={(e) => setContent(p => ({ ...p, contactCtaHeading: e.target.value }))} 
-                style={inputStyle} 
+              <input
+                value={content.contactCtaHeading}
+                onChange={(e) => setContent(p => ({ ...p, contactCtaHeading: e.target.value }))}
+                style={inputStyle}
               />
 
               <label style={labelStyle}>Contact Page Bottom CTA Description</label>
-              <textarea 
-                value={content.contactCtaDesc} 
-                onChange={(e) => setContent(p => ({ ...p, contactCtaDesc: e.target.value }))} 
-                style={{ ...inputStyle, height: '60px' }} 
+              <textarea
+                value={content.contactCtaDesc}
+                onChange={(e) => setContent(p => ({ ...p, contactCtaDesc: e.target.value }))}
+                style={{ ...inputStyle, height: '60px' }}
               />
 
               <label style={labelStyle}>Contact Page Bottom CTA Button Text</label>
-              <input 
-                value={content.contactCtaBtn} 
-                onChange={(e) => setContent(p => ({ ...p, contactCtaBtn: e.target.value }))} 
-                style={inputStyle} 
+              <input
+                value={content.contactCtaBtn}
+                onChange={(e) => setContent(p => ({ ...p, contactCtaBtn: e.target.value }))}
+                style={inputStyle}
               />
             </div>
           </div>
@@ -2040,9 +2054,9 @@ export default function AdminChange() {
         {/* ==================================================================== */}
         {activeTab === 'portfolio' && (
           <div>
-            <SectionHeader 
-              tag="PORTFOLIO DATABASE" 
-              title="Client Portfolios & Categories" 
+            <SectionHeader
+              tag="PORTFOLIO DATABASE"
+              title="Client Portfolios & Categories"
               sub="Add, edit, and organize client wedding & celebration photo albums."
             />
 
@@ -2204,7 +2218,7 @@ export default function AdminChange() {
                   </div>
                 )}
 
-                <button 
+                <button
                   onClick={() => {
                     setContent(prev => ({
                       ...prev,
@@ -2264,14 +2278,14 @@ const sectionHeadingStyle = {
   gap: '8px'
 };
 
-const labelStyle = { 
-  display: 'block', 
-  color: 'var(--gold, #c6a46b)', 
-  marginBottom: '6px', 
-  fontSize: '12.5px', 
-  fontWeight: 600, 
-  letterSpacing: '0.8px', 
-  marginTop: '14px' 
+const labelStyle = {
+  display: 'block',
+  color: 'var(--gold, #c6a46b)',
+  marginBottom: '6px',
+  fontSize: '12.5px',
+  fontWeight: 600,
+  letterSpacing: '0.8px',
+  marginTop: '14px'
 };
 
 const miniLabelStyle = {
@@ -2285,15 +2299,15 @@ const miniLabelStyle = {
   fontWeight: 600
 };
 
-const inputStyle = { 
-  width: '100%', 
-  padding: '10px 12px', 
-  background: '#090909', 
-  border: '1px solid rgba(255, 255, 255, 0.1)', 
-  borderRadius: '6px', 
-  color: '#fff', 
-  fontSize: '13px', 
-  fontFamily: 'inherit', 
+const inputStyle = {
+  width: '100%',
+  padding: '10px 12px',
+  background: '#090909',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  borderRadius: '6px',
+  color: '#fff',
+  fontSize: '13px',
+  fontFamily: 'inherit',
   outline: 'none',
   boxSizing: 'border-box'
 };

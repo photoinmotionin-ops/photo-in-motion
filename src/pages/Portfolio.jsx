@@ -26,16 +26,32 @@ const SkeletonCard = () => (
   </div>
 );
 
-export default function Portfolio() {
-  // STALE-WHILE-REVALIDATE: Initialize directly from instant cache if user visited before
-  const cachedData = (() => {
-    try {
-      const stored = localStorage.getItem('pim_portfolio_cache');
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
+// Synchronously reads either pim_portfolio_cache or site_content_cache before initial paint
+const getInitialPortfolioData = () => {
+  try {
+    const pimStored = localStorage.getItem('pim_portfolio_cache');
+    if (pimStored) {
+      const parsed = JSON.parse(pimStored);
+      if (parsed.portfolioItems && parsed.portfolioItems.length > 0) {
+        return parsed;
+      }
     }
-  })();
+    const siteStored = localStorage.getItem('site_content_cache');
+    if (siteStored) {
+      const parsed = JSON.parse(siteStored);
+      if (parsed.portfolioItems && parsed.portfolioItems.length > 0) {
+        return {
+          portfolioItems: parsed.portfolioItems,
+          categories: parsed.categories || ['Wedding', 'Birthday', 'Corporate']
+        };
+      }
+    }
+  } catch (_) {}
+  return null;
+};
+
+export default function Portfolio() {
+  const cachedData = getInitialPortfolioData();
 
   const [portfolioItems, setPortfolioItems] = useState(cachedData?.portfolioItems || []);
   const [categories, setCategories] = useState(cachedData?.categories || ['Wedding', 'Birthday', 'Corporate']);
@@ -73,9 +89,18 @@ export default function Portfolio() {
         setLoading(false);
         // Cache instantly in localStorage for 0ms load next time
         try {
-          localStorage.setItem('pim_portfolio_cache', JSON.stringify({
+          const cachePayload = {
             portfolioItems: data.portfolioItems || [],
             categories: data.categories || ['Wedding', 'Birthday', 'Corporate']
+          };
+          localStorage.setItem('pim_portfolio_cache', JSON.stringify(cachePayload));
+          
+          // Keep site_content_cache synced as well
+          const siteStored = localStorage.getItem('site_content_cache');
+          const siteData = siteStored ? JSON.parse(siteStored) : {};
+          localStorage.setItem('site_content_cache', JSON.stringify({
+            ...siteData,
+            ...cachePayload
           }));
         } catch (_) {}
       })

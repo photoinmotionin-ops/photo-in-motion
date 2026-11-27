@@ -15,31 +15,61 @@ const defaultSteps = [
   { title: '3. Capture', desc: 'We film your day, seamlessly.' },
 ];
 
+const defaultContactData = {
+  invitationEyebrow: 'YOU ARE INVITED',
+  invitationHeading: "Let's Create Magic Together",
+  invitationCardTitle: 'Open Your Invitation',
+  invitationCardSub: 'Click to start your booking enquiry.',
+  invitationBtnText: 'Start Your Enquiry',
+  
+  processEyebrow: 'THE SEAMLESS PROCESS',
+  processHeading: 'How We Work',
+  processSteps: defaultSteps,
+
+  contactCtaEyebrow: "LET'S CREATE SOMETHING TIMELESS",
+  contactCtaHeading: "Your story deserves to be remembered.",
+  contactCtaDesc: "Have a celebration coming up? Let's talk about how we can turn your moments into lasting memories.",
+  contactCtaBtn: 'Start A Conversation'
+};
+
+// Synchronously reads cache before rendering to prevent flashing
+const getInitialContactData = () => {
+  try {
+    const cached = localStorage.getItem('site_content_cache');
+    if (cached) {
+      const data = JSON.parse(cached);
+      return {
+        ...defaultContactData,
+        invitationEyebrow: data.invitationEyebrow || defaultContactData.invitationEyebrow,
+        invitationHeading: data.invitationHeading || defaultContactData.invitationHeading,
+        invitationCardTitle: data.invitationCardTitle || defaultContactData.invitationCardTitle,
+        invitationCardSub: data.invitationCardSub || defaultContactData.invitationCardSub,
+        invitationBtnText: data.invitationBtnText || defaultContactData.invitationBtnText,
+        processEyebrow: data.processEyebrow || defaultContactData.processEyebrow,
+        processHeading: data.processHeading || defaultContactData.processHeading,
+        processSteps: data.processSteps || defaultContactData.processSteps,
+        contactCtaEyebrow: data.contactCtaEyebrow || defaultContactData.contactCtaEyebrow,
+        contactCtaHeading: data.contactCtaHeading || defaultContactData.contactCtaHeading,
+        contactCtaDesc: data.contactCtaDesc || defaultContactData.contactCtaDesc,
+        contactCtaBtn: data.contactCtaBtn || defaultContactData.contactCtaBtn
+      };
+    }
+  } catch (e) {}
+  return defaultContactData;
+};
+
 export default function Contact() {
   const [enquiryOpen, setEnquiryOpen] = useState(false);
-
-  const [contactData, setContactData] = useState({
-    invitationEyebrow: 'YOU ARE INVITED',
-    invitationHeading: "Let's Create Magic Together",
-    invitationCardTitle: 'Open Your Invitation',
-    invitationCardSub: 'Click to start your booking enquiry.',
-    invitationBtnText: 'Start Your Enquiry',
-    
-    processEyebrow: 'THE SEAMLESS PROCESS',
-    processHeading: 'How We Work',
-    processSteps: defaultSteps,
-
-    contactCtaEyebrow: "LET'S CREATE SOMETHING TIMELESS",
-    contactCtaHeading: "Your story deserves to be remembered.",
-    contactCtaDesc: "Have a celebration coming up? Let's talk about how we can turn your moments into lasting memories.",
-    contactCtaBtn: 'Start A Conversation'
-  });
+  const [contactData, setContactData] = useState(getInitialContactData);
 
   useEffect(() => {
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(data => {
         if (data && Object.keys(data).length > 0) {
+          try {
+            localStorage.setItem('site_content_cache', JSON.stringify(data));
+          } catch (_) {}
           setContactData(prev => ({
             ...prev,
             invitationEyebrow: data.invitationEyebrow || prev.invitationEyebrow,

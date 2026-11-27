@@ -91,21 +91,45 @@ const defaultShortReels = [
   }
 ];
 
+const defaultHomeContent = {
+  heroTitle: 'Every Frame.\nA Timeless Story.',
+  heroSub: "We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.",
+  storyTitle: 'Moments pass.\nStories stay forever.',
+  storyText: 'At Photo In Motion, we believe every celebration has a story worth telling. Through thoughtful photography and cinematic filmmaking, we preserve the feelings behind every frame.',
+  featuredWorks: defaultFeaturedWorks,
+  stripTopWorks: null,
+  stripBottomWorks: null,
+  orbitMoments: null,
+  showreels: defaultShortReels,
+  viewfinderShots: null,
+  testimonials: defaultTestimonials,
+  showreelImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80'
+};
+
+// Synchronously load cache on initial render to prevent flashing
+const getInitialHomeContent = () => {
+  try {
+    const cached = localStorage.getItem('site_content_cache');
+    if (cached) {
+      const data = JSON.parse(cached);
+      return {
+        ...defaultHomeContent,
+        ...data,
+        featuredWorks: data.featuredWorks || defaultHomeContent.featuredWorks,
+        stripTopWorks: data.stripTopWorks || null,
+        stripBottomWorks: data.stripBottomWorks || null,
+        orbitMoments: data.orbitMoments || null,
+        showreels: data.showreels || defaultHomeContent.showreels,
+        viewfinderShots: data.viewfinderShots || null,
+        testimonials: data.testimonials || defaultHomeContent.testimonials
+      };
+    }
+  } catch (e) {}
+  return defaultHomeContent;
+};
+
 export default function Home() {
-  const [content, setContent] = useState({
-    heroTitle: 'Every Frame.\nA Timeless Story.',
-    heroSub: "We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.",
-    storyTitle: 'Moments pass.\nStories stay forever.',
-    storyText: 'At Photo In Motion, we believe every celebration has a story worth telling. Through thoughtful photography and cinematic filmmaking, we preserve the feelings behind every frame.',
-    featuredWorks: defaultFeaturedWorks,
-    stripTopWorks: null,
-    stripBottomWorks: null,
-    orbitMoments: null,
-    showreels: defaultShortReels,
-    viewfinderShots: null,
-    testimonials: defaultTestimonials,
-    showreelImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80'
-  });
+  const [content, setContent] = useState(getInitialHomeContent);
 
   // Showreel Video Player States
   const [activeReelIndex, setActiveReelIndex] = useState(0);
@@ -157,12 +181,15 @@ export default function Home() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Fetch all Admin Data from Backend
+  // Fetch all Admin Data from Backend & update cache
   useEffect(() => {
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(data => {
         if (data && Object.keys(data).length > 0) {
+          try {
+            localStorage.setItem('site_content_cache', JSON.stringify(data));
+          } catch (_) {}
           setContent(prev => ({
             ...prev,
             ...data,

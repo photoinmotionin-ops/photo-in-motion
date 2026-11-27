@@ -24,13 +24,20 @@ export default function PortfolioDetail() {
   const { id } = useParams(); 
   const navigate = useNavigate();
 
-  // INSTANT LOAD FROM CACHE: Zero latency transition when coming from Portfolio
+  // INSTANT LOAD FROM CACHE: Checks both pim_portfolio_cache and site_content_cache for 0ms transition
   const cachedClient = (() => {
     try {
       const stored = localStorage.getItem('pim_portfolio_cache');
       if (stored) {
         const parsed = JSON.parse(stored);
-        return parsed.portfolioItems?.find(i => String(i.id) === String(id)) || null;
+        const item = parsed.portfolioItems?.find(i => String(i.id) === String(id));
+        if (item) return item;
+      }
+      const siteStored = localStorage.getItem('site_content_cache');
+      if (siteStored) {
+        const parsed = JSON.parse(siteStored);
+        const item = parsed.portfolioItems?.find(i => String(i.id) === String(id));
+        if (item) return item;
       }
       return null;
     } catch {
@@ -61,6 +68,12 @@ export default function PortfolioDetail() {
         if (data.portfolioItems) {
           const found = data.portfolioItems.find(i => String(i.id) === String(id));
           if (found) setClient(found);
+          try {
+            localStorage.setItem('pim_portfolio_cache', JSON.stringify({
+              portfolioItems: data.portfolioItems,
+              categories: data.categories || ['Wedding', 'Birthday', 'Corporate']
+            }));
+          } catch (_) {}
         }
         setLoading(false);
       })

@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { 
+import {
   Camera, Award, ShieldCheck, MapPin, Sparkles, CheckCircle2, ArrowRight
 } from 'lucide-react';
 
 // Built-in YouTube SVG
 const YoutubeIcon = ({ size = 20, color = "currentColor" }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke={color} 
-    strokeWidth="1.8" 
-    strokeLinecap="round" 
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth="1.8"
+    strokeLinecap="round"
     strokeLinejoin="round"
   >
     <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
@@ -22,19 +22,19 @@ const YoutubeIcon = ({ size = 20, color = "currentColor" }) => (
   </svg>
 );
 
-const maskReveal = { 
-  hidden: { y: "100%", rotate: 2 }, 
-  visible: { y: 0, rotate: 0, transition: { duration: 0.8, ease: [0.33, 1, 0.68, 1] } } 
+const maskReveal = {
+  hidden: { y: "100%", rotate: 2 },
+  visible: { y: 0, rotate: 0, transition: { duration: 0.8, ease: [0.33, 1, 0.68, 1] } }
 };
 
-const fadeUp = { 
-  hidden: { opacity: 0, y: 40 }, 
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } } 
+const fadeUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
 };
 
-const staggerContainer = { 
-  hidden: { opacity: 0 }, 
-  visible: { opacity: 1, transition: { staggerChildren: 0.16, delayChildren: 0.1 } } 
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.16, delayChildren: 0.1 } }
 };
 
 // Default Milestones (Icons mapped per index)
@@ -80,70 +80,84 @@ const defaultArenas = [
   { title: 'Shorts & YouTube Productions', desc: 'Modern vertical short cinema, Reels, and 4K YouTube storytelling tailored with rhythmic pacing and cinematic sound design.' }
 ];
 
-export default function Story() {
-  const [data, setData] = useState({
-    storyHeroEyebrow: 'THE LEGACY SINCE 2005',
-    storyHeroHeading: 'Moments pass.\nStories stay forever.',
-    storyHeroParagraph: 'At Photo In Motion Studio, our story is etched in patience, passion, and two decades of relentless craftsmanship. From our beginnings in Kendrapara to documenting state leaders, fashion icons, and royal weddings, we preserve the heartbeat behind every frame.',
-    storyStats: defaultStats,
-    storyFounderImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
-    storyFounderName: 'Munu',
-    storyFounderRole: 'Visionary Filmmaker & Founder, Photo In Motion',
-    storyFounderOrigin: 'Kendrapara, Odisha · Since 2005',
-    storyOriginHeading: "From One Person's Vision to a Cinematic Powerhouse",
-    storyOriginP1: "In 2005, in the historic town of Kendrapara, Photo In Motion began with just one person — Munu. With a single camera and an unwavering obsession with natural lighting and unposed emotional depth, every frame was treated as sacred art.",
-    storyOriginP2: "What started as local wedding memories quickly evolved into a trusted production brand. As word spread, our lens captured high-profile state leaders — including MLAs and Deputy Chief Ministers — commanding the highest discretion, speed, and cinematic poise.",
-    storyMilestones: defaultMilestones,
-    storyArenas: defaultArenas
-  });
+const defaultStoryData = {
+  storyHeroEyebrow: 'THE LEGACY SINCE 2005',
+  storyHeroHeading: 'Moments pass.\nStories stay forever.',
+  storyHeroParagraph: 'At Photo In Motion Studio, our story is etched in patience, passion, and two decades of relentless craftsmanship. From our beginnings in Kendrapara to documenting state leaders, fashion icons, and royal weddings, we preserve the heartbeat behind every frame.',
+  storyStats: defaultStats,
+  storyFounderImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85',
+  storyFounderName: 'Munu',
+  storyFounderRole: 'Visionary Filmmaker & Founder, Photo In Motion',
+  storyFounderOrigin: 'Kendrapara, Odisha · Since 2005',
+  storyOriginHeading: "From One Person's Vision to a Cinematic Powerhouse",
+  storyOriginP1: "In 2005, in the historic town of Kendrapara, Photo In Motion began with just one person — Munu. With a single camera and an unwavering obsession with natural lighting and unposed emotional depth, every frame was treated as sacred art.",
+  storyOriginP2: "What started as local wedding memories quickly evolved into a trusted production brand. As word spread, our lens captured high-profile state leaders — including MLAs and Deputy Chief Ministers — commanding the highest discretion, speed, and cinematic poise.",
+  storyMilestones: defaultMilestones,
+  storyArenas: defaultArenas
+};
 
-  // Fetch admin saved data
+// Synchronously initializes state from cache before initial frame paint (Prevents flashing)
+const getInitialStoryData = () => {
+  try {
+    const cachedData = localStorage.getItem('site_content_cache');
+    if (cachedData) {
+      const parsed = JSON.parse(cachedData);
+      return {
+        ...defaultStoryData,
+        ...parsed,
+        storyStats: parsed.storyStats || defaultStats,
+        storyMilestones: parsed.storyMilestones || defaultMilestones,
+        storyArenas: parsed.storyArenas || defaultArenas,
+      };
+    }
+  } catch (e) {
+    // Fallback to defaults if cache is unreadable
+  }
+  return defaultStoryData;
+};
+
+export default function Story() {
+  const [data, setData] = useState(getInitialStoryData);
+
+  // Fetch latest data from backend in background to keep data fresh
   useEffect(() => {
     fetch('/api/enquiry?action=get_content')
       .then(res => res.json())
       .then(saved => {
         if (saved && Object.keys(saved).length > 0) {
+          localStorage.setItem('site_content_cache', JSON.stringify(saved));
           setData(prev => ({
             ...prev,
-            storyHeroEyebrow: saved.storyHeroEyebrow || prev.storyHeroEyebrow,
-            storyHeroHeading: saved.storyHeroHeading || prev.storyHeroHeading,
-            storyHeroParagraph: saved.storyHeroParagraph || prev.storyHeroParagraph,
+            ...saved,
             storyStats: saved.storyStats || prev.storyStats,
-            storyFounderImg: saved.storyFounderImg || prev.storyFounderImg,
-            storyFounderName: saved.storyFounderName || prev.storyFounderName,
-            storyFounderRole: saved.storyFounderRole || prev.storyFounderRole,
-            storyFounderOrigin: saved.storyFounderOrigin || prev.storyFounderOrigin,
-            storyOriginHeading: saved.storyOriginHeading || prev.storyOriginHeading,
-            storyOriginP1: saved.storyOriginP1 || prev.storyOriginP1,
-            storyOriginP2: saved.storyOriginP2 || prev.storyOriginP2,
             storyMilestones: saved.storyMilestones || prev.storyMilestones,
-            storyArenas: saved.storyArenas || prev.storyArenas
+            storyArenas: saved.storyArenas || prev.storyArenas,
           }));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      exit={{ opacity: 0 }} 
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       style={{ paddingTop: '100px', minHeight: '100vh', background: 'var(--bg, #101010)', color: 'var(--white, #f4efe6)' }}
     >
-      
+
       {/* 1. HERO SECTION */}
-      <motion.section 
-        className="intro-section" 
-        style={{ padding: '100px 10% 60px', textAlign: 'center' }} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.section
+        className="intro-section"
+        style={{ padding: '100px 10% 60px', textAlign: 'center' }}
+        initial="hidden"
+        animate="visible"
         variants={staggerContainer}
       >
         <motion.p className="eyebrow" variants={fadeUp}>
           {data.storyHeroEyebrow}
         </motion.p>
-        
+
         <h1 style={{ fontFamily: 'var(--heading-font, serif)', fontSize: 'clamp(46px, 6.5vw, 84px)', fontWeight: 400, margin: '15px 0 30px', lineHeight: 1.05, whiteSpace: 'pre-line' }}>
           <div style={{ overflow: 'hidden' }}>
             <motion.div variants={maskReveal}>
@@ -152,15 +166,15 @@ export default function Story() {
           </div>
         </h1>
 
-        <motion.p 
-          variants={fadeUp} 
+        <motion.p
+          variants={fadeUp}
           style={{ maxWidth: '820px', margin: '0 auto', fontSize: '15px', lineHeight: '2', color: 'var(--text, #d2cec8)' }}
         >
           {data.storyHeroParagraph}
         </motion.p>
 
         {/* Stats Strip */}
-        <motion.div 
+        <motion.div
           variants={fadeUp}
           style={{
             display: 'grid',
@@ -176,7 +190,7 @@ export default function Story() {
           }}
         >
           {(data.storyStats || defaultStats).map((stat, idx) => (
-            <motion.div 
+            <motion.div
               key={idx}
               whileHover={{ y: -5 }}
               style={{ textAlign: 'center', padding: '10px' }}
@@ -198,16 +212,16 @@ export default function Story() {
       {/* 2. THE FOUNDER'S JOURNEY (MUNU & KENDRAPARA) */}
       <section style={{ padding: '80px 10%', background: 'var(--bg-light, #171717)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '50px', alignItems: 'center' }}>
-          
+
           {/* Visual Showcase Card */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
             style={{ position: 'relative' }}
           >
-            <div 
+            <div
               style={{
                 position: 'relative',
                 borderRadius: '20px',
@@ -218,13 +232,13 @@ export default function Story() {
                 background: '#0d0d0d'
               }}
             >
-              <img 
-                src={data.storyFounderImg} 
+              <img
+                src={data.storyFounderImg}
                 alt={data.storyFounderName}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
               />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)' }} />
-              
+
               <div style={{ position: 'absolute', bottom: '25px', left: '25px', right: '25px' }}>
                 <span style={{ padding: '4px 10px', background: 'var(--gold, #c6a46b)', color: '#111', fontSize: '10px', fontWeight: 700, borderRadius: '4px', letterSpacing: '1px' }}>
                   THE FOUNDER
@@ -242,7 +256,7 @@ export default function Story() {
             </div>
 
             {/* Decorative Gold Accent Badge */}
-            <motion.div 
+            <motion.div
               animate={{ rotate: [0, 360] }}
               transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
               style={{
@@ -266,7 +280,7 @@ export default function Story() {
           </motion.div>
 
           {/* Story Narrative */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -276,7 +290,7 @@ export default function Story() {
             <h2 style={{ fontFamily: 'var(--heading-font, serif)', fontSize: 'clamp(36px, 4.5vw, 56px)', fontWeight: 400, margin: '10px 0 25px' }}>
               {data.storyOriginHeading}
             </h2>
-            
+
             <p style={{ fontSize: '14px', lineHeight: '2', color: 'var(--text, #d2cec8)', marginBottom: '18px' }}>
               {data.storyOriginP1}
             </p>
@@ -302,10 +316,10 @@ export default function Story() {
 
       {/* 3. INTERACTIVE TIMELINE / MILESTONES */}
       <section style={{ padding: '100px 10%', background: 'var(--bg, #101010)', textAlign: 'center' }}>
-        <motion.div 
-          initial="hidden" 
-          whileInView="visible" 
-          viewport={{ once: true }} 
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
           variants={staggerContainer}
         >
           <p className="eyebrow">OUR EVOLUTION</p>
@@ -319,7 +333,7 @@ export default function Story() {
           {(data.storyMilestones || defaultMilestones).map((item, index) => {
             const Icon = milestoneIcons[index] || Camera;
             return (
-              <motion.div 
+              <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 35 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -382,7 +396,7 @@ export default function Story() {
             {(data.storyArenas || defaultArenas).map((arena, idx) => {
               const Icon = idx === 0 ? ShieldCheck : idx === 1 ? Camera : YoutubeIcon;
               return (
-                <motion.div 
+                <motion.div
                   key={idx}
                   whileHover={{ y: -6 }}
                   style={{ background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '14px', border: '1px solid var(--border)' }}
@@ -404,8 +418,8 @@ export default function Story() {
       </section>
 
       {/* 5. CALL TO ACTION */}
-      <motion.section 
-        className="contact-section" 
+      <motion.section
+        className="contact-section"
         style={{ padding: '100px 10%', background: 'var(--bg, #101010)', textAlign: 'center' }}
         initial="hidden"
         whileInView="visible"
