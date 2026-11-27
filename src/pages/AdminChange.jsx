@@ -2391,3 +2391,39 @@ const sectionHeadingStyle = {
   alignItems: 'center',
   gap: '8px'
 };
+
+
+const labelStyle = {
+  display: 'block',
+  color: '#c6a46b',
+  fontSize: '12px',
+  fontWeight: 600,
+  letterSpacing: '0.5px',
+  marginBottom: '8px',
+  marginTop: '12px'
+};
+
+const miniLabelStyle = {
+  display: 'block',
+  color: '#aaa39a',
+  fontSize: '11px',
+  fontWeight: 600,
+  letterSpacing: '0.5px',
+  marginBottom: '6px',
+  marginTop: '8px'
+};
+
+const inputStyle = {
+  width: '100%',
+  padding: '12px 14px',
+  background: '#0d0d0d',
+  border: '1px solid rgba(255,255,255,0.12)',
+  borderRadius: '8px',
+  color: '#fff',
+  fontSize: '13px',
+  fontFamily: 'inherit',
+  outline: 'none',
+  boxSizing: 'border-box',
+  marginBottom: '12px',
+  transition: 'border-color 0.2s ease'
+};
