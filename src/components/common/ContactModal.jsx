@@ -22,17 +22,17 @@ export default function ContactModal({ isOpen, onClose }) {
               <p className="eyebrow" style={{ marginBottom: '10px' }}>GET IN TOUCH</p>
               <h3 style={{ fontFamily: 'var(--heading-font)', fontSize: '40px', margin: '0 0 30px 0', color: 'var(--white)', fontWeight: 400 }}>Let's Talk</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <motion.a href="mailto:hello@photocinemotion.com" whileHover={{ scale: 1.02, backgroundColor: 'rgba(198, 164, 107, 0.1)' }} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '20px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: 'var(--white)' }}>
+                <motion.a href="mailto:photoinmotion.in@gmail.com" whileHover={{ scale: 1.02, backgroundColor: 'rgba(198, 164, 107, 0.1)' }} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '20px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: 'var(--white)' }}>
                   <div style={{ background: 'rgba(198, 164, 107, 0.2)', padding: '10px', borderRadius: '50%', color: 'var(--gold)' }}><Mail size={20} /></div>
-                  <div style={{ textAlign: 'left' }}><div style={{ fontSize: '12px', color: 'var(--muted)', letterSpacing: '1px' }}>EMAIL US</div><div style={{ fontSize: '14px', fontWeight: '500' }}>hello@photocinemotion.com</div></div>
+                  <div style={{ textAlign: 'left' }}><div style={{ fontSize: '12px', color: 'var(--muted)', letterSpacing: '1px' }}>EMAIL US</div><div style={{ fontSize: '14px', fontWeight: '500' }}>photoinmotion.in@gmail.com</div></div>
                 </motion.a>
-                <motion.a href="https://wa.me/1234567890" target="_blank" rel="noreferrer" whileHover={{ scale: 1.02, backgroundColor: 'rgba(198, 164, 107, 0.1)' }} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '20px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: 'var(--white)' }}>
+                <motion.a href="https://wa.me/9692485219" target="_blank" rel="noreferrer" whileHover={{ scale: 1.02, backgroundColor: 'rgba(198, 164, 107, 0.1)' }} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '20px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: 'var(--white)' }}>
                   <div style={{ background: 'rgba(198, 164, 107, 0.2)', padding: '10px', borderRadius: '50%', color: 'var(--gold)' }}><MessageCircle size={20} /></div>
-                  <div style={{ textAlign: 'left' }}><div style={{ fontSize: '12px', color: 'var(--muted)', letterSpacing: '1px' }}>WHATSAPP</div><div style={{ fontSize: '14px', fontWeight: '500' }}>+1 234 567 890</div></div>
+                  <div style={{ textAlign: 'left' }}><div style={{ fontSize: '12px', color: 'var(--muted)', letterSpacing: '1px' }}>WHATSAPP</div><div style={{ fontSize: '14px', fontWeight: '500' }}>+91-9692485219</div></div>
                 </motion.a>
-                <motion.a href="tel:+1234567890" whileHover={{ scale: 1.02, backgroundColor: 'rgba(198, 164, 107, 0.1)' }} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '20px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: 'var(--white)' }}>
+                <motion.a href="tel:+9692485219" whileHover={{ scale: 1.02, backgroundColor: 'rgba(198, 164, 107, 0.1)' }} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '20px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: 'var(--white)' }}>
                   <div style={{ background: 'rgba(198, 164, 107, 0.2)', padding: '10px', borderRadius: '50%', color: 'var(--gold)' }}><Phone size={20} /></div>
-                  <div style={{ textAlign: 'left' }}><div style={{ fontSize: '12px', color: 'var(--muted)', letterSpacing: '1px' }}>CALL US</div><div style={{ fontSize: '14px', fontWeight: '500' }}>+1 234 567 890</div></div>
+                  <div style={{ textAlign: 'left' }}><div style={{ fontSize: '12px', color: 'var(--muted)', letterSpacing: '1px' }}>CALL US</div><div style={{ fontSize: '14px', fontWeight: '500' }}>+91-9692485219</div></div>
                 </motion.a>
               </div>
             </motion.div>
