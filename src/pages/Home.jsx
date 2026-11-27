@@ -22,20 +22,11 @@ const staggerContainer = {
   visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.1 } } 
 };
 
-// --- DEFAULT FALLBACK DATA ---
+// --- DEFAULT FALLBACK DATA (Used if admin has not set them yet) ---
 const defaultFeaturedWorks = [
   { number: '01', category: 'WEDDINGS', title: 'Forever Begins', img: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85' },
   { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', img: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85' },
   { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85' },
-];
-
-const defaultOrbitMoments = [
-  { id: 1, tag: "ROYAL WEDDING", title: "Forever Begins at Sacred Dusk", focal: "85mm • f/1.4 • ISO 100", desc: "Vows whispered beneath temple archways as the golden hour blesses every vow.", url: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=300&q=80" },
-  { id: 2, tag: "CINEMATIC HALDI", title: "Golden Petals & Joyous Tears", focal: "50mm • f/1.2 • ISO 200", desc: "Unbridled laughter and flying marigold showers captured in slow-motion warmth.", url: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=300&q=80" },
-  { id: 3, tag: "PRE-WEDDING DAWN", title: "Whispers Across The Mist", focal: "35mm • f/1.8 • ISO 160", desc: "Quiet intimacy framed by serene waters, morning reflections, and timeless poetry.", url: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=300&q=80" },
-  { id: 4, tag: "GRAND CELEBRATION", title: "The Euphoria of Royal Baraat", focal: "24mm • f/2.0 • ISO 400", desc: "High energy, celebratory drums, and kaleidoscopic colors frozen at peak motion.", url: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=300&q=80" },
-  { id: 5, tag: "STARLIT RECEPTION", title: "First Dance Under Chandeliers", focal: "105mm • f/2.8 • ISO 800", desc: "Chandelier glints, velvet suits, and the quiet universe of two lovers dancing alone.", url: "https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=300&q=80" },
-  { id: 6, tag: "SOUL PORTRAIT", title: "Elegance in The Mirror", focal: "85mm • f/1.4 • ISO 100", desc: "The bridal veil catching soft natural window light in profound stillness.", url: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=300&q=80" }
 ];
 
 const defaultTestimonials = [
@@ -108,27 +99,11 @@ const defaultHomeContent = {
   featuredWorks: defaultFeaturedWorks,
   stripTopWorks: null,
   stripBottomWorks: null,
-  orbitMoments: defaultOrbitMoments,
+  orbitMoments: null,
   showreels: defaultShortReels,
   viewfinderShots: null,
   testimonials: defaultTestimonials,
   showreelImg: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1600&q=80'
-};
-
-// Helper: Normalize moments to guarantee url, img, image, thumb are always present
-const normalizeOrbitMoments = (list) => {
-  if (!list || !Array.isArray(list) || list.length === 0) return defaultOrbitMoments;
-  return list.map((m, i) => {
-    const src = m.url || m.img || m.image || m.thumb || defaultOrbitMoments[i]?.url;
-    return {
-      ...m,
-      id: m.id || i + 1,
-      url: src,
-      img: src,
-      image: src,
-      thumb: m.thumb || src
-    };
-  });
 };
 
 // Synchronously load cache on initial render to prevent flashing
@@ -136,15 +111,14 @@ const getInitialHomeContent = () => {
   try {
     const cached = localStorage.getItem('site_content_cache');
     if (cached) {
-      const parsed = JSON.parse(cached);
-      const data = parsed.content || parsed.data || parsed;
+      const data = JSON.parse(cached);
       return {
         ...defaultHomeContent,
         ...data,
         featuredWorks: data.featuredWorks || defaultHomeContent.featuredWorks,
         stripTopWorks: data.stripTopWorks || null,
         stripBottomWorks: data.stripBottomWorks || null,
-        orbitMoments: normalizeOrbitMoments(data.orbitMoments),
+        orbitMoments: data.orbitMoments || null,
         showreels: data.showreels || defaultHomeContent.showreels,
         viewfinderShots: data.viewfinderShots || null,
         testimonials: data.testimonials || defaultHomeContent.testimonials
@@ -179,13 +153,22 @@ export default function Home() {
 
   const activeFeaturedWorks = (content.featuredWorks && content.featuredWorks.length > 0) 
     ? content.featuredWorks 
-    : defaultFeaturedWorks;
-
-  const activeOrbitMoments = normalizeOrbitMoments(content.orbitMoments);
+    : [
+        { number: '01', category: 'WEDDINGS', title: 'Forever Begins', img: content.img1 || defaultFeaturedWorks[0].img },
+        { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', img: content.img2 || defaultFeaturedWorks[1].img },
+        { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', img: content.img3 || defaultFeaturedWorks[2].img }
+      ];
 
   const activeTestimonialsList = (content.testimonials && content.testimonials.length > 0) 
     ? content.testimonials 
-    : defaultTestimonials;
+    : [
+        { name: content.testimonial1Name || 'Ananya & Rahul', rating: 5, text: content.testimonial1 || defaultTestimonials[0].text },
+        { name: content.testimonial2Name || 'Sarah & James', rating: 5, text: content.testimonial2 || defaultTestimonials[1].text },
+        { name: content.testimonial3Name || 'Priya & Arjun', rating: 5, text: content.testimonial3 || defaultTestimonials[2].text },
+        { name: content.testimonial4Name || 'Neha & Vikram', rating: 5, text: content.testimonial4 || defaultTestimonials[3].text },
+        { name: content.testimonial5Name || 'Riya & Karan', rating: 5, text: content.testimonial5 || defaultTestimonials[4].text },
+        { name: content.testimonial6Name || 'Simran & Aditya', rating: 5, text: content.testimonial6 || defaultTestimonials[5].text },
+      ];
 
   // Detect Mobile Screens
   useEffect(() => {
@@ -209,11 +192,11 @@ export default function Home() {
             ...prev,
             ...data,
             featuredWorks: data.featuredWorks || prev.featuredWorks,
-            stripTopWorks: data.stripTopWorks || prev.stripTopWorks,
-            stripBottomWorks: data.stripBottomWorks || prev.stripBottomWorks,
-            orbitMoments: normalizeOrbitMoments(data.orbitMoments || prev.orbitMoments),
+            stripTopWorks: data.stripTopWorks || null,
+            stripBottomWorks: data.stripBottomWorks || null,
+            orbitMoments: data.orbitMoments || null,
             showreels: data.showreels || prev.showreels,
-            viewfinderShots: data.viewfinderShots || prev.viewfinderShots,
+            viewfinderShots: data.viewfinderShots || null,
             testimonials: data.testimonials || prev.testimonials
           }));
         }
@@ -308,9 +291,6 @@ export default function Home() {
   const currentDesktopTestimonials = activeTestimonialsList.slice(startIdx, startIdx + 3);
   const currentMobileTestimonial = activeTestimonialsList[activeTestimonialSingle] || activeTestimonialsList[0];
 
-  // Dynamic reactive key to guarantee CinematicReveal re-mounts when images are updated
-  const orbitKey = activeOrbitMoments.map(m => m.url).join(';');
-
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       
@@ -343,15 +323,14 @@ export default function Home() {
 
       {/* 2. CINEMATIC FILM STRIP */}
       <CinematicStrip 
-        key={`strip-${content.stripTopWorks ? content.stripTopWorks.length : 0}`}
         topWorks={content.stripTopWorks} 
         bottomWorks={content.stripBottomWorks} 
       />
 
-      {/* 3. 360° ORBIT APERTURE MOMENTS (FORCED RE-MOUNT KEY ON IMAGE CHANGE) */}
+      {/* 3. 360° ORBIT APERTURE MOMENTS (KEY PROP ENSURES IMMEDIATE RE-RENDER ON UPLOAD) */}
       <CinematicReveal 
-        key={orbitKey} 
-        moments={activeOrbitMoments} 
+        key={content.orbitMoments ? content.orbitMoments.map(m => m.url || m.img).join(';') : 'orbit-default'}
+        moments={content.orbitMoments} 
       />
 
       {/* 4. INTRODUCTION STORY */}
@@ -661,7 +640,6 @@ export default function Home() {
 
       {/* 7. REAL-TIME VIEWFINDER */}
       <EventPlanner 
-        key={`viewfinder-${content.viewfinderShots ? content.viewfinderShots.length : 0}`}
         shots={content.viewfinderShots} 
       />
 
