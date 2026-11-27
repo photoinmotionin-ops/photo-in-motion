@@ -2372,6 +2372,67 @@ function SectionHeader({ tag, title, sub }) {
 }
 
 // Styling Constants
+// const boxCardStyle = {
+//   background: '#131313',
+//   border: '1px solid rgba(255, 255, 255, 0.07)',
+//   borderRadius: '14px',
+//   padding: '24px',
+//   marginBottom: '24px',
+//   display: 'flex',
+//   flexDirection: 'column'
+// };
+
+// const sectionHeadingStyle = {
+//   fontFamily: 'var(--heading-font, serif)',
+//   fontSize: '18px',
+//   color: '#fff',
+//   margin: '0 0 16px 0',
+//   display: 'flex',
+//   alignItems: 'center',
+//   gap: '8px'
+// };
+
+
+// const labelStyle = {
+//   display: 'block',
+//   color: '#c6a46b',
+//   fontSize: '12px',
+//   fontWeight: 600,
+//   letterSpacing: '0.5px',
+//   marginBottom: '8px',
+//   marginTop: '12px'
+// };
+
+// const miniLabelStyle = {
+//   display: 'block',
+//   color: '#aaa39a',
+//   fontSize: '11px',
+//   fontWeight: 600,
+//   letterSpacing: '0.5px',
+//   marginBottom: '6px',
+//   marginTop: '8px'
+// };
+
+// const inputStyle = {
+//   width: '100%',
+//   padding: '12px 14px',
+//   background: '#0d0d0d',
+//   border: '1px solid rgba(255,255,255,0.12)',
+//   borderRadius: '8px',
+//   color: '#fff',
+//   fontSize: '13px',
+//   fontFamily: 'inherit',
+//   outline: 'none',
+//   boxSizing: 'border-box',
+//   marginBottom: '12px',
+//   transition: 'border-color 0.2s ease'
+// };
+
+
+// ==========================================
+// STYLING CONSTANTS
+// ==========================================
+
 const boxCardStyle = {
   background: '#131313',
   border: '1px solid rgba(255, 255, 255, 0.07)',
@@ -2392,10 +2453,10 @@ const sectionHeadingStyle = {
   gap: '8px'
 };
 
-
+// General form labels
 const labelStyle = {
   display: 'block',
-  color: '#c6a46b',
+  color: 'var(--gold, #c6a46b)',
   fontSize: '12px',
   fontWeight: 600,
   letterSpacing: '0.5px',
@@ -2403,6 +2464,7 @@ const labelStyle = {
   marginTop: '12px'
 };
 
+// Smaller labels
 const miniLabelStyle = {
   display: 'block',
   color: '#aaa39a',
@@ -2413,6 +2475,7 @@ const miniLabelStyle = {
   marginTop: '8px'
 };
 
+// Input, textarea and select styling
 const inputStyle = {
   width: '100%',
   padding: '12px 14px',
@@ -2426,4 +2489,24 @@ const inputStyle = {
   boxSizing: 'border-box',
   marginBottom: '12px',
   transition: 'border-color 0.2s ease'
+};
+
+// Image and video upload buttons
+const uploadButtonStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '8px',
+  padding: '10px 16px',
+  background: 'rgba(198, 164, 107, 0.12)',
+  color: 'var(--gold, #c6a46b)',
+  border: '1px solid rgba(198, 164, 107, 0.4)',
+  borderRadius: '8px',
+  fontSize: '12px',
+  fontWeight: 600,
+  fontFamily: 'inherit',
+  cursor: 'pointer',
+  textAlign: 'center',
+  boxSizing: 'border-box',
+  transition: 'all 0.2s ease'
 };
