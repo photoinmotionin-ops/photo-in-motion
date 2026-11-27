@@ -13,30 +13,97 @@ const CLOUDINARY_UPLOAD_PRESET = 'portfolio_upload';
 const WEDDING_SUB_CATEGORIES = ['Engagement', 'Pre-Wedding', 'Mehendi & Haldi', 'Marriage', 'Reception'];
 
 // File Size Thresholds (in MB)
-const MAX_IMAGE_SIZE_MB = 10;  // Threshold for Image auto-compression popup
-const MAX_VIDEO_SIZE_MB = 80;  // Threshold for Video adaptive compression popup
+const MAX_IMAGE_SIZE_MB = 10;
+const MAX_VIDEO_SIZE_MB = 80;
+
+// ====================================================================
+// TOP-LEVEL STYLING CONSTANTS (MOVED TO TOP TO PREVENT TDZ / REFERENCE ERRORS)
+// ====================================================================
+const boxCardStyle = {
+  background: '#131313',
+  border: '1px solid rgba(255, 255, 255, 0.07)',
+  borderRadius: '14px',
+  padding: '24px',
+  marginBottom: '24px',
+  display: 'flex',
+  flexDirection: 'column'
+};
+
+const sectionHeadingStyle = {
+  fontFamily: 'var(--heading-font, serif)',
+  fontSize: '18px',
+  color: '#fff',
+  margin: '0 0 16px 0',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px'
+};
+
+const labelStyle = { 
+  display: 'block', 
+  color: 'var(--gold, #c6a46b)', 
+  marginBottom: '6px', 
+  fontSize: '12.5px', 
+  fontWeight: 600, 
+  letterSpacing: '0.8px', 
+  marginTop: '14px' 
+};
+
+const miniLabelStyle = {
+  display: 'block',
+  color: '#888',
+  fontSize: '10.5px',
+  letterSpacing: '0.5px',
+  marginBottom: '4px',
+  marginTop: '8px',
+  textTransform: 'uppercase',
+  fontWeight: 600
+};
+
+const inputStyle = { 
+  width: '100%', 
+  padding: '10px 12px', 
+  background: '#090909', 
+  border: '1px solid rgba(255, 255, 255, 0.1)', 
+  borderRadius: '6px', 
+  color: '#fff', 
+  fontSize: '13px', 
+  fontFamily: 'inherit', 
+  outline: 'none',
+  boxSizing: 'border-box'
+};
+
+const uploadButtonStyle = {
+  padding: '9px 14px',
+  background: 'var(--gold, #c6a46b)',
+  color: '#000',
+  borderRadius: '6px',
+  cursor: 'pointer',
+  fontSize: '12px',
+  fontWeight: 700,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '6px',
+  border: 'none',
+  transition: 'opacity 0.2s ease'
+};
 
 const defaultContent = {
-  // ----------------------------------------------------
   // 1. HOMEPAGE: HERO & INTRO STORY
-  // ----------------------------------------------------
   heroTitle: 'Every Frame.\nA Timeless Story.',
   heroSub: "We don't just capture moments. We turn emotions, memories and beautiful stories into something that lasts forever.",
   storyTitle: 'Moments pass.\nStories stay forever.',
   storyText: 'At Photo In Motion, we believe every celebration has a story worth telling. Through thoughtful photography and cinematic filmmaking, we preserve the feelings behind every frame.',
   
-  // ----------------------------------------------------
   // 2. HOMEPAGE: FEATURED WORKS (3 CARDS)
-  // ----------------------------------------------------
   featuredWorks: [
     { number: '01', category: 'WEDDINGS', title: 'Forever Begins', img: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85' },
     { number: '02', category: 'CELEBRATIONS', title: 'Beautiful Together', img: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85' },
     { number: '03', category: 'CINEMATIC FILMS', title: 'Beyond The Frame', img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85' }
   ],
 
-  // ----------------------------------------------------
   // 3. HOMEPAGE: CINEMATIC FILM STRIP (CinematicStrip)
-  // ----------------------------------------------------
   stripTopWorks: [
     { id: 't1', title: 'Forever Begins', category: 'WEDDINGS', img: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=85' },
     { id: 't2', title: 'Golden Sunset Vows', category: 'PRE-WEDDING', img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=85' },
@@ -52,9 +119,7 @@ const defaultContent = {
     { id: 'b5', title: 'Chasing the Horizon', category: 'PRE-WEDDING', img: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=900&q=85' }
   ],
 
-  // ----------------------------------------------------
   // 4. HOMEPAGE: 360° ORBIT GALLERY (CinematicReveal)
-  // ----------------------------------------------------
   orbitMoments: [
     { id: 1, tag: "ROYAL WEDDING", title: "Forever Begins at Sacred Dusk", focal: "85mm • f/1.4 • ISO 100", desc: "Vows whispered beneath temple archways as the golden hour blesses every vow.", url: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=300&q=80" },
     { id: 2, tag: "CINEMATIC HALDI", title: "Golden Petals & Joyous Tears", focal: "50mm • f/1.2 • ISO 200", desc: "Unbridled laughter and flying marigold showers captured in slow-motion warmth.", url: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=300&q=80" },
@@ -64,9 +129,7 @@ const defaultContent = {
     { id: 6, tag: "SOUL PORTRAIT", title: "Elegance in The Mirror", focal: "85mm • f/1.4 • ISO 100", desc: "The bridal veil catching soft natural window light in profound stillness.", url: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=85", img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=85", thumb: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=300&q=80" }
   ],
 
-  // ----------------------------------------------------
   // 5. HOMEPAGE: SHOWREEL VIDEOS & POSTERS
-  // ----------------------------------------------------
   showreels: [
     { id: 'reel-1', number: '01', title: 'The Royal Wedding Saga', category: 'WEDDINGS', location: 'Udaivilas, Udaipur', duration: '0:10', videoUrl: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4', poster: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85', synopsis: 'A grand royal union captured in 4K anamorphic richness with intimate emotional cadences.' },
     { id: 'reel-2', number: '02', title: 'Golden Sunset Vows', category: 'PRE-WEDDING', location: 'Pashan Lake, Pune', duration: '0:10', videoUrl: 'https://assets.codepen.io/6093409/river.mp4', poster: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=85', synopsis: 'Golden hour silhouettes, mist over water, and vows etched before the crowd arrives.' },
@@ -75,9 +138,7 @@ const defaultContent = {
     { id: 'reel-5', number: '05', title: 'Midnight Waltz & First Dance', category: 'RECEPTIONS', location: 'Taj Falaknuma, Hyderabad', duration: '0:10', videoUrl: 'https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4', poster: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=85', synopsis: 'Sparklers illuminate the twilight as the couple takes their inaugural dance as one.' }
   ],
 
-  // ----------------------------------------------------
   // 6. HOMEPAGE: DIRECTOR'S VIEWFINDER (EventPlanner)
-  // ----------------------------------------------------
   viewfinderShots: [
     { id: 'shot-01', lens: '85mm f/1.4', category: 'BRIDAL PORTRAITURE', focalName: 'The Signature Bokeh', desc: 'Creamy optical depth with tack-sharp focus on the bridal veil and eye highlights.', shutter: '1/500s', aperture: 'f/1.4', iso: 'ISO 100', kelvin: '5600K Daylight', imgGraded: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85', imgRaw: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=25' },
     { id: 'shot-02', lens: '24mm f/2.8', category: 'ROYAL VENUE & MANDAP', focalName: 'Architectural Grandeur', desc: 'Capturing the monumental scale of grand chandeliers, palace pillars, and floral ceilings.', shutter: '1/250s', aperture: 'f/4.0', iso: 'ISO 400', kelvin: '3200K Tungsten', imgGraded: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=85', imgRaw: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=25' },
@@ -87,9 +148,7 @@ const defaultContent = {
     { id: 'shot-06', lens: '85mm f/1.4', category: 'EDITORIAL PORTRAIT', focalName: 'Serenity & Grace', desc: 'Studio-quality natural window sidelight highlighting jewelry and embroidery details.', shutter: '1/320s', aperture: 'f/1.6', iso: 'ISO 160', kelvin: '5500K Studio', imgGraded: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=85', imgRaw: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=25' }
   ],
 
-  // ----------------------------------------------------
   // 7. HOMEPAGE: TESTIMONIALS (6 ITEMS)
-  // ----------------------------------------------------
   testimonials: [
     { name: 'Ananya & Rahul', text: 'They captured the essence of our wedding perfectly.' },
     { name: 'Sarah & James', text: 'The cinematic film they created for us is an absolute masterpiece.' },
@@ -99,9 +158,7 @@ const defaultContent = {
     { name: 'Simran & Aditya', text: 'The attention to detail was flawless. Highly recommended!' }
   ],
 
-  // ----------------------------------------------------
   // 8. OUR STORY PAGE (COMPLETE STORY & FOUNDER INFO)
-  // ----------------------------------------------------
   storyHeroEyebrow: 'THE LEGACY SINCE 2005',
   storyHeroHeading: 'Moments pass.\nStories stay forever.',
   storyHeroParagraph: 'At Photo In Motion Studio, our story is etched in patience, passion, and two decades of relentless craftsmanship. From our beginnings in Kendrapara to documenting state leaders, fashion icons, and royal weddings, we preserve the heartbeat behind every frame.',
@@ -134,9 +191,7 @@ const defaultContent = {
     { title: 'Shorts & YouTube Productions', desc: 'Modern vertical short cinema, Reels, and 4K YouTube storytelling tailored with rhythmic pacing and cinematic sound design.' }
   ],
 
-  // ----------------------------------------------------
   // 9. CONTACT & ENQUIRY FORM OPTIONS
-  // ----------------------------------------------------
   eventTypes: ['Wedding', 'Baby Shower', 'Post Wedding', 'Car Delivery', 'Others'],
   budgetRanges: ['Under ₹50,000', '₹50,000 - ₹1,00,000', '₹1,00,000 - ₹3,00,000', 'Above ₹3,00,000'],
   enquiryServices: ['Photography', 'Cinematography', 'Drone / Aerial Coverage', 'Luxury Album Printing'],
@@ -162,9 +217,7 @@ const defaultContent = {
   contactCtaDesc: "Have a celebration coming up? Let's talk about how we can turn your moments into lasting memories.",
   contactCtaBtn: 'Start A Conversation',
 
-  // ----------------------------------------------------
   // 10. FLOATING CONTROLS & SOCIAL REDIRECTS
-  // ----------------------------------------------------
   contactEmail: 'photoinmotion.in@gmail.com',
   contactPhone: '+91-9692485219',
   whatsappPhone: '9692485219',
@@ -173,9 +226,7 @@ const defaultContent = {
   youtubeUrl: 'https://youtube.com',
   linkedinUrl: 'https://linkedin.com',
 
-  // ----------------------------------------------------
   // 11. MULTI-CLIENT PORTFOLIO
-  // ----------------------------------------------------
   portfolioItems: [],
   categories: ['Wedding', 'Birthday', 'Corporate']
 };
@@ -219,7 +270,6 @@ export default function AdminChange() {
 
   const navigate = useNavigate();
 
-  // Helper to add or update a toast
   const showToast = (toastObj) => {
     const id = toastObj.id || Date.now().toString();
     setToasts(prev => {
@@ -623,6 +673,24 @@ export default function AdminChange() {
     e.target.value = '';
   };
 
+  const handleOrbitPhotoUpload = async (file, idx) => {
+    if (!file) return;
+    const url = await uploadToCloudinary(file, 'image');
+    if (url) {
+      setContent(prev => {
+        const updated = [...prev.orbitMoments];
+        updated[idx] = {
+          ...updated[idx],
+          url,
+          img: url,
+          image: url,
+          thumb: url
+        };
+        return { ...prev, orbitMoments: updated };
+      });
+    }
+  };
+
   const handleShowreelUrlChange = async (url, idx) => {
     updateArrayItem('showreels', idx, 'videoUrl', url);
     if (!url || !url.trim()) return;
@@ -655,46 +723,39 @@ export default function AdminChange() {
     }
   };
 
-  if (loading) return <div style={{ color: '#fff', padding: '100px', textAlign: 'center' }}>Loading Admin Panel...</div>;
+  const handleDeleteCategory = (catToDelete) => {
+    if (content.categories.length <= 1) {
+      alert("At least one category must remain.");
+      return;
+    }
 
-  const themeStyles = {
-    gold: {
-      cardBg: 'linear-gradient(145deg, rgba(22, 18, 12, 0.96), rgba(12, 10, 8, 0.98))',
-      border: '1px solid rgba(198, 164, 107, 0.4)',
-      accent: 'var(--gold, #c6a46b)',
-      glow: '0 0 45px rgba(198, 164, 107, 0.25)',
-      barBg: 'linear-gradient(90deg, #99773d, #c6a46b, #f3e7c4)',
-      badgeBg: 'rgba(198, 164, 107, 0.15)',
-      badgeText: 'var(--gold, #c6a46b)'
-    },
-    cyber: {
-      cardBg: 'linear-gradient(145deg, rgba(6, 20, 22, 0.96), rgba(4, 12, 15, 0.98))',
-      border: '1px solid rgba(0, 245, 212, 0.45)',
-      accent: '#00f5d4',
-      glow: '0 0 45px rgba(0, 245, 212, 0.25)',
-      barBg: 'linear-gradient(90deg, #00bbf9, #00f5d4, #bbf7d0)',
-      badgeBg: 'rgba(0, 245, 212, 0.15)',
-      badgeText: '#00f5d4'
-    },
-    studio: {
-      cardBg: 'linear-gradient(145deg, rgba(26, 26, 28, 0.97), rgba(14, 14, 16, 0.98))',
-      border: '1px solid rgba(255, 255, 255, 0.2)',
-      accent: '#f1f5f9',
-      glow: '0 0 40px rgba(255, 255, 255, 0.1)',
-      barBg: 'linear-gradient(90deg, #64748b, #94a3b8, #f8fafc)',
-      badgeBg: 'rgba(255, 255, 255, 0.12)',
-      badgeText: '#f8fafc'
+    if (window.confirm(`Are you sure you want to delete the "${catToDelete}" category?`)) {
+      const remainingCats = content.categories.filter(c => c !== catToDelete);
+      setContent(prev => ({
+        ...prev,
+        categories: remainingCats,
+        portfolioItems: prev.portfolioItems.filter(item => item.category !== catToDelete)
+      }));
+
+      if (selectedCategory === catToDelete) {
+        setSelectedCategory(remainingCats[0]);
+      }
+
+      showToast({
+        type: 'info',
+        title: 'Category Deleted',
+        message: `Category "${catToDelete}" has been removed.`,
+        duration: 3500
+      });
     }
   };
 
-  const currentTheme = themeStyles[uploadTheme] || themeStyles.gold;
+  if (loading) return <div style={{ color: '#fff', padding: '100px', textAlign: 'center' }}>Loading Admin Panel...</div>;
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#fff', paddingBottom: '120px' }}>
       
-      {/* ======================================================== */}
-      {/* A. CUSTOM CONFIRMATION POPUP FOR OVERSIZED FILES         */}
-      {/* ======================================================== */}
+      {/* OVERSIZED FILE CONFIRMATION MODAL */}
       {confirmModal.isOpen && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -795,9 +856,7 @@ export default function AdminChange() {
         </div>
       )}
 
-      {/* ======================================================== */}
-      {/* B. TOAST NOTIFICATIONS CONTAINER (DOCKED BOTTOM-RIGHT)   */}
-      {/* ======================================================== */}
+      {/* TOAST NOTIFICATIONS */}
       <div style={{
         position: 'fixed',
         bottom: '24px',
@@ -832,11 +891,6 @@ export default function AdminChange() {
                   : isSuccess 
                   ? '1px solid rgba(34, 197, 94, 0.5)' 
                   : '1px solid rgba(198, 164, 107, 0.45)',
-                boxShadow: isError
-                  ? '0 10px 30px rgba(239, 68, 68, 0.2)'
-                  : isSuccess
-                  ? '0 10px 30px rgba(34, 197, 94, 0.2)'
-                  : '0 10px 30px rgba(198, 164, 107, 0.2)',
                 borderRadius: '14px',
                 padding: '16px',
                 color: '#fff',
@@ -912,9 +966,7 @@ export default function AdminChange() {
         })}
       </div>
 
-      {/* ======================================================== */}
-      {/* 1. TOP BAR                                               */}
-      {/* ======================================================== */}
+      {/* TOP BAR */}
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0,
         background: 'rgba(10, 10, 10, 0.95)', backdropFilter: 'blur(12px)',
@@ -973,9 +1025,7 @@ export default function AdminChange() {
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* 2. PRIMARY PAGE NAVIGATION TABS                          */}
-      {/* ======================================================== */}
+      {/* PRIMARY PAGE NAVIGATION TABS */}
       <div style={{ paddingTop: '80px', background: '#111', borderBottom: '1px solid rgba(255,255,255,0.06)', position: 'sticky', top: '65px', zIndex: 90 }}>
         <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '12px 4%', scrollbarWidth: 'none' }}>
           {[
@@ -1013,7 +1063,7 @@ export default function AdminChange() {
           })}
         </div>
 
-        {/* 2B. SUB-NAVIGATION PILLS FOR HOME PAGE */}
+        {/* SUB-NAVIGATION PILLS FOR HOME PAGE */}
         {activeTab === 'home' && (
           <div style={{ background: '#0d0d0d', borderTop: '1px solid rgba(255,255,255,0.04)', padding: '10px 4%', display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none' }}>
             <span style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px', alignSelf: 'center', marginRight: '6px' }}>Home Sections:</span>
@@ -1052,9 +1102,7 @@ export default function AdminChange() {
         )}
       </div>
 
-      {/* ======================================================== */}
-      {/* 3. MAIN CONTENT CONTAINER                                */}
-      {/* ======================================================== */}
+      {/* MAIN CONTENT AREA */}
       <div style={{ padding: '40px 4%', maxWidth: '1200px', margin: '0 auto' }}>
 
         {/* ==================================================================== */}
@@ -1259,33 +1307,13 @@ export default function AdminChange() {
                         <img src={m.url || m.img} alt={m.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
 
-                      {/* Orbit photo upload sets all field variants so nothing breaks */}
                       <label style={{ ...uploadButtonStyle, width: '100%', marginBottom: '14px' }}>
                         <Upload size={13} /> Upload High-Res Moment Photo
                         <input 
                           type="file" 
                           accept="image/*" 
                           style={{ display: 'none' }} 
-                          onChange={(e) => {
-                            const file = e.target.files[0];
-                            if (!file) return;
-                            uploadToCloudinary(file, 'image').then(url => {
-                              if (url) {
-                                setContent(prev => {
-                                  const updated = [...prev.orbitMoments];
-                                  updated[idx] = {
-                                    ...updated[idx],
-                                    url: url,
-                                    img: url,
-                                    image: url,
-                                    thumb: url
-                                  };
-                                  return { ...prev, orbitMoments: updated };
-                                });
-                              }
-                            });
-                            e.target.value = '';
-                          }}
+                          onChange={(e) => handleOrbitPhotoUpload(e.target.files[0], idx)}
                         />
                       </label>
 
@@ -2074,24 +2102,11 @@ export default function AdminChange() {
                     {cat}
                   </button>
 
-                  {/* CATEGORY DELETE BUTTON */}
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (content.categories.length <= 1) {
-                        alert("At least one category must remain.");
-                        return;
-                      }
-                      if (window.confirm(`Delete "${cat}" category and its events?`)) {
-                        const remaining = content.categories.filter(c => c !== cat);
-                        setContent(prev => ({
-                          ...prev,
-                          categories: remaining,
-                          portfolioItems: prev.portfolioItems.filter(item => item.category !== cat)
-                        }));
-                        if (selectedCategory === cat) setSelectedCategory(remaining[0]);
-                      }
+                      handleDeleteCategory(cat);
                     }}
                     style={{
                       background: 'transparent',
@@ -2275,7 +2290,7 @@ export default function AdminChange() {
         )}
 
         {/* ==================================================================== */}
-        {/* PAGE 5: MODALS & FLOATING SOCIAL LINKS                               */}
+        {/* PAGE 5: MODALS & FLOATING CONTROLS                                   */}
         {/* ==================================================================== */}
         {activeTab === 'social' && (
           <div>
@@ -2370,143 +2385,3 @@ function SectionHeader({ tag, title, sub }) {
     </div>
   );
 }
-
-// Styling Constants
-// const boxCardStyle = {
-//   background: '#131313',
-//   border: '1px solid rgba(255, 255, 255, 0.07)',
-//   borderRadius: '14px',
-//   padding: '24px',
-//   marginBottom: '24px',
-//   display: 'flex',
-//   flexDirection: 'column'
-// };
-
-// const sectionHeadingStyle = {
-//   fontFamily: 'var(--heading-font, serif)',
-//   fontSize: '18px',
-//   color: '#fff',
-//   margin: '0 0 16px 0',
-//   display: 'flex',
-//   alignItems: 'center',
-//   gap: '8px'
-// };
-
-
-// const labelStyle = {
-//   display: 'block',
-//   color: '#c6a46b',
-//   fontSize: '12px',
-//   fontWeight: 600,
-//   letterSpacing: '0.5px',
-//   marginBottom: '8px',
-//   marginTop: '12px'
-// };
-
-// const miniLabelStyle = {
-//   display: 'block',
-//   color: '#aaa39a',
-//   fontSize: '11px',
-//   fontWeight: 600,
-//   letterSpacing: '0.5px',
-//   marginBottom: '6px',
-//   marginTop: '8px'
-// };
-
-// const inputStyle = {
-//   width: '100%',
-//   padding: '12px 14px',
-//   background: '#0d0d0d',
-//   border: '1px solid rgba(255,255,255,0.12)',
-//   borderRadius: '8px',
-//   color: '#fff',
-//   fontSize: '13px',
-//   fontFamily: 'inherit',
-//   outline: 'none',
-//   boxSizing: 'border-box',
-//   marginBottom: '12px',
-//   transition: 'border-color 0.2s ease'
-// };
-
-
-// ==========================================
-// STYLING CONSTANTS
-// ==========================================
-
-const boxCardStyle = {
-  background: '#131313',
-  border: '1px solid rgba(255, 255, 255, 0.07)',
-  borderRadius: '14px',
-  padding: '24px',
-  marginBottom: '24px',
-  display: 'flex',
-  flexDirection: 'column'
-};
-
-const sectionHeadingStyle = {
-  fontFamily: 'var(--heading-font, serif)',
-  fontSize: '18px',
-  color: '#fff',
-  margin: '0 0 16px 0',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px'
-};
-
-// General form labels
-const labelStyle = {
-  display: 'block',
-  color: 'var(--gold, #c6a46b)',
-  fontSize: '12px',
-  fontWeight: 600,
-  letterSpacing: '0.5px',
-  marginBottom: '8px',
-  marginTop: '12px'
-};
-
-// Smaller labels
-const miniLabelStyle = {
-  display: 'block',
-  color: '#aaa39a',
-  fontSize: '11px',
-  fontWeight: 600,
-  letterSpacing: '0.5px',
-  marginBottom: '6px',
-  marginTop: '8px'
-};
-
-// Input, textarea and select styling
-const inputStyle = {
-  width: '100%',
-  padding: '12px 14px',
-  background: '#0d0d0d',
-  border: '1px solid rgba(255,255,255,0.12)',
-  borderRadius: '8px',
-  color: '#fff',
-  fontSize: '13px',
-  fontFamily: 'inherit',
-  outline: 'none',
-  boxSizing: 'border-box',
-  marginBottom: '12px',
-  transition: 'border-color 0.2s ease'
-};
-
-// Image and video upload buttons
-const uploadButtonStyle = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '8px',
-  padding: '10px 16px',
-  background: 'rgba(198, 164, 107, 0.12)',
-  color: 'var(--gold, #c6a46b)',
-  border: '1px solid rgba(198, 164, 107, 0.4)',
-  borderRadius: '8px',
-  fontSize: '12px',
-  fontWeight: 600,
-  fontFamily: 'inherit',
-  cursor: 'pointer',
-  textAlign: 'center',
-  boxSizing: 'border-box',
-  transition: 'all 0.2s ease'
-};
