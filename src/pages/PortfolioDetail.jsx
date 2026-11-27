@@ -49,14 +49,17 @@ export default function PortfolioDetail() {
   const [activeTab, setActiveTab] = useState(WEDDING_SUB_CATEGORIES[0]);
   const [loading, setLoading] = useState(!cachedClient);
   
-  // Interactive Slider State (avoids long scroll)
+  // Interactive Slider State
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [detailViewMode, setDetailViewMode] = useState('carousel'); // 'carousel' or 'grid'
 
-  // Touch Swipe coordinates for mobile
+  // Touch coordinates with 2D axis isolation
   const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
   const touchEndX = useRef(0);
+  const touchEndY = useRef(0);
+  const isSwiping = useRef(false);
 
   // Background fetch to ensure latest data is loaded
   useEffect(() => {
@@ -112,25 +115,58 @@ export default function PortfolioDetail() {
     }
   }, [selectedPhotoIndex, totalPhotos, activeImages]);
 
-  const nextPhoto = () => {
-    if (totalPhotos > 0) setSelectedPhotoIndex((prev) => (prev + 1) % totalPhotos);
+  const nextPhoto = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (totalPhotos > 0) {
+      setSelectedPhotoIndex((prev) => (prev + 1) % totalPhotos);
+    }
   };
 
-  const prevPhoto = () => {
-    if (totalPhotos > 0) setSelectedPhotoIndex((prev) => (prev - 1 + totalPhotos) % totalPhotos);
+  const prevPhoto = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (totalPhotos > 0) {
+      setSelectedPhotoIndex((prev) => (prev - 1 + totalPhotos) % totalPhotos);
+    }
   };
 
-  // Touch swipe support for mobile
+  // Robust touch handling: resets values every touch & ignores vertical page scrolls
   const handleTouchStart = (e) => {
-    touchStartX.current = e.targetTouches[0].clientX;
+    const touch = e.touches[0];
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+    touchEndX.current = touch.clientX;
+    touchEndY.current = touch.clientY;
+    isSwiping.current = true;
   };
+
   const handleTouchMove = (e) => {
-    touchEndX.current = e.targetTouches[0].clientX;
+    if (!isSwiping.current) return;
+    const touch = e.touches[0];
+    touchEndX.current = touch.clientX;
+    touchEndY.current = touch.clientY;
   };
+
   const handleTouchEnd = () => {
-    const diff = touchStartX.current - touchEndX.current;
-    if (diff > 40) nextPhoto();
-    else if (diff < -40) prevPhoto();
+    if (!isSwiping.current) return;
+    isSwiping.current = false;
+
+    const diffX = touchStartX.current - touchEndX.current;
+    const diffY = touchStartY.current - touchEndY.current;
+
+    // Must be a deliberate horizontal swipe (more horizontal than vertical, and > 45px)
+    if (Math.abs(diffX) > 45 && Math.abs(diffX) > Math.abs(diffY) * 1.4) {
+      if (diffX > 0) {
+        nextPhoto();
+      } else {
+        prevPhoto();
+      }
+    }
   };
 
   if (loading && !client) {
@@ -211,6 +247,7 @@ export default function PortfolioDetail() {
                   return (
                     <button 
                       key={tab}
+                      type="button"
                       onClick={() => setActiveTab(tab)}
                       style={{ 
                         padding: '8px 16px', 
@@ -231,15 +268,17 @@ export default function PortfolioDetail() {
                 })}
               </div>
 
-              {/* View Mode Toggle: Interactive Carousel (Zero Scroll) vs Grid */}
+              {/* View Mode Toggle */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.04)', padding: '4px', borderRadius: '8px' }}>
                 <button
+                  type="button"
                   onClick={() => setDetailViewMode('carousel')}
                   style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', borderRadius: '6px', border: 'none', background: detailViewMode === 'carousel' ? 'var(--gold, #c6a46b)' : 'transparent', color: detailViewMode === 'carousel' ? '#111' : '#aaa', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   <SlidersHorizontal size={13} /> Slider
                 </button>
                 <button
+                  type="button"
                   onClick={() => setDetailViewMode('grid')}
                   style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', borderRadius: '6px', border: 'none', background: detailViewMode === 'grid' ? 'var(--gold, #c6a46b)' : 'transparent', color: detailViewMode === 'grid' ? '#111' : '#aaa', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
                 >
@@ -252,7 +291,7 @@ export default function PortfolioDetail() {
         )}
 
         {/* ============================================================== */}
-        {/* INTERACTIVE COMPACT SLIDER (NO LONG SCROLLING, FAST TOUCH) */}
+        {/* INTERACTIVE COMPACT SLIDER (ISOLATED TOUCH & BULLETPROOF BUTTONS) */}
         {/* ============================================================== */}
         {totalPhotos > 0 && detailViewMode === 'carousel' && (
           <div style={{ maxWidth: '980px', margin: '0 auto' }}>
@@ -262,7 +301,18 @@ export default function PortfolioDetail() {
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              style={{ position: 'relative', width: '100%', aspectRatio: '16/10', maxHeight: '520px', background: '#050505', borderRadius: '18px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 50px rgba(0,0,0,0.8)' }}
+              style={{ 
+                position: 'relative', 
+                width: '100%', 
+                aspectRatio: '16/10', 
+                maxHeight: '520px', 
+                background: '#050505', 
+                borderRadius: '18px', 
+                overflow: 'hidden', 
+                border: '1px solid rgba(255,255,255,0.1)', 
+                boxShadow: '0 20px 50px rgba(0,0,0,0.8)',
+                touchAction: 'pan-y'
+              }}
             >
               <AnimatePresence mode="wait">
                 <motion.img
@@ -275,35 +325,115 @@ export default function PortfolioDetail() {
                   transition={{ duration: 0.25 }}
                   loading="eager"
                   decoding="async"
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }}
                 />
               </AnimatePresence>
 
               {/* Fullscreen Button */}
               <button
-                onClick={() => setIsLightboxOpen(true)}
-                style={{ position: 'absolute', top: '15px', right: '15px', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setIsLightboxOpen(true); }}
+                onTouchStart={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
+                style={{ 
+                  position: 'absolute', 
+                  top: '15px', 
+                  right: '15px', 
+                  width: '42px', 
+                  height: '42px', 
+                  borderRadius: '50%', 
+                  background: 'rgba(0,0,0,0.75)', 
+                  border: '1px solid rgba(255,255,255,0.2)', 
+                  color: '#fff', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  cursor: 'pointer',
+                  zIndex: 25,
+                  touchAction: 'manipulation'
+                }}
                 title="Fullscreen Preview"
               >
-                <Maximize2 size={16} />
+                <Maximize2 size={17} />
               </button>
 
-              {/* Prev / Next Arrows */}
+              {/* Prev Arrow */}
               <button
+                type="button"
                 onClick={prevPhoto}
-                style={{ position: 'absolute', top: '50%', left: '15px', transform: 'translateY(-50%)', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                onTouchStart={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
+                style={{ 
+                  position: 'absolute', 
+                  top: '50%', 
+                  left: '12px', 
+                  transform: 'translateY(-50%)', 
+                  width: '44px', 
+                  height: '44px', 
+                  borderRadius: '50%', 
+                  background: 'rgba(0,0,0,0.8)', 
+                  border: '1px solid rgba(255,255,255,0.25)', 
+                  color: '#fff', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  cursor: 'pointer',
+                  zIndex: 25,
+                  touchAction: 'manipulation'
+                }}
+                aria-label="Previous Photo"
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={22} />
               </button>
+
+              {/* Next Arrow */}
               <button
+                type="button"
                 onClick={nextPhoto}
-                style={{ position: 'absolute', top: '50%', right: '15px', transform: 'translateY(-50%)', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                onTouchStart={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
+                style={{ 
+                  position: 'absolute', 
+                  top: '50%', 
+                  right: '12px', 
+                  transform: 'translateY(-50%)', 
+                  width: '44px', 
+                  height: '44px', 
+                  borderRadius: '50%', 
+                  background: 'rgba(0,0,0,0.8)', 
+                  border: '1px solid rgba(255,255,255,0.25)', 
+                  color: '#fff', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  cursor: 'pointer',
+                  zIndex: 25,
+                  touchAction: 'manipulation'
+                }}
+                aria-label="Next Photo"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={22} />
               </button>
 
               {/* Bottom Counter */}
-              <div style={{ position: 'absolute', bottom: '15px', left: '50%', transform: 'translateX(-50%)', padding: '4px 14px', borderRadius: '20px', background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.15)', fontSize: '11px', fontFamily: 'monospace', color: 'var(--gold, #c6a46b)' }}>
+              <div 
+                onTouchStart={(e) => e.stopPropagation()}
+                style={{ 
+                  position: 'absolute', 
+                  bottom: '15px', 
+                  left: '50%', 
+                  transform: 'translateX(-50%)', 
+                  padding: '4px 14px', 
+                  borderRadius: '20px', 
+                  background: 'rgba(0,0,0,0.8)', 
+                  border: '1px solid rgba(255,255,255,0.2)', 
+                  fontSize: '11px', 
+                  fontFamily: 'monospace', 
+                  color: 'var(--gold, #c6a46b)',
+                  zIndex: 20,
+                  pointerEvents: 'none'
+                }}
+              >
                 {selectedPhotoIndex + 1} / {totalPhotos}
               </div>
             </div>
@@ -315,7 +445,9 @@ export default function PortfolioDetail() {
                 return (
                   <button
                     key={idx}
-                    onClick={() => setSelectedPhotoIndex(idx)}
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setSelectedPhotoIndex(idx); }}
+                    onTouchStart={(e) => e.stopPropagation()}
                     style={{
                       flex: '0 0 75px',
                       height: '52px',
@@ -325,7 +457,8 @@ export default function PortfolioDetail() {
                       padding: 0,
                       cursor: 'pointer',
                       opacity: isSelected ? 1 : 0.5,
-                      background: '#111'
+                      background: '#111',
+                      touchAction: 'manipulation'
                     }}
                   >
                     <img 
@@ -333,7 +466,7 @@ export default function PortfolioDetail() {
                       alt={`thumb-${idx}`} 
                       loading="lazy"
                       decoding="async"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} 
                     />
                   </button>
                 );
@@ -385,8 +518,9 @@ export default function PortfolioDetail() {
           style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.96)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
         >
           <button 
+            type="button"
             onClick={() => setIsLightboxOpen(false)}
-            style={{ position: 'absolute', top: '20px', right: '20px', width: '40px', height: '40px', borderRadius: '50%', background: '#222', border: '1px solid #444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            style={{ position: 'absolute', top: '20px', right: '20px', width: '40px', height: '40px', borderRadius: '50%', background: '#222', border: '1px solid #444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100 }}
           >
             <X size={20} />
           </button>
@@ -399,15 +533,17 @@ export default function PortfolioDetail() {
           />
 
           <button
-            onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
-            style={{ position: 'absolute', top: '50%', left: '20px', transform: 'translateY(-50%)', width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: '1px solid #444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            type="button"
+            onClick={prevPhoto}
+            style={{ position: 'absolute', top: '50%', left: '20px', transform: 'translateY(-50%)', width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: '1px solid #444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100 }}
           >
             <ChevronLeft size={26} />
           </button>
 
           <button
-            onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
-            style={{ position: 'absolute', top: '50%', right: '20px', transform: 'translateY(-50%)', width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: '1px solid #444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            type="button"
+            onClick={nextPhoto}
+            style={{ position: 'absolute', top: '50%', right: '20px', transform: 'translateY(-50%)', width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: '1px solid #444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 100 }}
           >
             <ChevronRight size={26} />
           </button>
